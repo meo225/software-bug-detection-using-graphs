@@ -1,0 +1,2 @@
+metric,value,status,note
+audit_status,blocked,not_computed,DiverseVul raw directory does not exist: D:\PROJECT\software-bug-detection-using-graphs\data\raw\diversevul. See data/raw/README.md.

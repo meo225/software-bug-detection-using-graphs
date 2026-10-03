@@ -15,3 +15,5 @@ Một split chỉ là ba danh sách ID. Không nhân bản source code thành ba
 Chiến lược cần hỗ trợ: random, project-wise, chronological. Cùng một project không được vừa nằm trong train vừa nằm trong test khi dùng project-wise split.
 
 Đặt DiverseVul vào `raw/diversevul/`. Big-Vul và PrimeVul có thư mục riêng khi được thêm: `raw/bigvul/`, `raw/primevul/`.
+
+Chi tiết setup và định dạng file được hỗ trợ nằm ở `raw/README.md`. Chạy `python scripts/run_diversevul_eda.py --strict` sau khi đặt file; pipeline sẽ fail nếu thiếu field bắt buộc thay vì tự tạo schema.

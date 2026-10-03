@@ -1,148 +1,51 @@
 # DiverseVul dataset audit
 
-Trạng thái: **chưa chạy**. File này là mẫu báo cáo. Mọi ô "Pending" phải được thay bằng số liệu tính từ bản dataset đã tải. Không điền số từ paper. Không sửa dữ liệu cho khớp paper.
+**Status: BLOCKED - raw dataset not available.**
 
-Nếu số đếm khác paper, ghi ở mục phiên bản: số của file đang dùng, tên file, ngày tải, checksum, và mô tả chỗ khác.
+No DiverseVul statistics were computed. The CSV and PNG files in this report directory are explicitly marked placeholders so missing input cannot be mistaken for a zero-valued result.
 
-DiverseVul vẫn là candidate. Báo cáo này không được kết luận đây là dataset cuối cùng khi các mục dưới còn Pending.
+## Dataset files actually used
 
-## Dataset version
+None. The inspected raw directory was `D:/PROJECT/software-bug-detection-using-graphs/data/raw/diversevul` and contained no supported dataset file.
 
-| Mục | Giá trị |
-| --- | --- |
-| Config | `configs/data/diversevul.yaml` |
-| Đường dẫn local | `data/raw/diversevul/` |
-| Tên file đã tải | Pending |
-| Ngày tải | Pending |
-| Checksum | Pending |
-| Khác biệt so với paper hoặc metadata | Pending |
+Reason: `DiverseVul raw directory does not exist: D:\PROJECT\software-bug-detection-using-graphs\data\raw\diversevul. See data/raw/README.md.`
 
-## A. Dataset overview
+## How to provide the data
 
-| Câu hỏi | Kết quả |
-| --- | --- |
-| Số records | Pending |
-| Số vulnerable | Pending |
-| Số non-vulnerable | Pending |
-| Tỷ lệ vulnerable | Pending |
-| Danh sách cột | Pending |
-| Missing value từng cột | Pending |
-| Source code missing | Pending |
-| Project metadata missing | Pending |
-| Commit metadata missing | Pending |
-| CWE metadata missing | Pending |
+1. Download the main dataset from the official DiverseVul repository link.
+2. Optionally download its separate commit/repository metadata and label-noise spreadsheet.
+3. Put the files under `data/raw/diversevul/`; do not commit them.
+4. Run `python scripts/run_diversevul_eda.py --strict` from the repository root.
+5. Execute `notebooks/01_diversevul_eda.ipynb` top-to-bottom as the presentation-level reproducibility check.
 
-## B. CWE analysis
+The runner accepts CSV, JSON, JSONL/NDJSON, Parquet, and official-source pickle files. Use `--dataset-file PATH` if more than one plausible main file is present. Pickle must only come from the trusted official release because loading it can execute code.
 
-Chỉ tính các CWE thật sự có trong file đã tải.
+## Schema
 
-| Câu hỏi | Kết quả |
-| --- | --- |
-| Số CWE unique | Pending |
-| Vulnerable functions có CWE | Pending |
-| Vulnerable functions không có CWE | Pending |
-| Top 10 CWE | Pending |
-| Top 20 CWE | Pending |
-| Dạng long-tail | Pending |
+Not observed. The pipeline will print and export actual columns, dtypes, shape, missingness, examples, and the resolved source/label/CWE/project/commit/hash/CVE/repository mappings. It fails instead of inventing required fields.
 
-Bảng đầy đủ xuất ra `tables/cwe_distribution.csv` với cột `CWE`, `sample_count`, `percentage`, `project_count`.
+## Checks prepared but not executed on DiverseVul
 
-### Ngưỡng tần suất
+- paper-versus-release row, vulnerable, non-vulnerable, project, commit, and CWE counts
+- vulnerable-only CWE coverage, Top 10/20, long-tail and cumulative coverage
+- thresholds 20/50/100/200 without choosing one
+- zero/single/multi-CWE prevalence and bounded examples
+- project and CWE-project concentration plus split feasibility at 2/3/5/10 projects
+- exact and conservative-normalized duplicate/conflict checks
+- source missingness and character/line length quantiles
+- deterministic 30-function graph-readiness manifest
+- optional metadata join and URL coverage
 
-Không chọn ngưỡng trong báo cáo này. Chỉ ghi phần dữ liệu còn lại.
+## Paper context, not EDA results
 
-| Ngưỡng | Số CWE còn lại | Số vulnerable functions còn lại | Phần trăm dữ liệu giữ lại |
-| --- | --- | --- | --- |
-| >= 20 samples | Pending | Pending | Pending |
-| >= 50 samples | Pending | Pending | Pending |
-| >= 100 samples | Pending | Pending | Pending |
-| >= 200 samples | Pending | Pending | Pending |
+The comparison baseline encoded in the audit is 349,437 total functions, 18,945 vulnerable, 330,492 non-vulnerable, 797 projects, 7,514 commits, and 150 CWE categories. These values are never substituted for missing dataset measurements.
 
-## C. Multi-CWE analysis
+The paper's manual analysis reports roughly 60% accuracy for vulnerable-function labels. This is a limitation of fix-commit-derived labels, not a statistic recomputed from the absent full dataset. The official repository also states that its metadata covers 7,512 commits and is missing three commit URLs relative to the extracted dataset.
 
-Không lấy CWE đầu tiên làm ground-truth.
+## Answers to the research questions
 
-| Câu hỏi | Kết quả |
-| --- | --- |
-| Function có đúng 1 CWE | Pending |
-| Function có >= 2 CWE | Pending |
-| Tỷ lệ multi-CWE | Pending |
-| Phân bố số CWE trên một sample | Pending |
-| Ví dụ multi-CWE | Pending |
+Q1-Q13 remain **not measured** for the local release. In particular, the current evidence is insufficient to state how many CWE are usable, whether project-wise splitting is feasible, or whether this copy of DiverseVul is graph-ready.
 
-## D. Project analysis
+## Open research decisions
 
-| Câu hỏi | Kết quả |
-| --- | --- |
-| Số project | Pending |
-| Samples / project | Pending |
-| Vulnerable samples / project | Pending |
-| Số CWE / project | Pending |
-| Số project / CWE | Pending |
-| Random split có khả thi không | Pending |
-| Project-wise split có khả thi không | Pending |
-| Metadata thời gian có đủ cho chronological split không | Pending |
-
-`tables/project_distribution.csv`: `project`, `sample_count`, `vulnerable_count`, `cwe_count`.
-
-`tables/cwe_project_distribution.csv`: `CWE`, `sample_count`, `project_count`.
-
-Một CWE nhiều sample nhưng chỉ xuất hiện ở một project là rủi ro cho project-wise split. Ghi các trường hợp đó khi bảng đã có số.
-
-## E. Duplicate analysis
-
-Không xóa bản ghi trong pha EDA.
-
-| Kiểm tra | Kết quả |
-| --- | --- |
-| Trùng source code chính xác | Pending |
-| Trùng hash sẵn có của dataset | Pending |
-| Cùng source code, khác nhãn | Pending |
-| Cùng function, nhiều records | Pending |
-| Trùng sau chuẩn hóa whitespace và line ending | Pending |
-| Trùng sau khi bỏ comment, nếu làm an toàn | Pending |
-
-## F. Source code quality
-
-| Kiểm tra | Kết quả |
-| --- | --- |
-| Empty function | Pending |
-| Function cực ngắn | Pending |
-| Function cực dài | Pending |
-| Phân bố số dòng | Pending |
-| Phân bố độ dài ký tự hoặc token | Pending |
-| Mẫu trông như malformed | Pending |
-
-Ghi nhận một vài function vulnerable đã xem thủ công. Không dán toàn bộ dataset vào báo cáo.
-
-## G. Graph readiness
-
-| Câu hỏi | Kết quả |
-| --- | --- |
-| Đủ source code để thử trích graph | Pending |
-| Manifest 20–50 function | Pending |
-| Đường dẫn manifest | Pending |
-
-Chưa sinh CPG cho toàn bộ dữ liệu.
-
-## Kết luận
-
-Chỉ điền khi notebook đã chạy trên dữ liệu thật.
-
-1. DiverseVul có phù hợp với CWE classification hay không: Pending.
-2. Có bao nhiêu CWE thực sự usable: Pending. Usable phụ thuộc ngưỡng nhóm chưa chọn.
-3. Class imbalance nghiêm trọng tới mức nào: Pending.
-4. Multi-CWE có phải vấn đề đáng kể không: Pending.
-5. Duplicate có nghiêm trọng không: Pending.
-6. Project-wise split có khả thi không: Pending.
-7. Source code có đủ điều kiện để thử graph extraction không: Pending.
-8. Quyết định nhóm cần đưa ra tiếp theo: xem mục dưới. Chưa đủ bằng chứng để chọn dataset cuối cùng.
-
-## Quyết định còn mở
-
-- Có giữ DiverseVul làm dataset chính hay không.
-- Ngưỡng số sample tối thiểu của một CWE.
-- Chính sách multi-CWE.
-- Có loại duplicate hay không, và định nghĩa duplicate nào.
-- Random split, project-wise split, hay chronological split.
-- Biểu diễn đồ thị. CPG vẫn chỉ là candidate.
+The audit intentionally does not choose a Top-K/threshold, single-label or multi-label policy, final split, graph representation, Joern configuration, or GNN architecture.

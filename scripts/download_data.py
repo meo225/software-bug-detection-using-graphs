@@ -36,8 +36,11 @@ def main() -> None:
     LOGGER.info("Place files in: %s", raw_dir)
     LOGGER.info("Source page: %s", dataset.get("source_url"))
     LOGGER.info("Download page: %s", dataset.get("download_url"))
+    if dataset.get("metadata_url"):
+        LOGGER.info("Optional metadata page: %s", dataset.get("metadata_url"))
     LOGGER.info("Automatic download is disabled.")
     LOGGER.info("After the files are local, set dataset.version in %s.", args.config)
+    LOGGER.info("Then run: python scripts/run_diversevul_eda.py --strict")
 
 
 if __name__ == "__main__":
