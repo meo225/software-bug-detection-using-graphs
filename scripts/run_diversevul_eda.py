@@ -11,6 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(encoding="utf-8")
+
 os.environ.setdefault("MPLCONFIGDIR", str(ROOT / "data" / "interim" / "matplotlib"))
 
 import matplotlib
@@ -75,57 +79,57 @@ def write_blocked_outputs(reason: str, raw_dir: Path) -> None:
 
 
 def _blocked_report(reason: str, raw_dir: Path) -> str:
-    return f"""# DiverseVul dataset audit
+    return f"""# Audit dataset DiverseVul
 
-**Status: BLOCKED - raw dataset not available.**
+**Trạng thái: BLOCKED - chưa có dữ liệu thô.**
 
-No DiverseVul statistics were computed. The CSV and PNG files in this report directory are explicitly marked placeholders so missing input cannot be mistaken for a zero-valued result.
+Chưa có thống kê DiverseVul nào được tính. Các file CSV và PNG trong thư mục báo cáo được đánh dấu rõ là file giữ chỗ để tránh hiểu nhầm dữ liệu đầu vào bị thiếu thành kết quả có giá trị bằng 0.
 
-## Dataset files actually used
+## File dataset thực tế đã sử dụng
 
-None. The inspected raw directory was `{raw_dir.as_posix()}` and contained no supported dataset file.
+Không có. Thư mục dữ liệu thô đã kiểm tra là `{raw_dir.as_posix()}` và không chứa file dataset thuộc định dạng được hỗ trợ.
 
-Reason: `{reason}`
+Nguyên nhân: `{reason}`
 
-## How to provide the data
+## Cách cung cấp dữ liệu
 
-1. Download the main dataset from the official DiverseVul repository link.
-2. Optionally download its separate commit/repository metadata and label-noise spreadsheet.
-3. Put the files under `data/raw/diversevul/`; do not commit them.
-4. Run `python scripts/run_diversevul_eda.py --strict` from the repository root.
-5. Execute `notebooks/01_diversevul_eda.ipynb` top-to-bottom as the presentation-level reproducibility check.
+1. Tải dataset chính từ đường dẫn trong repository DiverseVul chính thức.
+2. Có thể tải thêm metadata commit/repository và bảng label-noise riêng.
+3. Đặt các file trong `data/raw/diversevul/`; không commit chúng.
+4. Chạy `python scripts/run_diversevul_eda.py --strict` từ thư mục gốc repository.
+5. Chạy toàn bộ `notebooks/01_diversevul_eda.ipynb` từ đầu đến cuối để kiểm tra khả năng tái lập ở lớp trình bày.
 
-The runner accepts CSV, JSON, JSONL/NDJSON, Parquet, and official-source pickle files. Use `--dataset-file PATH` if more than one plausible main file is present. Pickle must only come from the trusted official release because loading it can execute code.
+Runner hỗ trợ CSV, JSON, JSONL/NDJSON, Parquet và file pickle từ nguồn chính thức. Dùng `--dataset-file PATH` nếu có nhiều file có thể là dataset chính. Chỉ dùng pickle từ bản phát hành chính thức đáng tin cậy vì quá trình load pickle có thể thực thi code.
 
 ## Schema
 
-Not observed. The pipeline will print and export actual columns, dtypes, shape, missingness, examples, and the resolved source/label/CWE/project/commit/hash/CVE/repository mappings. It fails instead of inventing required fields.
+Chưa quan sát được. Pipeline sẽ in và xuất các cột, dtype, shape, missingness, ví dụ và ánh xạ đã xác định cho source/label/CWE/project/commit/hash/CVE/repository. Pipeline báo lỗi thay vì tự tạo field bắt buộc không có trong dữ liệu.
 
-## Checks prepared but not executed on DiverseVul
+## Các kiểm tra đã chuẩn bị nhưng chưa chạy trên DiverseVul
 
-- paper-versus-release row, vulnerable, non-vulnerable, project, commit, and CWE counts
-- vulnerable-only CWE coverage, Top 10/20, long-tail and cumulative coverage
-- thresholds 20/50/100/200 without choosing one
-- zero/single/multi-CWE prevalence and bounded examples
-- project and CWE-project concentration plus split feasibility at 2/3/5/10 projects
-- exact and conservative-normalized duplicate/conflict checks
-- source missingness and character/line length quantiles
-- deterministic 30-function graph-readiness manifest
-- optional metadata join and URL coverage
+- so sánh số record, vulnerable, non-vulnerable, project, commit và CWE giữa paper và bản dữ liệu thực tế
+- coverage CWE chỉ trên vulnerable sample, Top 10/20, phân bố long-tail và coverage tích lũy
+- các threshold 20/50/100/200 mà không tự chọn threshold cuối cùng
+- tỷ lệ sample có 0, 1 hoặc nhiều CWE và các ví dụ giới hạn
+- mức tập trung theo project/CWE và tính khả thi của split tại 2/3/5/10 project
+- duplicate chính xác, duplicate sau normalization bảo thủ và label conflict
+- source bị thiếu cùng các phân vị độ dài theo ký tự/dòng
+- manifest 30 function xác định bằng seed cố định để thử graph
+- độ bao phủ khi join metadata và các URL bị thiếu
 
-## Paper context, not EDA results
+## Bối cảnh từ paper, không phải kết quả EDA
 
-The comparison baseline encoded in the audit is 349,437 total functions, 18,945 vulnerable, 330,492 non-vulnerable, 797 projects, 7,514 commits, and 150 CWE categories. These values are never substituted for missing dataset measurements.
+Baseline so sánh được mã hóa trong audit gồm 349.437 function, 18.945 vulnerable function, 330.492 non-vulnerable function, 797 project, 7.514 commit và 150 CWE. Các số này không bao giờ được dùng thay cho phép đo trên dataset bị thiếu.
 
-The paper's manual analysis reports roughly 60% accuracy for vulnerable-function labels. This is a limitation of fix-commit-derived labels, not a statistic recomputed from the absent full dataset. The official repository also states that its metadata covers 7,512 commits and is missing three commit URLs relative to the extracted dataset.
+Phân tích thủ công trong paper báo cáo độ chính xác của vulnerable-function label chỉ khoảng 60%. Đây là hạn chế của label suy ra từ fixing commit, không phải thống kê được tính lại trên full dataset đang vắng mặt. Repository chính thức cũng cho biết metadata bao phủ 7.512 commit và thiếu ba commit URL so với dataset đã trích xuất.
 
-## Answers to the research questions
+## Trả lời các câu hỏi nghiên cứu
 
-Q1-Q13 remain **not measured** for the local release. In particular, the current evidence is insufficient to state how many CWE are usable, whether project-wise splitting is feasible, or whether this copy of DiverseVul is graph-ready.
+Q1-Q13 vẫn ở trạng thái **chưa đo được** đối với bản dữ liệu local. Bằng chứng hiện tại chưa đủ để kết luận có bao nhiêu CWE usable, project-wise split có khả thi hay bản DiverseVul này đã sẵn sàng cho bước tạo graph hay chưa.
 
-## Open research decisions
+## Các quyết định nghiên cứu còn mở
 
-The audit intentionally does not choose a Top-K/threshold, single-label or multi-label policy, final split, graph representation, Joern configuration, or GNN architecture.
+Audit không tự chọn Top-K/threshold, chính sách single-label hay multi-label, final split, graph representation, cấu hình Joern hoặc kiến trúc GNN.
 """
 
 
@@ -181,36 +185,36 @@ def write_report(result, dataset_file: Path, metadata_file: Path | None) -> None
     cwe = tables["cwe_distribution"]
     dup = tables["duplicate_summary"]
     top_candidate = tables["cwe_project_distribution"].query("sample_count >= 20").head(20)
-    text = f"""# DiverseVul dataset audit
+    text = f"""# Audit dataset DiverseVul
 
-**Status: COMPLETE for the local files listed below.** This report describes the loaded release; it does not select the final dataset, class set, label policy, split, graph representation, or model.
+**Trạng thái: HOÀN TẤT đối với các file local liệt kê dưới đây.** Báo cáo mô tả bản dữ liệu đã load; không tự chọn dataset cuối cùng, tập class, chính sách label, split, graph representation hoặc model.
 
-## Dataset files actually used
+## File dataset thực tế đã sử dụng
 
-- Main dataset: `{dataset_file.as_posix()}`
-- Separate metadata: `{metadata_file.as_posix() if metadata_file else 'not provided'}`
+- Dataset chính: `{dataset_file.as_posix()}`
+- Metadata riêng: `{metadata_file.as_posix() if metadata_file else 'không được cung cấp'}`
 
-Shape: **{len(result.records):,} rows x {f['raw_column_count']:,} raw columns**. Actual raw schema and missing values are in `tables/missing_values.csv`.
+Kích thước: **{len(result.records):,} dòng x {f['raw_column_count']:,} cột thô**. Schema thô thực tế và missing values nằm trong `tables/missing_values.csv`.
 
-Resolved fields: `{result.fields}`
+Các field đã ánh xạ: `{result.fields}`
 
-## Paper comparison
+## So sánh với paper
 
 {_markdown_table(tables['paper_comparison'])}
 
-Differences are preserved as observed. Likely explanations must be investigated from release/version, parsing, metadata coverage, or record duplication; values are never changed to match the paper.
+Mọi chênh lệch được giữ nguyên như quan sát. Nguyên nhân có thể liên quan đến release/version, parsing, độ bao phủ metadata hoặc record bị trùng và cần được điều tra; số liệu không bao giờ bị sửa để khớp paper.
 
-## CWE coverage and imbalance
+## Coverage và mất cân bằng CWE
 
-- Vulnerable functions with at least one parsed CWE: **{f['vulnerable_with_cwe']:,}**
-- Vulnerable functions without a parsed CWE: **{f['vulnerable_without_cwe']:,}**
-- Unique parsed CWE values on vulnerable functions: **{f['unique_cwe_vulnerable']:,}**
+- Vulnerable function có ít nhất một CWE parse được: **{f['vulnerable_with_cwe']:,}**
+- Vulnerable function không có CWE parse được: **{f['vulnerable_without_cwe']:,}**
+- Số CWE unique parse được trên vulnerable function: **{f['unique_cwe_vulnerable']:,}**
 
 Top 20:
 
 {_markdown_table(cwe, 20)}
 
-Threshold evidence (a multi-CWE function is retained once if any label passes):
+Bằng chứng theo threshold (một multi-CWE function chỉ được tính giữ lại một lần nếu có bất kỳ label nào đạt ngưỡng):
 
 {_markdown_table(tables['threshold_analysis'])}
 
@@ -218,64 +222,64 @@ Threshold evidence (a multi-CWE function is retained once if any label passes):
 
 {_markdown_table(tables['multi_cwe_summary'])}
 
-No multi-CWE record is reduced to its first label. Examples are in `tables/multi_cwe_examples.csv`.
+Không record multi-CWE nào bị rút gọn thành label đầu tiên. Các ví dụ nằm trong `tables/multi_cwe_examples.csv`.
 
-## Projects and project-wise feasibility
+## Phân bố project và tính khả thi của project-wise split
 
 {_markdown_table(tables['project_split_feasibility'])}
 
-Candidate evidence table (not a selected class set):
+Bảng bằng chứng cho các candidate, không phải tập class đã chọn:
 
 {_markdown_table(top_candidate, 20)}
 
-High `largest_project_share` indicates project leakage/concentration risk even when class size is large.
+`largest_project_share` cao cho thấy rủi ro tập trung theo project hoặc leakage ngay cả khi class có nhiều sample.
 
-## Duplicates and conflicts
+## Duplicate và label conflict
 
 {_markdown_table(dup)}
 
-Normalization only converts line endings, removes trailing spaces/tabs per line, and trims boundary blank lines. It does not collapse internal whitespace or remove comments.
+Normalization chỉ chuyển đổi line ending, bỏ space/tab ở cuối từng dòng và xóa dòng trống ở biên. Quy trình không gộp whitespace bên trong hoặc xóa comment.
 
-## Source-code quality and graph readiness
+## Chất lượng source code và mức sẵn sàng cho graph
 
 {_markdown_table(tables['source_quality_summary'])}
 
 {_markdown_table(tables['function_length_summary'])}
 
-The bounded manual-review sample is in `tables/source_inspection_sample.csv`. The manifest `data/sample_manifests/diversevul_graph_sample.csv` contains deterministic references to up to 30 vulnerable functions across length and CWE-cardinality bands. It does not embed full source code. This audit does not run Joern.
+Sample giới hạn để kiểm tra thủ công nằm trong `tables/source_inspection_sample.csv`. Manifest `data/sample_manifests/diversevul_graph_sample.csv` chứa reference được chọn bằng seed cố định cho tối đa 30 vulnerable function, trải trên các nhóm độ dài và số CWE. Manifest không nhúng toàn bộ source code. Audit này không chạy Joern.
 
-## Metadata audit
+## Audit metadata
 
 {_markdown_table(tables['metadata_audit'])}
 
-## Label-noise context
+## Bối cảnh label noise
 
-The paper reports that vulnerable-function labels were only roughly 60% accurate in its manual sample. Main error modes include cross-function vulnerabilities, helper/caller changes needed for a fix, and unrelated changes in a security-fixing commit. This paper result is context, not recomputed full-dataset EDA. If the official noise spreadsheet is provided, it must be summarized separately and never merged into the full-dataset denominator.
+Paper báo cáo vulnerable-function label chỉ chính xác khoảng 60% trong sample được kiểm tra thủ công. Các dạng lỗi chính gồm vulnerability trải qua nhiều function, thay đổi helper/caller cần thiết cho bản vá và thay đổi không liên quan trong security-fixing commit. Đây là bối cảnh từ paper, không phải kết quả được tính lại trên full dataset. Nếu bảng label-noise chính thức được cung cấp, bảng đó phải được tóm tắt riêng và không được trộn vào mẫu số của full dataset.
 
-## Direct answers
+## Trả lời trực tiếp các câu hỏi nghiên cứu
 
-1. **Paper match:** see the exact differences above; no mismatch was corrected.
-2. **Vulnerable functions with CWE:** {f['vulnerable_with_cwe']:,}.
-3. **Usable CWE:** no single number without a policy; threshold and project-support tables provide the candidate counts.
-4. **Imbalance:** the ranked distribution and cumulative chart show the observed long tail.
-5. **Thresholds:** all four requested thresholds are reported; none is selected.
-6. **Multi-CWE:** {f['multi_cwe_samples']:,} vulnerable samples have at least two parsed CWE values.
-7. **Duplicates:** exact and normalized rates are reported above.
-8. **Label conflicts:** vulnerable/non-vulnerable and CWE conflict-group counts are reported above.
-9. **Project spread:** see per-CWE project count and largest-project share.
-10. **Project-wise split:** feasible only for classes meeting the desired project-support row; no final split is created.
-11. **Joern readiness:** source completeness/length and the sample manifest support a bounded trial; parser success still requires the next phase.
-12. **Candidate CWE:** use the non-binding candidate evidence table above, then choose policy as a team.
-13. **Overall fit:** DiverseVul is conditionally useful for function-to-CWE research only with an explicit multi-CWE policy, duplicate/conflict handling, label-noise caveats, and project-aware evaluation.
+1. **Có khớp paper không:** xem chênh lệch chính xác ở trên; không mismatch nào bị sửa để khớp paper.
+2. **Vulnerable function có CWE:** {f['vulnerable_with_cwe']:,}.
+3. **Có bao nhiêu CWE usable:** không có một con số duy nhất nếu chưa có policy; các bảng threshold và project support cung cấp số candidate.
+4. **Mức mất cân bằng:** phân bố theo rank và biểu đồ tích lũy thể hiện long tail quan sát được.
+5. **Threshold:** cả bốn threshold được báo cáo và không threshold nào được tự chọn.
+6. **Multi-CWE:** {f['multi_cwe_samples']:,} vulnerable sample có ít nhất hai CWE parse được.
+7. **Duplicate:** tỷ lệ exact và normalized duplicate được báo cáo ở trên.
+8. **Label conflict:** số nhóm conflict vulnerable/non-vulnerable và CWE được báo cáo ở trên.
+9. **Độ trải theo project:** xem project count trên từng CWE và largest-project share.
+10. **Project-wise split:** chỉ khả thi đối với các class đạt mức project support mong muốn; audit không tạo final split.
+11. **Mức sẵn sàng cho Joern:** độ đầy đủ/độ dài source và sample manifest hỗ trợ một thử nghiệm giới hạn; tỷ lệ parse thành công vẫn cần được đo ở phase tiếp theo.
+12. **Candidate CWE:** dùng bảng bằng chứng không ràng buộc ở trên, sau đó team quyết định policy.
+13. **Mức phù hợp tổng thể:** DiverseVul chỉ phù hợp có điều kiện cho nghiên cứu function-to-CWE khi có policy multi-CWE tường minh, xử lý duplicate/conflict, caveat về label noise và đánh giá project-aware.
 
-## Open research decisions
+## Các quyết định nghiên cứu còn mở
 
-- minimum class size and candidate CWE set
-- single-label, multi-label, hierarchical, or ambiguous-sample policy
-- final project-aware split constraints
-- duplicate/conflict treatment
-- graph representation and Joern extraction settings
-- final GNN architecture and evaluation protocol
+- kích thước class tối thiểu và tập CWE candidate
+- chính sách single-label, multi-label, hierarchical hoặc xử lý ambiguous sample
+- các ràng buộc cho project-aware split cuối cùng
+- cách xử lý duplicate và conflict
+- graph representation và thiết lập trích xuất Joern
+- kiến trúc GNN cuối cùng và evaluation protocol
 """
     REPORT_PATH.write_text(text, encoding="utf-8")
 

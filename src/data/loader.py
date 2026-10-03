@@ -41,8 +41,8 @@ def discover_dataset_file(raw_dir: Path) -> Path:
     raw_dir = Path(raw_dir)
     if not raw_dir.is_dir():
         raise FileNotFoundError(
-            f"DiverseVul raw directory does not exist: {raw_dir}. "
-            "See data/raw/README.md."
+            f"Thư mục dữ liệu thô DiverseVul không tồn tại: {raw_dir}. "
+            "Xem hướng dẫn tại data/raw/README.md."
         )
     candidates = [
         path for path in raw_dir.rglob("*")
@@ -51,8 +51,8 @@ def discover_dataset_file(raw_dir: Path) -> Path:
     ]
     if not candidates:
         raise FileNotFoundError(
-            f"No supported dataset file found under {raw_dir}. "
-            f"Expected one of: {', '.join(sorted(SUPPORTED_SUFFIXES))}."
+            f"Không tìm thấy file dataset thuộc định dạng được hỗ trợ trong {raw_dir}. "
+            f"Các định dạng hợp lệ: {', '.join(sorted(SUPPORTED_SUFFIXES))}."
         )
     if len(candidates) == 1:
         return candidates[0]
@@ -61,7 +61,7 @@ def discover_dataset_file(raw_dir: Path) -> Path:
     pool.sort(key=lambda path: path.stat().st_size, reverse=True)
     if len(pool) > 1 and pool[0].stat().st_size == pool[1].stat().st_size:
         joined = "\n- ".join(str(path) for path in pool)
-        raise ValueError(f"Ambiguous dataset files. Keep one main file or pass --dataset-file:\n- {joined}")
+        raise ValueError(f"Có nhiều file dataset không thể phân biệt. Chỉ giữ một file chính hoặc dùng --dataset-file:\n- {joined}")
     return pool[0]
 
 

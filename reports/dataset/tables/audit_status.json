@@ -1,5 +1,5 @@
 {
   "status": "blocked",
-  "reason": "DiverseVul raw directory does not exist: D:\\PROJECT\\software-bug-detection-using-graphs\\data\\raw\\diversevul. See data/raw/README.md.",
+  "reason": "Th\u01b0 m\u1ee5c d\u1eef li\u1ec7u th\u00f4 DiverseVul kh\u00f4ng t\u1ed3n t\u1ea1i: D:\\PROJECT\\software-bug-detection-using-graphs\\data\\raw\\diversevul. Xem h\u01b0\u1edbng d\u1eabn t\u1ea1i data/raw/README.md.",
   "expected_raw_dir": "D:\\PROJECT\\software-bug-detection-using-graphs\\data\\raw\\diversevul"
 }

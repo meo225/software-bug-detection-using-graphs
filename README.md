@@ -50,14 +50,14 @@ Lệnh in thư mục đích và đường dẫn nguồn. Đặt file vào `local
 
 Notebook: `notebooks/01_diversevul_eda.ipynb`. Báo cáo: `reports/dataset/dataset_eda.md`.
 
-Sau khi đặt dữ liệu thật vào `data/raw/diversevul/`, chạy audit có kiểm tra input:
+Sau khi đặt dữ liệu thật vào `data/raw/diversevul/`, chạy audit có kiểm tra đầu vào:
 
 ```powershell
 python scripts/run_diversevul_eda.py --strict
 jupyter nbconvert --to notebook --execute notebooks/01_diversevul_eda.ipynb --output 01_diversevul_eda.ipynb --output-dir notebooks
 ```
 
-Nếu chưa có dữ liệu, chạy không có `--strict` sẽ sinh report và artifact placeholder ghi rõ `BLOCKED`; chúng không chứa số liệu paper giả làm kết quả EDA.
+Nếu chưa có dữ liệu, chạy không có `--strict` sẽ sinh báo cáo và artifact giữ chỗ ghi rõ `BLOCKED`; chúng không dùng số liệu paper làm kết quả EDA giả.
 
 ## Đóng góp
 

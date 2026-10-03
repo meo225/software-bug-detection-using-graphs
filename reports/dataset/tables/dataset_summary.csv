@@ -1,2 +1,2 @@
 metric,value,status,note
-audit_status,blocked,not_computed,DiverseVul raw directory does not exist: D:\PROJECT\software-bug-detection-using-graphs\data\raw\diversevul. See data/raw/README.md.
+audit_status,blocked,not_computed,Thư mục dữ liệu thô DiverseVul không tồn tại: D:\PROJECT\software-bug-detection-using-graphs\data\raw\diversevul. Xem hướng dẫn tại data/raw/README.md.
