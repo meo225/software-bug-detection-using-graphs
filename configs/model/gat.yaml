@@ -1,0 +1,8 @@
+model:
+  name: gat
+  status: skeleton
+  hidden_dim: null
+  num_layers: null
+  num_heads: null
+  dropout: null
+  pooling: null

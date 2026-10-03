@@ -1,0 +1,72 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large datasets. Placeholders (.gitkeep, README.md) stay tracked.
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/README.md
+data/interim/*
+!data/interim/.gitkeep
+!data/interim/README.md
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/README.md
+data/graphs/*
+!data/graphs/.gitkeep
+!data/graphs/README.md
+
+# Split ID lists under data/splits/ are small and should be committed.
+
+# Generated training artifacts
+outputs/checkpoints/*
+!outputs/checkpoints/.gitkeep
+outputs/predictions/*
+!outputs/predictions/.gitkeep
+outputs/logs/*
+!outputs/logs/.gitkeep
+
+# Model weights and graph binaries
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.bin
+*.h5
+*.safetensors
+
+# Joern installation and extracted graph binaries
+joern/
+joern-cli/
+*.cpg
+
+# Local IDE
+.idea/
+.vscode/

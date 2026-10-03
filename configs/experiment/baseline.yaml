@@ -1,0 +1,27 @@
+# Reproducibility manifest. Values stay null until a real run is configured.
+# train.py must load the saved ID lists. It must not invent a new random split.
+experiment:
+  id: null
+  seed: 42
+  dataset_config: configs/data/diversevul.yaml
+  preprocessing_config: configs/data/diversevul.yaml
+  graph_config: configs/graph/cpg.yaml
+  model_config: configs/model/gcn.yaml
+  dataset_version: null
+  selected_cwe_classes: null
+  multi_cwe_policy: null
+  split:
+    strategy: null
+    train_ids: null
+    validation_ids: null
+    test_ids: null
+  hyperparameters: {}
+  metrics:
+    - macro_f1
+    - weighted_f1
+    - per_class_precision
+    - per_class_recall
+    - per_class_f1
+    - confusion_matrix
+    - accuracy
+  output_dir: outputs

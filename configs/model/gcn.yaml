@@ -1,0 +1,7 @@
+model:
+  name: gcn
+  status: skeleton
+  hidden_dim: null
+  num_layers: null
+  dropout: null
+  pooling: null

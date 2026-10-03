@@ -1,0 +1,19 @@
+# Candidate dataset. Not a final selection.
+# Confirm every field name during EDA. Do not copy paper statistics into this file.
+dataset:
+  name: diversevul
+  status: candidate
+  language: cpp
+  sample_unit: function
+  version: null
+  source_url: https://github.com/wagner-group/diversevul
+  download_url: https://drive.google.com/file/d/12IWKhmLhq7qn5B_iXgn5YerOQtkH-6RG/view
+  metadata_url: https://drive.google.com/file/d/19cJ7avNtsziaYkrrYuW7FeFdvgrxoNLc/view
+  local_raw_dir: data/raw/diversevul
+  code_field: null
+  label_field: null
+  cwe_field: null
+  project_field: null
+  commit_field: null
+  hash_field: null
+  timestamp_field: null

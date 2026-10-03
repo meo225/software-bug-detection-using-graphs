@@ -1,0 +1,17 @@
+# CPG is a candidate representation, not a confirmed choice.
+graph:
+  name: cpg
+  status: candidate
+  extractor: joern
+  joern_executable: null
+  candidates:
+    - ast
+    - cfg
+    - data_dependency
+    - control_dependency
+    - pdg
+    - cpg
+  node_features: null
+  edge_features: null
+  output_dir: data/graphs
+  sample_manifest: null

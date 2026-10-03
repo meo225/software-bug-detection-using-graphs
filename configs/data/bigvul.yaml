@@ -1,0 +1,18 @@
+# Placeholder so the pipeline is not tied to DiverseVul.
+# Fill source_url and local_raw_dir when this dataset is actually audited.
+dataset:
+  name: bigvul
+  status: not_started
+  language: cpp
+  sample_unit: function
+  version: null
+  source_url: null
+  download_url: null
+  local_raw_dir: data/raw/bigvul
+  code_field: null
+  label_field: null
+  cwe_field: null
+  project_field: null
+  commit_field: null
+  hash_field: null
+  timestamp_field: null
