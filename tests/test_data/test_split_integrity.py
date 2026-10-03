@@ -1,7 +1,7 @@
-"""Split integrity.
+"""Tính toàn vẹn của cách chia dữ liệu.
 
-Creating the three strategies is still TODO. The project-overlap check is
-implemented so a later project-wise split cannot hide a shared project.
+Việc tạo ba chiến lược vẫn là TODO. Kiểm tra project trùng đã được triển khai
+để cách chia theo project sau này không thể che giấu một project dùng chung.
 """
 
 import pytest

@@ -1,7 +1,7 @@
-"""Joern integration.
+"""Tích hợp Joern.
 
-This is the only module that should know Joern's executable, export format,
-and working directories. CPG is a candidate representation, not a decision.
+Đây là module duy nhất nên biết executable, định dạng export và thư mục làm việc
+của Joern. CPG là representation ứng viên, chưa phải quyết định cuối cùng.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 class JoernExtractor:
-    """Candidate extractor. Not wired to a local Joern install yet."""
+    """Extractor ứng viên, chưa kết nối với bản cài Joern local."""
 
     name = "joern"
 
@@ -19,13 +19,13 @@ class JoernExtractor:
         self.representation = representation
 
     def extract(self, source_path: Path, output_path: Path) -> Path:
-        """Export one graph with Joern.
+        """Export một graph bằng Joern.
 
-        TODO: invoke the executable from ``JOERN_PATH`` or the graph config.
-        Do not shell out until a small sample manifest exists.
+        TODO: gọi executable từ ``JOERN_PATH`` hoặc graph config.
+        Không chạy tiến trình ngoài trước khi có sample manifest nhỏ.
         """
         raise NotImplementedError(
-            "JoernExtractor.extract is not implemented "
+            "Chưa triển khai JoernExtractor.extract "
             f"(representation={self.representation!r}, executable={self.executable}, "
             f"{source_path} -> {output_path})."
         )

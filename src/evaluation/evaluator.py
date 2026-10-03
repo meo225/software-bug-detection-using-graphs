@@ -1,4 +1,4 @@
-"""Run evaluation for a saved experiment."""
+"""Chạy đánh giá cho một thí nghiệm đã lưu."""
 
 from __future__ import annotations
 
@@ -6,11 +6,11 @@ from pathlib import Path
 
 
 def evaluate_run(experiment_id: str, prediction_dir: Path) -> dict[str, object]:
-    """Load predictions for ``experiment_id`` and return a metric dictionary.
+    """Load prediction cho ``experiment_id`` và trả về dictionary metric.
 
-    TODO: read the test ID list from the experiment manifest. Do not rebuild
-    the split. Write the metric JSON under ``outputs/metrics/``.
+    TODO: đọc danh sách test ID từ experiment manifest. Không tạo lại cách chia
+    dữ liệu. Ghi metric dạng JSON trong ``outputs/metrics/``.
     """
     raise NotImplementedError(
-        f"evaluate_run is not implemented for {experiment_id!r} in {prediction_dir}."
+        f"Chưa triển khai evaluate_run cho {experiment_id!r} trong {prediction_dir}."
     )

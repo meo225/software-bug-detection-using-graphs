@@ -1,7 +1,7 @@
-"""Shared CWE classification head.
+"""Classification head dùng chung cho CWE.
 
-The trainer should construct one of these and call ``forward``. It should not
-contain a separate training loop per architecture.
+Trainer nên khởi tạo class này và gọi ``forward``. Không tạo training loop
+riêng cho từng kiến trúc.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ ENCODERS = {
 
 
 class CWEClassifier:
-    """graph batch -> encoder -> pooling -> linear classifier -> CWE logits."""
+    """graph batch -> encoder -> pooling -> linear classifier -> logit CWE."""
 
     def __init__(self, encoder: object, num_classes: int | None, pooling: str | None) -> None:
         self.encoder = encoder
@@ -25,24 +25,24 @@ class CWEClassifier:
         self.pooling = pooling
 
     def forward(self, batch: object) -> object:
-        """Return CWE logits for a graph batch.
+        """Trả về logit CWE cho một graph batch.
 
-        TODO: pool encoder states and apply the classifier. ``num_classes``
-        stays unknown until the group selects the CWE label set.
+        TODO: pooling các trạng thái encoder và áp dụng classifier. ``num_classes``
+        chưa xác định cho đến khi nhóm chọn tập label CWE.
         """
         raise NotImplementedError(
-            "CWEClassifier.forward is not implemented "
+            "Chưa triển khai CWEClassifier.forward "
             f"(num_classes={self.num_classes!r}, pooling={self.pooling!r})."
         )
 
 
 def build_classifier(model_config: dict[str, Any], num_classes: int | None) -> CWEClassifier:
-    """Assemble a classifier for the encoder named in ``model_config``."""
+    """Tạo classifier cho encoder được chỉ định trong ``model_config``."""
     model = model_config.get("model", {})
     name = model.get("name")
     if name not in ENCODERS:
-        raise ValueError(f"Unknown model {name!r}. Known encoders: {sorted(ENCODERS)}.")
+        raise ValueError(f"Model không xác định {name!r}. Các encoder đã biết: {sorted(ENCODERS)}.")
     raise NotImplementedError(
-        f"build_classifier cannot construct {name!r} yet. "
-        f"Encoder module: {ENCODERS[name]}. num_classes={num_classes!r}."
+        f"build_classifier chưa thể khởi tạo {name!r}. "
+        f"Module encoder: {ENCODERS[name]}. num_classes={num_classes!r}."
     )

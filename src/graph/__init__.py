@@ -1,1 +1,1 @@
-"""Graph extraction. Joern-specific code stays in ``joern.py``."""
+"""Trích xuất graph. Code riêng cho Joern nằm trong ``joern.py``."""

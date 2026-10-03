@@ -1,7 +1,7 @@
-"""Config-driven trainer.
+"""Trainer được điều khiển bằng config.
 
-The trainer loads a saved split. It must not draw a fresh random split and
-discard the IDs.
+Trainer load cách chia dữ liệu đã lưu, không được tạo cách chia ngẫu nhiên mới
+rồi bỏ các ID cũ.
 """
 
 from __future__ import annotations
@@ -11,20 +11,19 @@ from typing import Any
 
 
 class Trainer:
-    """Fit a :class:`src.models.classifier.CWEClassifier` and write artifacts under ``outputs/``."""
+    """Fit :class:`src.models.classifier.CWEClassifier` và ghi artifact trong ``outputs/``."""
 
     def __init__(self, experiment: dict[str, Any]) -> None:
         self.experiment = experiment
 
     def fit(self) -> Path:
-        """Run training and return the directory for this experiment id.
+        """Chạy training và trả về thư mục của experiment ID này.
 
-        TODO: require ``split.train_ids``, ``split.validation_ids``, and
-        ``split.test_ids``. Refuse to start when the strategy or the ID files
-        are missing. Record seed, dataset version, configs, and hyperparameters
-        in ``experiments/``.
+        TODO: yêu cầu ``split.train_ids``, ``split.validation_ids`` và
+        ``split.test_ids``. Từ chối chạy khi thiếu chiến lược hoặc file ID.
+        Ghi seed, phiên bản dataset, config và hyperparameter trong ``experiments/``.
         """
         experiment_id = self.experiment.get("experiment", {}).get("id")
         raise NotImplementedError(
-            f"Trainer.fit is not implemented (experiment id={experiment_id!r})."
+            f"Chưa triển khai Trainer.fit (experiment ID={experiment_id!r})."
         )

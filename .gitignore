@@ -1,4 +1,4 @@
-# Secrets and local environment
+# Secret và môi trường local
 .env
 .env.*
 !.env.example
@@ -29,7 +29,7 @@ build/
 .DS_Store
 Thumbs.db
 
-# Large datasets. Placeholders (.gitkeep, README.md) stay tracked.
+# Dataset lớn. Các file giữ chỗ (.gitkeep, README.md) vẫn được theo dõi.
 data/raw/*
 !data/raw/.gitkeep
 !data/raw/README.md
@@ -43,9 +43,9 @@ data/graphs/*
 !data/graphs/.gitkeep
 !data/graphs/README.md
 
-# Split ID lists under data/splits/ are small and should be committed.
+# Danh sách split ID trong data/splits/ có kích thước nhỏ và nên được commit.
 
-# Generated training artifacts
+# Artifact sinh ra trong quá trình train
 outputs/checkpoints/*
 !outputs/checkpoints/.gitkeep
 outputs/predictions/*
@@ -53,7 +53,7 @@ outputs/predictions/*
 outputs/logs/*
 !outputs/logs/.gitkeep
 
-# Model weights and graph binaries
+# Trọng số model và file graph nhị phân
 *.pt
 *.pth
 *.ckpt
@@ -62,11 +62,11 @@ outputs/logs/*
 *.h5
 *.safetensors
 
-# Joern installation and extracted graph binaries
+# Bản cài Joern và file graph nhị phân đã trích xuất
 joern/
 joern-cli/
 *.cpg
 
-# Local IDE
+# IDE local
 .idea/
 .vscode/

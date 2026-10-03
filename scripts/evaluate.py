@@ -1,6 +1,6 @@
-"""Evaluate a finished experiment.
+"""Đánh giá một thí nghiệm đã hoàn tất.
 
-Planned usage, from the repository root::
+Cách dùng dự kiến từ thư mục gốc repository::
 
     python scripts/evaluate.py --run <experiment-id>
 """
@@ -21,8 +21,8 @@ LOGGER = get_logger("evaluate")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Evaluate predictions for one experiment id.")
-    parser.add_argument("--run", required=True, help="Experiment id recorded under experiments/.")
+    parser = argparse.ArgumentParser(description="Đánh giá prediction cho một experiment ID.")
+    parser.add_argument("--run", required=True, help="Experiment ID được ghi trong experiments/.")
     return parser.parse_args()
 
 
@@ -30,9 +30,9 @@ def main() -> None:
     args = parse_args()
     LOGGER.info("Experiment: %s", args.run)
     raise NotImplementedError(
-        "Evaluation is not implemented. "
-        "Report macro-F1, weighted-F1, per-CWE precision/recall/F1, "
-        "a confusion matrix, and accuracy. Accuracy is not the only metric."
+        "Chưa triển khai bước đánh giá. "
+        "Cần báo cáo macro-F1, weighted-F1, precision/recall/F1 theo CWE, "
+        "confusion matrix và accuracy. Accuracy không phải metric duy nhất."
     )
 
 

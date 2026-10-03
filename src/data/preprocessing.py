@@ -1,23 +1,23 @@
-"""Cleaning and normalization that EDA may measure, but must not apply destructively yet.
+"""Các phép làm sạch và normalization để EDA đo lường nhưng chưa áp dụng phá hủy.
 
-Duplicate reports should count normalized copies. They should not delete rows
-until the group chooses a policy.
+Báo cáo duplicate nên đếm các bản đã normalization nhưng không xóa dòng cho đến
+khi nhóm chọn policy.
 """
 
 from __future__ import annotations
 
 
 def normalize_line_endings(source: str) -> str:
-    """Convert CRLF and CR to LF.
+    """Chuyển line ending CRLF và CR thành LF.
     """
     return source.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def normalize_whitespace(source: str) -> str:
-    """Normalize line endings, trailing whitespace, and boundary blank lines.
+    """Chuẩn hóa line ending, trailing whitespace và dòng trống ở biên.
 
-    Internal whitespace and comments remain unchanged to avoid modifying C/C++
-    string literals, preprocessor directives, or token boundaries.
+    Whitespace bên trong và comment được giữ nguyên để tránh thay đổi string
+    literal, preprocessor directive hoặc ranh giới token trong C/C++.
     """
     lines = [line.rstrip(" \t") for line in normalize_line_endings(source).split("\n")]
     while lines and not lines[0]:
@@ -28,7 +28,7 @@ def normalize_whitespace(source: str) -> str:
 
 
 def strip_comments(source: str) -> str:
-    """Comment stripping is intentionally unsupported for safe C/C++ audit."""
+    """Chủ động không hỗ trợ xóa comment để audit C/C++ an toàn."""
     raise NotImplementedError(
-        "Comment stripping is not used: regex-based removal can corrupt strings and macros."
+        "Không dùng bước xóa comment vì regex có thể làm hỏng string và macro."
     )

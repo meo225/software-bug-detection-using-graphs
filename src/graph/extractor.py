@@ -1,7 +1,7 @@
-"""Interface for turning a function into a graph.
+"""Interface chuyển một function thành graph.
 
-Callers should depend on this protocol. Swapping Joern for another extractor
-should not require edits outside ``src/graph/``.
+Code gọi nên phụ thuộc vào protocol này. Việc thay Joern bằng extractor khác
+không được yêu cầu chỉnh sửa bên ngoài ``src/graph/``.
 """
 
 from __future__ import annotations
@@ -11,21 +11,21 @@ from typing import Protocol
 
 
 class GraphExtractor(Protocol):
-    """Extract one graph for a single function-level sample."""
+    """Trích xuất một graph cho một sample ở mức function."""
 
     name: str
 
     def extract(self, source_path: Path, output_path: Path) -> Path:
-        """Write a graph artifact and return its path."""
+        """Ghi graph artifact và trả về đường dẫn của artifact."""
 
 
 def extract_graph(extractor: GraphExtractor, source_path: Path, output_path: Path) -> Path:
-    """Run ``extractor`` on one function file.
+    """Chạy ``extractor`` trên một file function.
 
-    TODO: add batching, failure logs, and a small manifest of 20 to 50
-    functions before any full-dataset run.
+    TODO: thêm xử lý theo batch, log lỗi và manifest nhỏ gồm 20 đến 50
+    function trước khi chạy trên toàn bộ dataset.
     """
     raise NotImplementedError(
-        f"extract_graph via {extractor.name!r} is not implemented "
+        f"Chưa triển khai extract_graph qua {extractor.name!r} "
         f"({source_path} -> {output_path})."
     )

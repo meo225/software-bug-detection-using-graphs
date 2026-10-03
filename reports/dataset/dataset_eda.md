@@ -1,4 +1,4 @@
-# Audit dataset DiverseVul
+# Kiểm tra bộ dữ liệu DiverseVul
 
 **Trạng thái: BLOCKED - chưa có dữ liệu thô.**
 
@@ -20,7 +20,7 @@ Nguyên nhân: `Thư mục dữ liệu thô DiverseVul không tồn tại: D:\PR
 
 Runner hỗ trợ CSV, JSON, JSONL/NDJSON, Parquet và file pickle từ nguồn chính thức. Dùng `--dataset-file PATH` nếu có nhiều file có thể là dataset chính. Chỉ dùng pickle từ bản phát hành chính thức đáng tin cậy vì quá trình load pickle có thể thực thi code.
 
-## Schema
+## Cấu trúc dữ liệu
 
 Chưa quan sát được. Pipeline sẽ in và xuất các cột, dtype, shape, missingness, ví dụ và ánh xạ đã xác định cho source/label/CWE/project/commit/hash/CVE/repository. Pipeline báo lỗi thay vì tự tạo field bắt buộc không có trong dữ liệu.
 

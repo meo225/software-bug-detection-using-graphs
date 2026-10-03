@@ -1,4 +1,4 @@
-"""Duplicate reports. Detection only; this module must not delete rows."""
+"""Báo cáo duplicate. Module chỉ phát hiện và không được xóa dòng."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from src.data.preprocessing import normalize_whitespace
 
 
 def source_hashes(source: pd.Series, normalized: bool = False) -> pd.Series:
-    """Hash source exactly or after conservative normalization."""
+    """Hash source chính xác hoặc sau bước normalization bảo thủ."""
     def digest(value: object) -> str | None:
         if not isinstance(value, str) or not value.strip():
             return None
@@ -21,20 +21,20 @@ def source_hashes(source: pd.Series, normalized: bool = False) -> pd.Series:
 
 
 def exact_source_duplicates(records: pd.DataFrame, code_field: str) -> pd.Series:
-    """Group records whose source text matches exactly.
+    """Nhóm các record có source text giống hệt nhau.
 
-    Returns a hash key per row and leaves the input unchanged.
+    Trả về hash key cho từng dòng và giữ nguyên input.
     """
     return source_hashes(records[code_field])
 
 
 def hash_duplicates(records: pd.DataFrame, hash_field: str) -> pd.Series:
-    """Group records by a hash column shipped with the dataset, when one exists."""
+    """Nhóm record theo cột hash đi kèm dataset nếu cột này tồn tại."""
     return records[hash_field].duplicated(keep=False)
 
 
 def conflicting_label_duplicates(records: pd.DataFrame, code_field: str, label_field: str) -> pd.DataFrame:
-    """Find identical source text that carries more than one label."""
+    """Tìm source text giống hệt nhau nhưng mang nhiều hơn một label."""
     working = records.copy()
     working["_source_hash"] = source_hashes(working[code_field])
     conflict_keys = working.groupby("_source_hash")[label_field].nunique(dropna=True)
@@ -42,15 +42,15 @@ def conflicting_label_duplicates(records: pd.DataFrame, code_field: str, label_f
 
 
 def normalized_source_duplicates(records: pd.DataFrame, code_field: str) -> pd.Series:
-    """Hash source after line-ending and whitespace normalization, then find duplicates.
+    """Hash source sau khi chuẩn hóa line ending và whitespace, rồi tìm duplicate.
 
-    Comment stripping and internal whitespace collapsing are intentionally omitted.
+    Chủ động không xóa comment hoặc gộp whitespace bên trong.
     """
     return source_hashes(records[code_field], normalized=True)
 
 
 def duplicate_summary(records: pd.DataFrame) -> pd.DataFrame:
-    """Compare exact and normalized duplicates, including label conflicts."""
+    """So sánh exact và normalized duplicate, bao gồm label conflict."""
     working = records.copy()
     working["raw_source_sha256"] = source_hashes(working["source_code"])
     working["normalized_source_sha256"] = source_hashes(working["source_code"], normalized=True)

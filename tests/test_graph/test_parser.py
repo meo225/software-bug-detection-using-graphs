@@ -1,8 +1,8 @@
-"""Graph parser coverage to add after the first extractor trial."""
+"""Coverage cho graph parser sẽ được thêm sau lần thử extractor đầu tiên."""
 
 import pytest
 
 
-@pytest.mark.skip(reason="TODO: parse a checked-in tiny graph fixture, not a full CPG export.")
+@pytest.mark.skip(reason="TODO: parse graph fixture nhỏ đã commit, không dùng bản export CPG đầy đủ.")
 def test_graph_parser_reads_nodes_and_edges() -> None:
-    """The parser output must not depend on Joern types leaking into the dataset."""
+    """Output của parser không được phụ thuộc vào kiểu Joern lọt vào dataset."""

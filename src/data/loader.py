@@ -1,4 +1,4 @@
-"""Dataset discovery and lossless loading for function-level corpora."""
+"""Dò tìm và load dataset function-level mà không làm mất record."""
 
 from __future__ import annotations
 
@@ -15,17 +15,17 @@ METADATA_MARKERS = ("metadata", "commit_url", "repo_url", "label_noise", "noise"
 
 
 class DatasetLoader(Protocol):
-    """Load one dataset release without dropping or relabeling rows."""
+    """Load một bản phát hành dataset mà không xóa dòng hoặc đổi label."""
 
     name: str
 
     def load(self, raw_dir: Path) -> pd.DataFrame:
-        """Return every raw record."""
+        """Trả về toàn bộ record thô."""
 
 
 @dataclass(frozen=True)
 class LoadedDataset:
-    """A loaded frame and the exact file used to create it."""
+    """Frame đã load và file chính xác được dùng để tạo frame."""
 
     frame: pd.DataFrame
     source_file: Path
@@ -37,7 +37,7 @@ def _is_probable_metadata(path: Path) -> bool:
 
 
 def discover_dataset_file(raw_dir: Path) -> Path:
-    """Choose the main data file, rejecting ambiguous directory layouts."""
+    """Chọn file dữ liệu chính và từ chối cấu trúc thư mục mơ hồ."""
     raw_dir = Path(raw_dir)
     if not raw_dir.is_dir():
         raise FileNotFoundError(
@@ -66,7 +66,7 @@ def discover_dataset_file(raw_dir: Path) -> Path:
 
 
 def read_records(path: Path) -> pd.DataFrame:
-    """Read a supported tabular file without changing its rows or labels."""
+    """Đọc file dạng bảng được hỗ trợ mà không thay đổi dòng hoặc label."""
     path = Path(path)
     suffix = path.suffix.lower()
     if suffix == ".csv":
@@ -88,17 +88,17 @@ def read_records(path: Path) -> pd.DataFrame:
     if suffix == ".parquet":
         return pd.read_parquet(path)
     if suffix in {".pkl", ".pickle"}:
-        # Only load pickle obtained from the official source; it can execute code.
+        # Chỉ load pickle lấy từ nguồn chính thức vì định dạng này có thể thực thi mã.
         with path.open("rb") as handle:
             payload: Any = pickle.load(handle)  # noqa: S301
         return payload if isinstance(payload, pd.DataFrame) else pd.DataFrame(payload)
-    raise ValueError(f"Unsupported dataset format: {path}")
+    raise ValueError(f"Định dạng dataset không được hỗ trợ: {path}")
 
 
 def load_dataset(name: str, raw_dir: Path, dataset_file: Path | None = None) -> LoadedDataset:
-    """Load a supported dataset and preserve its original columns and rows."""
+    """Load dataset được hỗ trợ và giữ nguyên các cột cùng số dòng gốc."""
     if name.lower() != "diversevul":
-        raise NotImplementedError(f"Loader for dataset {name!r} is not implemented.")
+        raise NotImplementedError(f"Chưa triển khai loader cho dataset {name!r}.")
     source_file = Path(dataset_file) if dataset_file else discover_dataset_file(raw_dir)
     if not source_file.is_file():
         raise FileNotFoundError(source_file)

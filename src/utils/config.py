@@ -1,4 +1,4 @@
-"""Load YAML configs. Research parameters belong in ``configs/``, not in source code."""
+"""Load config YAML. Tham số nghiên cứu thuộc về ``configs/``, không đặt trong source code."""
 
 from __future__ import annotations
 
@@ -9,10 +9,10 @@ import yaml
 
 
 def load_config(path: Path | str) -> dict[str, Any]:
-    """Read a YAML mapping from ``path``.
+    """Đọc YAML mapping từ ``path``.
 
-    Relative paths inside the file are left unchanged. Callers resolve them
-    with :func:`src.utils.paths.resolve_from_root`.
+    Đường dẫn tương đối trong file được giữ nguyên. Caller phân giải bằng
+    :func:`src.utils.paths.resolve_from_root`.
     """
     config_path = Path(path)
     if not config_path.is_file():
@@ -22,5 +22,5 @@ def load_config(path: Path | str) -> dict[str, Any]:
     if loaded is None:
         return {}
     if not isinstance(loaded, dict):
-        raise ValueError(f"Config root must be a mapping: {config_path}")
+        raise ValueError(f"Root của config phải là một mapping: {config_path}")
     return loaded

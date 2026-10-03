@@ -1,7 +1,7 @@
-"""Reproducible DiverseVul dataset audit.
+"""Audit dataset DiverseVul có thể tái lập.
 
-This module describes the supplied release. It never drops records, resolves
-multi-CWE samples to one class, or selects a final experiment threshold.
+Module này mô tả bản dữ liệu được cung cấp. Module không xóa record, không biến
+sample multi-CWE thành một class và không chọn threshold cuối cùng cho thí nghiệm.
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ REQUIRED_FIELDS = ("source_code", "is_vulnerable", "cwe", "project", "commit")
 
 @dataclass(frozen=True)
 class AuditResult:
-    """Computed tables plus canonical records used by report and notebook."""
+    """Các bảng đã tính và record chuẩn hóa dùng cho báo cáo cùng notebook."""
 
     records: pd.DataFrame
     fields: dict[str, str | None]
@@ -59,7 +59,7 @@ def _pick_column(columns: list[str], aliases: tuple[str, ...]) -> str | None:
 
 
 def resolve_fields(frame: pd.DataFrame, configured: dict[str, str | None] | None = None) -> dict[str, str | None]:
-    """Resolve actual schema fields, preferring explicit config values."""
+    """Xác định field schema thực tế, ưu tiên giá trị khai báo trong config."""
     configured = configured or {}
     config_keys = {
         "source_code": "code_field", "is_vulnerable": "label_field", "cwe": "cwe_field",
@@ -70,21 +70,21 @@ def resolve_fields(frame: pd.DataFrame, configured: dict[str, str | None] | None
         explicit = configured.get(config_keys.get(canonical, ""))
         if explicit:
             if explicit not in frame.columns:
-                raise KeyError(f"Configured field {explicit!r} is not in dataset columns.")
+                raise KeyError(f"Field {explicit!r} trong config không tồn tại trong dataset.")
             resolved[canonical] = explicit
         else:
             resolved[canonical] = _pick_column(list(frame.columns), aliases)
     missing = [field for field in REQUIRED_FIELDS if resolved[field] is None]
     if missing:
         raise ValueError(
-            "Could not resolve required fields: " + ", ".join(missing) +
-            ". Actual columns: " + ", ".join(map(str, frame.columns))
+            "Không thể xác định các field bắt buộc: " + ", ".join(missing) +
+            ". Các cột thực tế: " + ", ".join(map(str, frame.columns))
         )
     return resolved
 
 
 def parse_vulnerable(value: object) -> bool | None:
-    """Parse common binary encodings; return None for unknown values."""
+    """Parse các mã hóa nhị phân phổ biến; trả về None cho giá trị không rõ."""
     if value is None or (isinstance(value, float) and np.isnan(value)):
         return None
     if isinstance(value, (bool, np.bool_)):
@@ -102,7 +102,7 @@ def parse_vulnerable(value: object) -> bool | None:
 
 
 def canonicalize(frame: pd.DataFrame, fields: dict[str, str | None]) -> pd.DataFrame:
-    """Add a canonical audit view while retaining the raw row count."""
+    """Tạo view audit chuẩn hóa trong khi giữ nguyên số dòng thô."""
     result = pd.DataFrame(index=frame.index)
     result["sample_id"] = (
         frame[fields["sample_id"]].astype(str)
@@ -118,7 +118,7 @@ def canonicalize(frame: pd.DataFrame, fields: dict[str, str | None]) -> pd.DataF
 
 
 def schema_table(frame: pd.DataFrame, fields: dict[str, str | None]) -> pd.DataFrame:
-    """Describe every raw column and its canonical meaning, when recognized."""
+    """Mô tả từng cột thô và ý nghĩa chuẩn hóa nếu xác định được."""
     inverse = {actual: canonical for canonical, actual in fields.items() if actual}
     rows = []
     for column in frame.columns:
@@ -127,7 +127,7 @@ def schema_table(frame: pd.DataFrame, fields: dict[str, str | None]) -> pd.DataF
         example = "" if non_missing.empty else str(non_missing.iloc[0]).replace("\n", "\\n")[:160]
         rows.append({
             "field": column,
-            "meaning": inverse.get(column, "unmapped raw field"),
+            "meaning": inverse.get(column, "field thô chưa được ánh xạ"),
             "dtype": str(frame[column].dtype),
             "missing_count": missing,
             "missing_percentage": 100.0 * missing / len(frame) if len(frame) else 0.0,
@@ -136,7 +136,7 @@ def schema_table(frame: pd.DataFrame, fields: dict[str, str | None]) -> pd.DataF
     for canonical, actual in fields.items():
         if actual is None:
             rows.append({
-                "field": "NOT PRESENT", "meaning": canonical, "dtype": "N/A",
+                "field": "KHÔNG TỒN TẠI", "meaning": canonical, "dtype": "N/A",
                 "missing_count": len(frame), "missing_percentage": 100.0, "example": "",
             })
     return pd.DataFrame(rows)
@@ -195,10 +195,10 @@ def _source_quality_summary(records: pd.DataFrame) -> pd.DataFrame:
     text = source.fillna("").astype(str)
     lines = text.map(lambda value: 0 if not value else value.count("\n") + 1)
     return pd.DataFrame([
-        {"check": "missing_source", "sample_count": int(source.isna().sum()), "definition": "raw source value is null"},
-        {"check": "empty_source", "sample_count": int(text.str.strip().eq("").sum()), "definition": "source is null, empty, or whitespace-only"},
-        {"check": "very_short_source", "sample_count": int(((text.str.len() < 20) | (lines < 3)).sum()), "definition": "fewer than 20 characters or 3 lines (screening flag only)"},
-        {"check": "very_long_source", "sample_count": int(((text.str.len() > 10_000) | (lines > 500)).sum()), "definition": "more than 10,000 characters or 500 lines (screening flag only)"},
+        {"check": "missing_source", "sample_count": int(source.isna().sum()), "definition": "giá trị source thô là null"},
+        {"check": "empty_source", "sample_count": int(text.str.strip().eq("").sum()), "definition": "source là null, rỗng hoặc chỉ có whitespace"},
+        {"check": "very_short_source", "sample_count": int(((text.str.len() < 20) | (lines < 3)).sum()), "definition": "ít hơn 20 ký tự hoặc 3 dòng (chỉ là cờ sàng lọc)"},
+        {"check": "very_long_source", "sample_count": int(((text.str.len() > 10_000) | (lines > 500)).sum()), "definition": "nhiều hơn 10.000 ký tự hoặc 500 dòng (chỉ là cờ sàng lọc)"},
     ])
 
 
@@ -225,13 +225,13 @@ def _sample_manifest(vulnerable: pd.DataFrame, size: int = 30, seed: int = 105) 
 
 
 def run_audit(frame: pd.DataFrame, configured: dict[str, str | None] | None = None) -> AuditResult:
-    """Compute the complete in-memory audit from actual records."""
+    """Tính toàn bộ audit trong bộ nhớ từ các record thực tế."""
     fields = resolve_fields(frame, configured)
     records = canonicalize(frame, fields)
     unknown_labels = int(records["is_vulnerable"].isna().sum())
     if unknown_labels:
         examples = records.loc[records["is_vulnerable"].isna(), "sample_id"].head(5).tolist()
-        raise ValueError(f"{unknown_labels} vulnerable labels could not be parsed; sample IDs: {examples}")
+        raise ValueError(f"Không thể parse {unknown_labels} vulnerable label; sample ID: {examples}")
     vulnerable = records[records["is_vulnerable"] == True].copy()  # noqa: E712
     labeled = vulnerable[vulnerable["cwe_list"].map(bool)].copy()
     cwe = cwe_distribution(vulnerable)
@@ -292,7 +292,7 @@ def run_audit(frame: pd.DataFrame, configured: dict[str, str | None] | None = No
 
 
 def read_optional_metadata(raw_dir: Path) -> tuple[pd.DataFrame | None, Path | None]:
-    """Load one clearly named metadata table when present."""
+    """Load một bảng metadata có tên rõ ràng khi tồn tại."""
     from src.data.loader import read_records
 
     candidates = [path for path in Path(raw_dir).rglob("*") if path.is_file() and any(marker in path.name.lower() for marker in METADATA_MARKERS)]
@@ -304,25 +304,25 @@ def read_optional_metadata(raw_dir: Path) -> tuple[pd.DataFrame | None, Path | N
 
 
 def metadata_audit(records: pd.DataFrame, metadata: pd.DataFrame | None) -> pd.DataFrame:
-    """Measure commit-level join and URL coverage without assuming completeness."""
+    """Đo coverage join ở mức commit và URL mà không giả định metadata đầy đủ."""
     columns = ["metric", "value", "note"]
     if metadata is None:
-        return pd.DataFrame([["metadata_status", "not_provided", "No separate metadata file was found."]], columns=columns)
+        return pd.DataFrame([["metadata_status", "not_provided", "Không tìm thấy file metadata riêng."]], columns=columns)
     commit_col = _pick_column(list(metadata.columns), FIELD_ALIASES["commit"])
     repo_url_col = _pick_column(list(metadata.columns), ("repository_url", "repo_url", "repository"))
     commit_url_col = _pick_column(list(metadata.columns), ("commit_url", "url"))
     if commit_col is None:
-        return pd.DataFrame([["metadata_status", "unjoinable", "No commit ID field was detected in metadata."]], columns=columns)
+        return pd.DataFrame([["metadata_status", "unjoinable", "Không phát hiện field commit ID trong metadata."]], columns=columns)
     record_commits = set(records["commit"].dropna().astype(str))
     meta_commits = set(metadata[commit_col].dropna().astype(str))
     joined = len(record_commits & meta_commits)
     return pd.DataFrame([
         ["dataset_unique_commits", len(record_commits), ""],
         ["metadata_unique_commits", len(meta_commits), ""],
-        ["joined_unique_commits", joined, "Commit ID intersection"],
+        ["joined_unique_commits", joined, "Phần giao của commit ID"],
         ["unjoined_dataset_commits", len(record_commits - meta_commits), ""],
-        ["missing_commit_url_rows", int(metadata[commit_url_col].isna().sum()) if commit_url_col else len(metadata), "field absent" if not commit_url_col else ""],
-        ["missing_repo_url_rows", int(metadata[repo_url_col].isna().sum()) if repo_url_col else len(metadata), "field absent" if not repo_url_col else ""],
+        ["missing_commit_url_rows", int(metadata[commit_url_col].isna().sum()) if commit_url_col else len(metadata), "field không tồn tại" if not commit_url_col else ""],
+        ["missing_repo_url_rows", int(metadata[repo_url_col].isna().sum()) if repo_url_col else len(metadata), "field không tồn tại" if not repo_url_col else ""],
     ], columns=columns)
 
 

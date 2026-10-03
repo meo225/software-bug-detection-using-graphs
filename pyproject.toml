@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "software-bug-detection-using-graphs"
 version = "0.1.0"
-description = "Research project on software weakness detection and CWE classification with graph representations and graph neural networks."
+description = "Đồ án nghiên cứu phát hiện điểm yếu phần mềm và phân loại CWE bằng biểu diễn đồ thị cùng graph neural network."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

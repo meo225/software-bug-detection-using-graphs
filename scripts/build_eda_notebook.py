@@ -1,4 +1,4 @@
-"""Build the reproducible DiverseVul EDA notebook from a small cell specification."""
+"""Tạo notebook EDA DiverseVul có thể tái lập từ đặc tả cell ngắn gọn."""
 
 from __future__ import annotations
 
@@ -24,11 +24,12 @@ def build() -> None:
     notebook["metadata"]["language_info"] = {"name": "python", "version": "3.10+"}
     notebook["cells"] = [
         nbf.v4.new_markdown_cell(
-            "# DiverseVul dataset audit\n\n"
-            "Audit function-level C/C++ records for CWE-classification suitability. "
-            "This notebook does not choose Top-K, a label policy, a final split, a graph representation, or a GNN."
+            "# Kiểm tra bộ dữ liệu DiverseVul\n\n"
+            "Kiểm tra các bản ghi C/C++ ở mức hàm để đánh giá mức phù hợp cho bài toán phân loại CWE. "
+            "Notebook không tự chọn số CWE phổ biến nhất, chính sách nhãn, cách chia dữ liệu cuối cùng, "
+            "biểu diễn đồ thị hoặc kiến trúc GNN."
         ),
-        md("1. Setup", "Resolve every path from the repository root and fix the sampling seed."),
+        md("1. Thiết lập", "Xác định mọi đường dẫn từ thư mục gốc repository và cố định seed dùng để lấy mẫu."),
         code("""
 from pathlib import Path
 import sys
@@ -47,9 +48,9 @@ SEED = 105
 config = load_config(ROOT / "configs/data/diversevul.yaml")["dataset"]
 raw_dir = ROOT / config["local_raw_dir"]
 print("Repository:", ROOT)
-print("Raw directory:", raw_dir)
+print("Thư mục dữ liệu thô:", raw_dir)
 """),
-        md("2. Load dataset", "Load the real local release losslessly. Missing data remains an explicit blocked state."),
+        md("2. Nạp dữ liệu", "Nạp đầy đủ bản dữ liệu local thực tế. Nếu thiếu dữ liệu, trạng thái bị chặn phải được hiển thị tường minh."),
         code("""
 dataset_available = False
 blocked_reason = None
@@ -63,64 +64,64 @@ except FileNotFoundError as error:
     blocked_reason = str(error)
     print("BLOCKED:", blocked_reason)
 """),
-        md("3. Dataset schema", "Print actual columns, dtypes, shape, field mapping, missingness, and bounded examples. No field is invented."),
+        md("3. Cấu trúc dữ liệu", "In các cột, kiểu dữ liệu, kích thước, ánh xạ field, dữ liệu thiếu và ví dụ giới hạn từ dữ liệu thật. Không tự tạo field."),
         code("""
 if dataset_available:
     result = run_audit(raw, config)
     print(raw.dtypes)
-    print("Resolved fields:", result.fields)
+    print("Các field đã ánh xạ:", result.fields)
     display(result.tables["missing_values"])
 else:
-    print("Schema not observed because no dataset file was loaded.")
+    print("Chưa quan sát được schema vì không có file dataset nào được load.")
 """),
-        md("4. Verify paper statistics", "Recompute the six headline metrics and retain every difference from the paper baseline."),
-        code("display(result.tables['paper_comparison']) if dataset_available else print('Not computed.')"),
-        md("5. Missing data", "Review raw-column missingness, including absent semantic fields."),
-        code("display(result.tables['missing_values']) if dataset_available else print('Not computed.')"),
-        md("6. Vulnerable/CWE coverage", "CWE classification analysis uses vulnerable records only."),
-        code("display(result.tables['dataset_summary']) if dataset_available else print('Not computed.')"),
-        md("7. CWE distribution", "Per-CWE function, project, commit, and labeled-vulnerable coverage. Multi-CWE rows contribute to each attached CWE."),
-        code("display(result.tables['cwe_distribution'].head(20)) if dataset_available else print('Not computed.')"),
-        md("8. Threshold analysis", "Evaluate 20/50/100/200 samples per CWE without choosing a threshold."),
-        code("display(result.tables['threshold_analysis']) if dataset_available else print('Not computed.')"),
-        md("9. Multi-CWE analysis", "Measure zero, one, and two-or-more CWE values without converting the task to single-label."),
+        md("4. Xác minh thống kê trong paper", "Tính lại sáu metric chính và giữ nguyên mọi chênh lệch so với baseline trong paper."),
+        code("display(result.tables['paper_comparison']) if dataset_available else print('Chưa tính được.')"),
+        md("5. Dữ liệu bị thiếu", "Kiểm tra missingness của từng cột thô, bao gồm các semantic field không tồn tại."),
+        code("display(result.tables['missing_values']) if dataset_available else print('Chưa tính được.')"),
+        md("6. Mức bao phủ CWE của dữ liệu có lỗ hổng", "Phân tích cho bài toán phân loại CWE chỉ sử dụng các bản ghi có lỗ hổng."),
+        code("display(result.tables['dataset_summary']) if dataset_available else print('Chưa tính được.')"),
+        md("7. Phân bố CWE", "Tính mức bao phủ theo hàm, dự án, commit và dữ liệu có lỗ hổng đã gắn nhãn cho từng CWE. Bản ghi có nhiều CWE đóng góp vào từng CWE được gắn."),
+        code("display(result.tables['cwe_distribution'].head(20)) if dataset_available else print('Chưa tính được.')"),
+        md("8. Phân tích ngưỡng", "Đánh giá các ngưỡng 20/50/100/200 mẫu trên mỗi CWE mà không tự chọn ngưỡng."),
+        code("display(result.tables['threshold_analysis']) if dataset_available else print('Chưa tính được.')"),
+        md("9. Phân tích mẫu có nhiều CWE", "Đo số mẫu có 0, 1 hoặc từ 2 CWE trở lên mà không tự chuyển bài toán thành phân loại một nhãn."),
         code("""
 if dataset_available:
     display(result.tables["multi_cwe_summary"])
     display(result.tables["cwe_count_distribution"])
     display(result.tables["multi_cwe_examples"])
 else:
-    print("Not computed.")
+    print("Chưa tính được.")
 """),
-        md("10. Project distribution", "Compare total and vulnerable function volume plus CWE breadth per project."),
-        code("display(result.tables['project_distribution'].head(20)) if dataset_available else print('Not computed.')"),
-        md("11. CWE-project analysis", "Measure project support and largest-project concentration for every CWE."),
+        md("10. Phân bố dự án", "So sánh tổng số hàm, số hàm có lỗ hổng và độ rộng CWE trên từng dự án."),
+        code("display(result.tables['project_distribution'].head(20)) if dataset_available else print('Chưa tính được.')"),
+        md("11. Phân tích CWE theo dự án", "Đo số dự án hỗ trợ và mức tập trung vào dự án lớn nhất cho từng CWE."),
         code("""
 if dataset_available:
     display(result.tables["cwe_project_distribution"].head(30))
     display(result.tables["project_split_feasibility"])
 else:
-    print("Not computed.")
+    print("Chưa tính được.")
 """),
-        md("12. Duplicate analysis", "Compare exact source hashes with conservative line-ending/trailing-whitespace normalization and count label conflicts."),
-        code("display(result.tables['duplicate_summary']) if dataset_available else print('Not computed.')"),
-        md("13. Source-code quality", "Report missing/empty source and character/line length quantiles. Token counts are intentionally omitted."),
+        md("12. Phân tích dữ liệu trùng lặp", "So sánh mã băm của mã nguồn nguyên bản với mã băm sau khi chuẩn hóa bảo thủ ký tự xuống dòng và khoảng trắng cuối dòng, đồng thời đếm xung đột nhãn."),
+        code("display(result.tables['duplicate_summary']) if dataset_available else print('Chưa tính được.')"),
+        md("13. Chất lượng mã nguồn", "Báo cáo mã nguồn bị thiếu/rỗng và các phân vị độ dài theo ký tự/dòng. Chủ động không tính token khi chưa chọn bộ tách token."),
         code("""
 if dataset_available:
     display(result.tables["source_quality_summary"])
     display(result.tables["function_length_summary"])
     display(result.tables["source_inspection_sample"])
 else:
-    print("Not computed.")
+    print("Chưa tính được.")
 """),
-        md("14. Graph-readiness sample", "Create only a small deterministic manifest for a later Joern trial; do not generate CPGs here."),
+        md("14. Mẫu kiểm tra mức sẵn sàng để tạo đồ thị", "Chỉ tạo danh mục nhỏ với seed cố định để thử Joern ở giai đoạn sau; không tạo CPG trong notebook này."),
         code("""
 if dataset_available:
     display(result.tables["graph_sample_manifest"])
 else:
-    print("Manifest cannot be populated without the raw dataset.")
+    print("Không thể tạo manifest khi chưa có dataset thô.")
 """),
-        md("15. Findings", "Generate all tables, figures, manifest, metadata audit, and Markdown report from the same computed result."),
+        md("15. Kết quả", "Sinh tất cả bảng, biểu đồ, danh mục mẫu, kết quả kiểm tra siêu dữ liệu và báo cáo Markdown từ cùng một kết quả đã tính."),
         code("""
 import subprocess
 completed = subprocess.run(
@@ -136,17 +137,17 @@ if dataset_available:
     result.tables["metadata_audit"] = metadata_audit(result.records, metadata)
     print(result.findings)
 else:
-    print("No findings are claimed; generated artifacts are visibly marked BLOCKED.")
+    print("Không có kết quả EDA nào được tuyên bố; các artifact được sinh đều ghi rõ trạng thái BLOCKED.")
 """),
-        md("16. Open research decisions", "Evidence informs, but does not settle, the decisions below."),
+        md("16. Các quyết định nghiên cứu còn mở", "Bằng chứng hỗ trợ nhưng không tự chốt các quyết định dưới đây."),
         code("""
 decisions = [
-    "Top-K or minimum samples per CWE",
-    "single-label, multi-label, hierarchical, or ambiguous-sample handling",
-    "final project-aware split",
-    "duplicate and label-conflict policy",
-    "graph representation and Joern settings",
-    "GNN architecture and evaluation protocol",
+    "Top-K hoặc số sample tối thiểu trên mỗi CWE",
+    "cách xử lý single-label, multi-label, hierarchical hoặc ambiguous sample",
+    "project-aware split cuối cùng",
+    "chính sách xử lý duplicate và label conflict",
+    "graph representation và cấu hình Joern",
+    "kiến trúc GNN và evaluation protocol",
 ]
 for decision in decisions:
     print("-", decision)

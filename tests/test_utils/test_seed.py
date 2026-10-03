@@ -1,4 +1,4 @@
-"""Seed helper."""
+"""Kiểm thử helper đặt seed."""
 
 import random
 

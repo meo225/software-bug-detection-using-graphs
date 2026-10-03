@@ -1,9 +1,8 @@
-"""Classification metrics.
+"""Các metric phân loại.
 
-Accuracy is recorded and is not the only metric. Macro-F1 is the headline
-metric for multiclass CWE classification because the label distribution is
-expected to be imbalanced. Binary vulnerability metrics stay optional until
-that experiment exists.
+Accuracy được ghi nhận nhưng không phải metric duy nhất. Macro-F1 là metric
+chính cho phân loại CWE multiclass vì phân bố label dự kiến mất cân bằng.
+Các metric lỗ hổng binary vẫn là tùy chọn cho đến khi có experiment tương ứng.
 """
 
 from __future__ import annotations
@@ -27,11 +26,11 @@ BINARY_METRICS: tuple[str, ...] = (
 
 
 def classification_report(y_true: object, y_pred: object, labels: list[str]) -> dict[str, object]:
-    """Compute every name in ``MULTICLASS_METRICS``.
+    """Tính mọi metric có tên trong ``MULTICLASS_METRICS``.
 
-    TODO: implement with scikit-learn once predictions exist. Return per-CWE
-    precision, recall, and F1 alongside the aggregate scores.
+    TODO: triển khai bằng scikit-learn khi có prediction. Trả về precision,
+    recall và F1 theo từng CWE cùng các score tổng hợp.
     """
     raise NotImplementedError(
-        f"classification_report is not implemented for {len(labels)} labels."
+        f"Chưa triển khai classification_report cho {len(labels)} label."
     )

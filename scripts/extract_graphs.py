@@ -1,10 +1,10 @@
-"""Extract graphs for function-level samples.
+"""Trích xuất đồ thị cho các sample ở mức function.
 
-Planned usage, from the repository root::
+Cách dùng dự kiến từ thư mục gốc repository::
 
     python scripts/extract_graphs.py --config configs/graph/cpg.yaml
 
-CPG and Joern are candidates. This command does not run Joern yet.
+CPG và Joern là các phương án ứng viên. Lệnh này chưa chạy Joern.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ LOGGER = get_logger("extract_graphs")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Extract graphs using the representation in a YAML config.")
+    parser = argparse.ArgumentParser(description="Trích xuất đồ thị theo representation trong config YAML.")
     parser.add_argument("--config", type=Path, required=True)
     return parser.parse_args()
 
@@ -36,9 +36,9 @@ def main() -> None:
     LOGGER.info("Representation: %s (%s)", graph.get("name"), graph.get("status"))
     LOGGER.info("Extractor: %s", graph.get("extractor"))
     raise NotImplementedError(
-        "Graph extraction is not implemented. "
-        "Keep Joern calls inside src/graph/joern.py. "
-        "Start from a 20 to 50 function manifest produced by EDA, not the full dataset."
+        "Chưa triển khai bước trích xuất đồ thị. "
+        "Giữ các lời gọi Joern trong src/graph/joern.py. "
+        "Bắt đầu từ manifest 20 đến 50 function do EDA tạo, không chạy trên full dataset."
     )
 
 

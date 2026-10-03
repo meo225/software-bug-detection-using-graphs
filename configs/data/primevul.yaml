@@ -1,5 +1,5 @@
-# Placeholder so the pipeline is not tied to DiverseVul.
-# Fill source_url and local_raw_dir when this dataset is actually audited.
+# File giữ chỗ để pipeline không phụ thuộc riêng vào DiverseVul.
+# Điền source_url và local_raw_dir khi dataset này thực sự được audit.
 dataset:
   name: primevul
   status: not_started

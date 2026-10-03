@@ -1,4 +1,4 @@
-"""Run the DiverseVul audit and generate all committed EDA artifacts."""
+"""Chạy audit DiverseVul và sinh toàn bộ artifact EDA có thể commit."""
 
 from __future__ import annotations
 
@@ -37,22 +37,22 @@ MANIFEST_PATH = ROOT / "data" / "sample_manifests" / "diversevul_graph_sample.cs
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=ROOT / "configs" / "data" / "diversevul.yaml")
-    parser.add_argument("--dataset-file", type=Path, help="Explicit main dataset file when discovery is ambiguous.")
-    parser.add_argument("--strict", action="store_true", help="Exit non-zero instead of writing a blocked status when data is absent.")
+    parser.add_argument("--dataset-file", type=Path, help="Chỉ định file dataset chính khi quá trình dò tìm bị mơ hồ.")
+    parser.add_argument("--strict", action="store_true", help="Trả mã lỗi thay vì ghi trạng thái blocked khi thiếu dữ liệu.")
     return parser.parse_args()
 
 
 def _placeholder_figure(path: Path, message: str) -> None:
     fig, ax = plt.subplots(figsize=(9, 4.8))
     ax.axis("off")
-    ax.text(0.5, 0.55, "EDA not run", ha="center", va="center", fontsize=20, weight="bold")
+    ax.text(0.5, 0.55, "Chưa chạy EDA", ha="center", va="center", fontsize=20, weight="bold")
     ax.text(0.5, 0.40, message, ha="center", va="center", fontsize=11, wrap=True)
     fig.savefig(path, dpi=160, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
 def write_blocked_outputs(reason: str, raw_dir: Path) -> None:
-    """Create explicitly marked placeholders without inventing measurements."""
+    """Tạo file giữ chỗ có đánh dấu rõ mà không bịa số liệu."""
     TABLE_DIR.mkdir(parents=True, exist_ok=True)
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -73,13 +73,13 @@ def write_blocked_outputs(reason: str, raw_dir: Path) -> None:
         frame.to_csv(TABLE_DIR / name, index=False)
     pd.DataFrame(columns=["sample_id", "project", "commit", "cwe", "label", "source_reference"]).to_csv(MANIFEST_PATH, index=False)
     for name in ("cwe_top20.png", "cwe_distribution.png", "project_distribution.png", "function_length_distribution.png"):
-        _placeholder_figure(FIGURE_DIR / name, "Raw DiverseVul data is missing. No values are plotted.")
+        _placeholder_figure(FIGURE_DIR / name, "Thiếu dữ liệu thô DiverseVul. Không có giá trị nào được vẽ.")
     write_json(TABLE_DIR / "audit_status.json", {"status": "blocked", "reason": reason, "expected_raw_dir": str(raw_dir)})
     REPORT_PATH.write_text(_blocked_report(reason, raw_dir), encoding="utf-8")
 
 
 def _blocked_report(reason: str, raw_dir: Path) -> str:
-    return f"""# Audit dataset DiverseVul
+    return f"""# Kiểm tra bộ dữ liệu DiverseVul
 
 **Trạng thái: BLOCKED - chưa có dữ liệu thô.**
 
@@ -101,7 +101,7 @@ Nguyên nhân: `{reason}`
 
 Runner hỗ trợ CSV, JSON, JSONL/NDJSON, Parquet và file pickle từ nguồn chính thức. Dùng `--dataset-file PATH` nếu có nhiều file có thể là dataset chính. Chỉ dùng pickle từ bản phát hành chính thức đáng tin cậy vì quá trình load pickle có thể thực thi code.
 
-## Schema
+## Cấu trúc dữ liệu
 
 Chưa quan sát được. Pipeline sẽ in và xuất các cột, dtype, shape, missingness, ví dụ và ánh xạ đã xác định cho source/label/CWE/project/commit/hash/CVE/repository. Pipeline báo lỗi thay vì tự tạo field bắt buộc không có trong dữ liệu.
 
@@ -146,23 +146,23 @@ def _barh(frame: pd.DataFrame, label: str, value: str, path: Path, title: str, t
 
 def write_figures(result) -> None:
     cwe = result.tables["cwe_distribution"]
-    _barh(cwe, "cwe", "sample_count", FIGURE_DIR / "cwe_top20.png", "Top 20 CWE among vulnerable labeled functions")
+    _barh(cwe, "cwe", "sample_count", FIGURE_DIR / "cwe_top20.png", "Top 20 CWE trong các vulnerable function có label")
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     counts = cwe["sample_count"].sort_values(ascending=False).reset_index(drop=True)
     axes[0].plot(range(1, len(counts) + 1), counts, color="#2f6b9a")
     axes[0].set_yscale("log")
-    axes[0].set(title="CWE class-size long tail", xlabel="CWE rank", ylabel="Samples (log scale)")
+    axes[0].set(title="Phân bố long-tail theo kích thước class CWE", xlabel="Thứ hạng CWE", ylabel="Số sample (thang log)")
     axes[1].plot(range(1, len(counts) + 1), counts.cumsum().div(counts.sum()).mul(100), color="#c77721")
-    axes[1].set(title="Cumulative CWE-label coverage", xlabel="CWE rank", ylabel="Cumulative percentage")
+    axes[1].set(title="Coverage tích lũy của label CWE", xlabel="Thứ hạng CWE", ylabel="Phần trăm tích lũy")
     fig.tight_layout(); fig.savefig(FIGURE_DIR / "cwe_distribution.png", dpi=160, facecolor="white"); plt.close(fig)
-    _barh(result.tables["project_distribution"], "project", "vulnerable_samples", FIGURE_DIR / "project_distribution.png", "Top projects by vulnerable functions")
+    _barh(result.tables["project_distribution"], "project", "vulnerable_samples", FIGURE_DIR / "project_distribution.png", "Các project có nhiều vulnerable function nhất")
     source = result.records["source_code"].fillna("").astype(str)
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     axes[0].hist(source.str.len().clip(upper=source.str.len().quantile(.99)), bins=50, color="#2f6b9a")
-    axes[0].set(title="Characters/function (clipped at p99)", xlabel="Characters", ylabel="Functions")
+    axes[0].set(title="Số ký tự/function (giới hạn tại p99)", xlabel="Số ký tự", ylabel="Số function")
     lines = source.map(lambda text: 0 if not text else text.count("\n") + 1)
     axes[1].hist(lines.clip(upper=lines.quantile(.99)), bins=50, color="#c77721")
-    axes[1].set(title="Lines/function (clipped at p99)", xlabel="Lines", ylabel="Functions")
+    axes[1].set(title="Số dòng/function (giới hạn tại p99)", xlabel="Số dòng", ylabel="Số function")
     fig.tight_layout(); fig.savefig(FIGURE_DIR / "function_length_distribution.png", dpi=160, facecolor="white"); plt.close(fig)
 
 
@@ -309,7 +309,7 @@ def main() -> int:
     write_figures(result)
     write_json(TABLE_DIR / "audit_status.json", {"status": "complete", "dataset_file": str(loaded.source_file), "fields": result.fields})
     write_report(result, loaded.source_file, metadata_path)
-    print(f"EDA complete: {REPORT_PATH}")
+    print(f"EDA hoàn tất: {REPORT_PATH}")
     return 0
 
 

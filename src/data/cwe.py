@@ -1,7 +1,7 @@
-"""CWE parsing and frequency tables.
+"""Parse CWE và tạo bảng tần suất.
 
-Do not drop rare classes, collapse multi-CWE labels, or pick the first CWE.
-Those are research decisions. These helpers should only describe the data.
+Không loại class hiếm, gộp label multi-CWE hoặc chọn CWE đầu tiên.
+Đó là quyết định nghiên cứu; các helper này chỉ mô tả dữ liệu.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ MISSING_TOKENS = {"", "none", "null", "nan", "n/a", "na", "unknown", "[]"}
 
 
 def parse_cwe_labels(raw_value: object) -> list[str]:
-    """Return every unique CWE in source order without choosing one label."""
+    """Trả về mọi CWE unique theo thứ tự nguồn mà không chọn một label duy nhất."""
     if raw_value is None or (isinstance(raw_value, float) and np.isnan(raw_value)):
         return []
     if isinstance(raw_value, (list, tuple, set, np.ndarray, pd.Series)):
@@ -52,9 +52,9 @@ def parse_cwe_labels(raw_value: object) -> list[str]:
 
 
 def cwe_distribution(records: pd.DataFrame) -> pd.DataFrame:
-    """Build the CWE table: CWE, sample_count, percentage, project_count.
+    """Tạo bảng CWE gồm CWE, sample_count, percentage và project_count.
 
-    Input must contain only vulnerable records and canonical audit columns.
+    Input chỉ được chứa vulnerable record và các cột audit chuẩn hóa.
     """
     labeled = records[records["cwe_list"].map(bool)].copy()
     exploded = labeled.explode("cwe_list").rename(columns={"cwe_list": "cwe"})
@@ -78,9 +78,9 @@ def threshold_summary(
     labeled_records: pd.DataFrame,
     thresholds: Sequence[int] = FREQUENCY_THRESHOLDS,
 ) -> pd.DataFrame:
-    """For each threshold, count remaining CWE, vulnerable functions, and retained share.
+    """Với từng threshold, đếm số CWE, vulnerable function và tỷ lệ được giữ lại.
 
-    A multi-CWE sample is retained once when any attached CWE passes the threshold.
+    Một sample multi-CWE chỉ được tính giữ lại một lần khi có CWE đạt threshold.
     """
     rows = []
     denominator = len(labeled_records)
@@ -100,7 +100,7 @@ def threshold_summary(
 
 
 def multi_cwe_summary(records: pd.DataFrame) -> pd.DataFrame:
-    """Count samples with one CWE and samples with two or more.
+    """Đếm sample có một CWE và sample có từ hai CWE trở lên.
 
     Do not reduce a multi-CWE sample to its first label.
     """

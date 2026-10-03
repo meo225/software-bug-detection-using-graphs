@@ -1,4 +1,4 @@
-"""Dataset audit tests use synthetic fixtures, never paper counts."""
+"""Test audit dataset dùng synthetic fixture, không dùng số liệu từ paper."""
 
 from __future__ import annotations
 

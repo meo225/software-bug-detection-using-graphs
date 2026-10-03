@@ -1,4 +1,4 @@
-"""Metric coverage to add with the first real predictions."""
+"""Coverage cho metric sẽ được thêm cùng các prediction thật đầu tiên."""
 
 import pytest
 
@@ -17,6 +17,6 @@ def test_binary_metrics_stay_available_for_a_later_experiment() -> None:
     assert "pr_auc" in BINARY_METRICS
 
 
-@pytest.mark.skip(reason="TODO: compute metrics from a fixed prediction fixture.")
+@pytest.mark.skip(reason="TODO: tính metric từ prediction fixture cố định.")
 def test_classification_report_matches_a_known_table() -> None:
-    """Macro-F1 and per-CWE scores should be checked against a hand-computed example."""
+    """Macro-F1 và score theo từng CWE cần được đối chiếu với ví dụ tính thủ công."""

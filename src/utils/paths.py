@@ -1,4 +1,4 @@
-"""Repository paths. Resolve every location from the repo root, not a machine-specific absolute path."""
+"""Đường dẫn repository. Phân giải từ repo root, không dùng đường dẫn tuyệt đối riêng của máy."""
 
 from __future__ import annotations
 
@@ -7,12 +7,12 @@ from pathlib import Path
 
 
 def repo_root() -> Path:
-    """Return the repository root (the directory that contains ``src``)."""
+    """Trả về repository root, tức thư mục chứa ``src``."""
     return Path(__file__).resolve().parents[2]
 
 
 def ensure_repo_on_path() -> Path:
-    """Put the repository root on ``sys.path`` so ``import src`` works from scripts."""
+    """Thêm repository root vào ``sys.path`` để script có thể ``import src``."""
     root = repo_root()
     root_str = str(root)
     if root_str not in sys.path:
@@ -21,20 +21,20 @@ def ensure_repo_on_path() -> Path:
 
 
 def resolve_from_root(*parts: str) -> Path:
-    """Join ``parts`` onto the repository root."""
+    """Nối ``parts`` vào repository root."""
     return repo_root().joinpath(*parts)
 
 
 def data_dir(*parts: str) -> Path:
-    """Path under ``data/``."""
+    """Đường dẫn bên trong ``data/``."""
     return resolve_from_root("data", *parts)
 
 
 def output_dir(*parts: str) -> Path:
-    """Path under ``outputs/``."""
+    """Đường dẫn bên trong ``outputs/``."""
     return resolve_from_root("outputs", *parts)
 
 
 def report_dir(*parts: str) -> Path:
-    """Path under ``reports/``."""
+    """Đường dẫn bên trong ``reports/``."""
     return resolve_from_root("reports", *parts)
