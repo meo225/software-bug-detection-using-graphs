@@ -4,9 +4,9 @@
 
 ## File dataset thực tế đã sử dụng
 
-- Dataset chính: `D:/PROJECT/software-bug-detection-using-graphs/data/raw/diversevul/diversevul.jsonl`
-- Metadata riêng: `D:/PROJECT/software-bug-detection-using-graphs/data/raw/diversevul/diversevul_metadata.jsonl`
-- Bảng label-noise: `D:/PROJECT/software-bug-detection-using-graphs/data/raw/diversevul/diversevul_label_noise.xlsx`
+- Dataset chính: `data/raw/diversevul/diversevul.jsonl`
+- Metadata riêng: `data/raw/diversevul/diversevul_metadata.jsonl`
+- Bảng label-noise: `data/raw/diversevul/diversevul_label_noise.xlsx`
 
 Kích thước: **330,492 dòng x 8 cột thô**. Schema thô thực tế và missing values nằm trong `tables/missing_values.csv`.
 

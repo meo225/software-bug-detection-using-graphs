@@ -41,6 +41,17 @@ REPORT_PATH = ROOT / "reports" / "dataset" / "dataset_eda.md"
 MANIFEST_PATH = ROOT / "data" / "sample_manifests" / "diversevul_graph_sample.csv"
 
 
+def _display_path(path: Path | None) -> str | None:
+    """Trả đường dẫn tương đối với repository khi có thể để artifact có tính di động."""
+    if path is None:
+        return None
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        return resolved.as_posix()
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=ROOT / "configs" / "data" / "diversevul.yaml")
@@ -81,7 +92,10 @@ def write_blocked_outputs(reason: str, raw_dir: Path) -> None:
     pd.DataFrame(columns=["sample_id", "project", "commit", "cwe", "label", "source_reference"]).to_csv(MANIFEST_PATH, index=False)
     for name in ("cwe_top20.png", "cwe_distribution.png", "project_distribution.png", "function_length_distribution.png"):
         _placeholder_figure(FIGURE_DIR / name, "Thiếu dữ liệu thô DiverseVul. Không có giá trị nào được vẽ.")
-    write_json(TABLE_DIR / "audit_status.json", {"status": "blocked", "reason": reason, "expected_raw_dir": str(raw_dir)})
+    write_json(
+        TABLE_DIR / "audit_status.json",
+        {"status": "blocked", "reason": reason, "expected_raw_dir": _display_path(raw_dir)},
+    )
     REPORT_PATH.write_text(_blocked_report(reason, raw_dir), encoding="utf-8")
 
 
@@ -94,7 +108,7 @@ Chưa có thống kê DiverseVul nào được tính. Các file CSV và PNG tron
 
 ## File dataset thực tế đã sử dụng
 
-Không có. Thư mục dữ liệu thô đã kiểm tra là `{raw_dir.as_posix()}` và không chứa file dataset thuộc định dạng được hỗ trợ.
+Không có. Thư mục dữ liệu thô đã kiểm tra là `{_display_path(raw_dir)}` và không chứa file dataset thuộc định dạng được hỗ trợ.
 
 Nguyên nhân: `{reason}`
 
@@ -198,9 +212,9 @@ def write_report(result, dataset_file: Path, metadata_file: Path | None, label_n
 
 ## File dataset thực tế đã sử dụng
 
-- Dataset chính: `{dataset_file.as_posix()}`
-- Metadata riêng: `{metadata_file.as_posix() if metadata_file else 'không được cung cấp'}`
-- Bảng label-noise: `{label_noise_file.as_posix() if label_noise_file else 'không được cung cấp'}`
+- Dataset chính: `{_display_path(dataset_file)}`
+- Metadata riêng: `{_display_path(metadata_file) if metadata_file else 'không được cung cấp'}`
+- Bảng label-noise: `{_display_path(label_noise_file) if label_noise_file else 'không được cung cấp'}`
 
 Kích thước: **{len(result.records):,} dòng x {f['raw_column_count']:,} cột thô**. Schema thô thực tế và missing values nằm trong `tables/missing_values.csv`.
 
@@ -337,11 +351,11 @@ def main() -> int:
             digest.update(chunk)
     write_json(TABLE_DIR / "audit_status.json", {
         "status": "complete",
-        "dataset_file": str(loaded.source_file),
+        "dataset_file": _display_path(loaded.source_file),
         "dataset_size_bytes": loaded.source_file.stat().st_size,
         "dataset_sha256": digest.hexdigest(),
-        "metadata_file": str(metadata_path) if metadata_path else None,
-        "label_noise_file": str(label_noise_path) if label_noise_path else None,
+        "metadata_file": _display_path(metadata_path),
+        "label_noise_file": _display_path(label_noise_path),
         "fields": result.fields,
     })
     write_report(result, loaded.source_file, metadata_path, label_noise_path)

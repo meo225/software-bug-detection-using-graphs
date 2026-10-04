@@ -6,7 +6,7 @@ import json
 
 import pandas as pd
 
-from src.data.cwe import parse_cwe_labels
+from src.data.cwe import parse_cwe_labels, threshold_summary
 from src.data.diversevul_audit import run_audit
 from src.data.loader import load_dataset
 from src.data.preprocessing import normalize_whitespace
@@ -61,6 +61,25 @@ def test_audit_reports_multi_cwe_duplicates_and_conflicts_without_dropping_rows(
     assert duplicate.loc["normalized_source", "duplicate_groups"] == 2
     assert duplicate.loc["normalized_source", "vulnerable_label_conflict_groups"] == 1
     assert result.tables["project_distribution"].set_index("project").loc["beta", "total_samples"] == 2
+
+
+def test_threshold_summary_counts_each_multi_cwe_sample_once() -> None:
+    distribution = pd.DataFrame([
+        {"cwe": "CWE-1", "sample_count": 3},
+        {"cwe": "CWE-2", "sample_count": 2},
+        {"cwe": "CWE-3", "sample_count": 1},
+    ])
+    labeled = pd.DataFrame({
+        "cwe_list": [["CWE-1", "CWE-2"], ["CWE-1"], ["CWE-1"], ["CWE-2"], ["CWE-3"]]
+    })
+
+    summary = threshold_summary(distribution, labeled, thresholds=(2, 3)).set_index("threshold")
+
+    assert summary.loc[2, "number_of_cwe"] == 2
+    assert summary.loc[2, "number_of_samples"] == 4
+    assert summary.loc[2, "percentage_samples_retained"] == 80.0
+    assert summary.loc[3, "number_of_cwe"] == 1
+    assert summary.loc[3, "number_of_samples"] == 3
 
 
 def test_normalization_does_not_collapse_internal_whitespace() -> None:
