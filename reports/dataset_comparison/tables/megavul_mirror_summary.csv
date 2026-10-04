@@ -1,0 +1,9 @@
+metric,value
+rows,671797
+unique_hash,24352
+duplicate_metadata_rows,644189
+rows_in_repeated_hash_groups,670548
+maximum_rows_per_hash,9306
+unique_cve,8476
+unique_cwe_raw,171
+unique_commit_urls,9284

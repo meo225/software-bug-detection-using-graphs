@@ -36,12 +36,12 @@ def _is_probable_metadata(path: Path) -> bool:
     return any(marker in name for marker in METADATA_MARKERS)
 
 
-def discover_dataset_file(raw_dir: Path) -> Path:
+def discover_dataset_file(raw_dir: Path, dataset_name: str = "diversevul") -> Path:
     """Chọn file dữ liệu chính và từ chối cấu trúc thư mục mơ hồ."""
     raw_dir = Path(raw_dir)
     if not raw_dir.is_dir():
         raise FileNotFoundError(
-            f"Thư mục dữ liệu thô DiverseVul không tồn tại: {raw_dir}. "
+            f"Thư mục dữ liệu thô {dataset_name} không tồn tại: {raw_dir}. "
             "Xem hướng dẫn tại data/raw/README.md."
         )
     candidates = [
@@ -56,7 +56,8 @@ def discover_dataset_file(raw_dir: Path) -> Path:
         )
     if len(candidates) == 1:
         return candidates[0]
-    named = [path for path in candidates if "diversevul" in path.name.lower()]
+    token = dataset_name.lower()
+    named = [path for path in candidates if token in path.name.lower()]
     pool = named or candidates
     pool.sort(key=lambda path: path.stat().st_size, reverse=True)
     if len(pool) > 1 and pool[0].stat().st_size == pool[1].stat().st_size:
@@ -95,6 +96,11 @@ def read_records(path: Path) -> pd.DataFrame:
             chunks.append(pd.DataFrame.from_records(records))
         return pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
     if suffix == ".json":
+        with path.open(encoding="utf-8") as handle:
+            prefix = handle.read(4096).lstrip()
+            handle.seek(0)
+            if prefix.startswith("["):
+                return pd.DataFrame(json.load(handle))
         try:
             return pd.read_json(path, lines=True)
         except ValueError:
@@ -118,9 +124,9 @@ def read_records(path: Path) -> pd.DataFrame:
 
 def load_dataset(name: str, raw_dir: Path, dataset_file: Path | None = None) -> LoadedDataset:
     """Load dataset được hỗ trợ và giữ nguyên các cột cùng số dòng gốc."""
-    if name.lower() != "diversevul":
+    if name.lower() not in {"diversevul", "megavul"}:
         raise NotImplementedError(f"Chưa triển khai loader cho dataset {name!r}.")
-    source_file = Path(dataset_file) if dataset_file else discover_dataset_file(raw_dir)
+    source_file = Path(dataset_file) if dataset_file else discover_dataset_file(raw_dir, name)
     if not source_file.is_file():
         raise FileNotFoundError(source_file)
     return LoadedDataset(frame=read_records(source_file), source_file=source_file.resolve())

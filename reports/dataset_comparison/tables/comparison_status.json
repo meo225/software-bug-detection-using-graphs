@@ -1,0 +1,61 @@
+{
+  "decision": "keep_diversevul_primary_use_megavul_as_external_validation",
+  "official_release": {
+    "name": "MegaVul C/C++ 2024-04",
+    "repository": "https://github.com/Icyrockton/MegaVul",
+    "artifact_url": "https://1drv.ms/f/s!AtzrzuojQf5sgeISZ9zN_4owVnUn9g",
+    "local_file": "data/raw/megavul/megavul_simple.json",
+    "measured": true,
+    "present": true,
+    "size_bytes": 1181509201,
+    "sha256": "5316dc02e04f4dfd6a9c93e146236ed76da17d8473e1f4721f7e49dc23424b84",
+    "columns": [
+      "cve_id",
+      "cwe_ids",
+      "cvss_vector",
+      "cvss_is_v3",
+      "repo_name",
+      "commit_msg",
+      "commit_hash",
+      "git_url",
+      "file_path",
+      "func_name",
+      "func_before",
+      "abstract_func_before",
+      "func_graph_path_before",
+      "func",
+      "abstract_func",
+      "func_graph_path",
+      "diff_func",
+      "diff_line_info",
+      "is_vul"
+    ],
+    "has_commit_date": false
+  },
+  "huggingface_mirror": {
+    "present": true,
+    "usable_as_official_release": false,
+    "reasons": [
+      "Số dòng mirror 671,797 khác 353,873 function tác giả công bố.",
+      "Có 644,189 dòng metadata lặp hoàn toàn.",
+      "Một hash xuất hiện tối đa 9,306 lần.",
+      "Mirror không giữ schema gốc: thiếu commit_hash, cwe_ids, func, func_before, is_vul, repo_name."
+    ],
+    "files": [
+      {
+        "path": "data/raw/megavul_hf_mirror/0000.parquet",
+        "size_bytes": 128602925,
+        "sha256": "20fc477e9c68c978da2b894324c363f714271a86419c5d22727e850b3b05dd0e"
+      },
+      {
+        "path": "data/raw/megavul_hf_mirror/0001.parquet",
+        "size_bytes": 124945380,
+        "sha256": "cc2ecfdcfc5fb7befe4b5841aa4513a53545aba9299caf70d35ee4bb29327832"
+      }
+    ]
+  },
+  "blocked_until": [
+    "Chưa có megavul_graph.zip nên path graph mới là đường dẫn được khai báo, chưa kiểm tra file tồn tại.",
+    "megavul_simple.json không có commit_date; chronological split cần megavul.json."
+  ]
+}

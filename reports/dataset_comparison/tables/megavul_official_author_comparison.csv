@@ -1,0 +1,8 @@
+metric,author_reported,measured,difference
+total_samples,353873,353873,0
+vulnerable_samples,17975,17975,0
+non_vulnerable_samples,335898,335898,0
+unique_projects,1062,1062,0
+unique_commits,9288,9288,0
+unique_cve,8476,8476,0
+unique_cwe,176,175,-1

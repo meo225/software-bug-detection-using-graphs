@@ -15,3 +15,15 @@ python scripts/run_diversevul_eda.py --strict
 Các định dạng file chính được hỗ trợ gồm CSV, JSON, JSONL/NDJSON, Parquet và pickle. Chỉ load pickle từ bản phát hành chính thức đáng tin cậy. Nếu quá trình dò tìm thấy nhiều file có thể là dataset chính, chỉ định file cần dùng bằng `--dataset-file`.
 
 Không đổi tên field để khớp với pipeline. Quy trình audit ghi nhận schema thực tế và chỉ ánh xạ field khi tên cột đã biết, không mơ hồ hoặc được khai báo tường minh trong config.
+
+## MegaVul
+
+Nguồn chính thức: <https://github.com/Icyrockton/MegaVul>. Repository của tác giả trỏ tới thư mục OneDrive chứa release C/C++ 2024-04. Đặt `megavul_simple.json` tại `data/raw/megavul/`. Bản `megavul.json` đầy đủ mới có `commit_date`.
+
+Mirror `hitoshura25/megavul` trên Hugging Face là bản chuyển đổi từ dataset Kaggle của bên thứ ba. Shard Parquet, nếu cần kiểm lại provenance, đặt tại `data/raw/megavul_hf_mirror/`. Không dùng số dòng của mirror làm thống kê MegaVul.
+
+```powershell
+.venv\Scripts\python.exe scripts/run_dataset_comparison.py
+```
+
+Toàn bộ file trong `data/raw/` vẫn bị Git bỏ qua.
