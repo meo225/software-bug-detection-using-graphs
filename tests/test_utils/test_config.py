@@ -21,7 +21,10 @@ def test_diversevul_config_is_still_a_candidate() -> None:
 def test_other_dataset_configs_exist() -> None:
     data_dir = repo_root() / "configs" / "data"
     names = sorted(path.stem for path in data_dir.glob("*.yaml"))
-    assert names == ["bigvul", "diversevul", "primevul"]
+    assert names == ["bigvul", "diversevul", "megavul", "primevul"]
+    megavul = load_config(data_dir / "megavul.yaml")["dataset"]
+    assert megavul["status"] == "candidate"
+    assert megavul["code_field"] == "func_before"
 
 
 def test_experiment_does_not_select_cwe_or_split() -> None:

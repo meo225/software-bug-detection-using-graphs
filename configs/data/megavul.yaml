@@ -1,0 +1,19 @@
+# Challenger cho DiverseVul. Chưa phải dataset chính.
+# Không dùng mirror Hugging Face hitoshura25/megavul: schema và số dòng không khớp release tác giả.
+dataset:
+  name: megavul
+  status: candidate
+  language: cpp
+  sample_unit: function
+  version: null
+  source_url: https://github.com/Icyrockton/MegaVul
+  download_url: https://1drv.ms/f/s!AtzrzuojQf5sgeISZ9zN_4owVnUn9g
+  local_raw_dir: data/raw/megavul
+  # Mẫu vulnerable dùng func_before. Cột func là code sau bản vá.
+  code_field: func_before
+  label_field: is_vul
+  cwe_field: cwe_ids
+  project_field: repo_name
+  commit_field: commit_hash
+  hash_field: null
+  timestamp_field: null
