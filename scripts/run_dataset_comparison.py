@@ -52,26 +52,38 @@ def main() -> None:
         mirror.schema.to_csv(tables / "megavul_mirror_schema.csv", index=False)
 
     official_summary = None
+    official_file_info = {"present": args.official_file.is_file()}
     if args.official_file.is_file():
+        official_file_info.update({
+            "size_bytes": args.official_file.stat().st_size,
+            "sha256": _sha256(args.official_file),
+        })
         loaded = load_dataset("megavul", args.official_file.parent, args.official_file)
         official_tables = summarize_official_simple(canonicalize_official_simple(loaded.frame))
         official_summary = official_tables["summary"]
         for name, frame in official_tables.items():
             frame.to_csv(tables / f"megavul_official_{name}.csv", index=False)
+        official_file_info["columns"] = list(loaded.frame.columns)
+        official_file_info["has_commit_date"] = "commit_date" in loaded.frame.columns
 
-    comparison = candidate_matrix(args.diversevul_summary, mirror, official_summary)
+    has_commit_date = bool(official_file_info.get("has_commit_date"))
+    comparison = candidate_matrix(args.diversevul_summary, mirror, official_summary, has_commit_date)
     comparison.to_csv(tables / "dataset_candidate_matrix.csv", index=False)
     status = {
-        "decision": "diversevul_remains_temporary_primary",
+        "decision": "keep_diversevul_primary_use_megavul_as_external_validation" if official_summary is not None else "not_measured",
         "official_release": {
             "name": AUTHOR_RELEASE["name"],
             "repository": AUTHOR_RELEASE["repository"],
             "artifact_url": AUTHOR_RELEASE["artifact_url"],
             "local_file": _display_path(args.official_file),
             "measured": official_summary is not None,
+            **official_file_info,
         },
         "huggingface_mirror": _mirror_status(mirror, mirror_files),
         "blocked_until": [
+            "Chưa có megavul_graph.zip nên path graph mới là đường dẫn được khai báo, chưa kiểm tra file tồn tại.",
+            "megavul_simple.json không có commit_date; chronological split cần megavul.json.",
+        ] if official_summary is not None else [
             "Đặt megavul_simple.json chính thức tại data/raw/megavul/.",
             "Đo duplicate, CWE threshold và project support trên file đó.",
             "Đối chiếu graph Joern công bố; tỷ lệ 87% hiện là số liệu tác giả.",

@@ -1,0 +1,5 @@
+minimum_projects_per_cwe,number_of_cwe,cwe_with_at_least_20_samples,cwe_with_at_least_50_samples,cwe_with_at_least_100_samples,cwe_with_at_least_200_samples
+2,118,77,48,27,17
+3,101,76,48,27,17
+5,82,72,48,27,17
+10,60,60,46,27,17

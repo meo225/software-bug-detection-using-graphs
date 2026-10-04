@@ -1,8 +1,8 @@
 criterion,diversevul_measured,megavul_measured,megavul_author_reported,note
-artifact dùng để đếm function,diversevul.jsonl đã audit,chưa có file gốc,megavul_simple.json,OneDrive do repository tác giả trỏ tới
-tổng function,330492,chưa đo,353873,Số tác giả không thay cho file local
-vulnerable function,18945,chưa đo,17975,Số tác giả không thay cho file local
-CWE unique,150,chưa đo,176,Cần đo thêm threshold và project support
-timestamp commit,không có trong artifact đã audit,chưa đo,có trong megavul.json; không có trong bản Simple,Chronological split cần bản đầy đủ
-graph Joern công bố sẵn,không,chưa đo,87% function tạo graph thành công,"Chưa đối chiếu node, edge và failure bias"
+artifact dùng để đếm function,diversevul.jsonl đã audit,megavul_simple.json,megavul_simple.json,OneDrive do repository tác giả trỏ tới
+tổng function,330492,353873,353873,Số tác giả không thay cho file local
+vulnerable function,18945,17975,17975,Số tác giả không thay cho file local
+CWE unique,150,175,176,Số local là CWE dạng số; tác giả tính thêm CWE-Other
+timestamp commit,không có trong artifact đã audit,không có commit_date,có trong megavul.json; không có trong bản Simple,Chronological split cần bản đầy đủ
+graph Joern công bố sẵn,không,87.14% vulnerable có path graph trước vá,87% function tạo graph thành công,Path trong JSON chưa được kiểm tra bằng file graph
 mirror Hugging Face thay được artifact gốc,không áp dụng,không,không áp dụng,"Đã đo 671,797 dòng mirror."

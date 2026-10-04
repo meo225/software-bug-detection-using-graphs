@@ -1,11 +1,36 @@
 {
-  "decision": "diversevul_remains_temporary_primary",
+  "decision": "keep_diversevul_primary_use_megavul_as_external_validation",
   "official_release": {
     "name": "MegaVul C/C++ 2024-04",
     "repository": "https://github.com/Icyrockton/MegaVul",
     "artifact_url": "https://1drv.ms/f/s!AtzrzuojQf5sgeISZ9zN_4owVnUn9g",
     "local_file": "data/raw/megavul/megavul_simple.json",
-    "measured": false
+    "measured": true,
+    "present": true,
+    "size_bytes": 1181509201,
+    "sha256": "5316dc02e04f4dfd6a9c93e146236ed76da17d8473e1f4721f7e49dc23424b84",
+    "columns": [
+      "cve_id",
+      "cwe_ids",
+      "cvss_vector",
+      "cvss_is_v3",
+      "repo_name",
+      "commit_msg",
+      "commit_hash",
+      "git_url",
+      "file_path",
+      "func_name",
+      "func_before",
+      "abstract_func_before",
+      "func_graph_path_before",
+      "func",
+      "abstract_func",
+      "func_graph_path",
+      "diff_func",
+      "diff_line_info",
+      "is_vul"
+    ],
+    "has_commit_date": false
   },
   "huggingface_mirror": {
     "present": true,
@@ -30,8 +55,7 @@
     ]
   },
   "blocked_until": [
-    "Đặt megavul_simple.json chính thức tại data/raw/megavul/.",
-    "Đo duplicate, CWE threshold và project support trên file đó.",
-    "Đối chiếu graph Joern công bố; tỷ lệ 87% hiện là số liệu tác giả."
+    "Chưa có megavul_graph.zip nên path graph mới là đường dẫn được khai báo, chưa kiểm tra file tồn tại.",
+    "megavul_simple.json không có commit_date; chronological split cần megavul.json."
   ]
 }

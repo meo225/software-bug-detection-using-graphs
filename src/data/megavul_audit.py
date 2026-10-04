@@ -81,6 +81,10 @@ def canonicalize_official_simple(frame: pd.DataFrame) -> pd.DataFrame:
     result["repository"] = frame["git_url"].map(_repository_from_commit_url)
     result["file_path"] = frame["file_path"]
     result["function_name"] = frame["func_name"]
+    if "func_graph_path_before" in frame.columns:
+        result["graph_path_before"] = frame["func_graph_path_before"]
+    if "func_graph_path" in frame.columns:
+        result["graph_path_after"] = frame["func_graph_path"]
     return result
 
 
@@ -112,13 +116,26 @@ def summarize_official_simple(records: pd.DataFrame) -> dict[str, pd.DataFrame]:
         },
         {"metric": "vulnerable_missing_before_code", "value": missing_source},
     ])
-    return {
+    tables = {
         "summary": summary,
         "threshold_analysis": threshold_summary(distribution, labeled),
         "duplicate_summary": duplicate_summary(records),
         "project_support": _project_support(distribution),
         "author_comparison": _author_comparison(summary),
     }
+    graph_tables = _graph_tables(records)
+    if graph_tables:
+        tables.update(graph_tables)
+        graph_summary = graph_tables["graph_path_summary"].set_index("metric")["value"]
+        summary = pd.concat([
+            summary,
+            pd.DataFrame([
+                {"metric": "vulnerable_before_graph_percentage", "value": graph_summary["vulnerable_before_graph_percentage"]},
+                {"metric": "source_with_matching_graph_percentage", "value": graph_summary["source_with_matching_graph_percentage"]},
+            ]),
+        ], ignore_index=True)
+        tables["summary"] = summary
+    return tables
 
 
 def audit_huggingface_mirror(raw_dir: Path) -> MirrorAudit:
@@ -170,6 +187,7 @@ def candidate_matrix(
     diversevul_summary: Path,
     mirror: MirrorAudit | None = None,
     official_summary: pd.DataFrame | None = None,
+    has_commit_date: bool | None = None,
 ) -> pd.DataFrame:
     """Ma trận quyết định. Cột MegaVul đo local để trống cho đến khi có file gốc."""
     diverse = pd.read_csv(diversevul_summary).set_index("metric")["value"]
@@ -217,21 +235,21 @@ def candidate_matrix(
             "diversevul_measured": diverse_count("unique_cwe"),
             "megavul_measured": megavul_count("unique_cwe"),
             "megavul_author_reported": AUTHOR_RELEASE["unique_cwe"],
-            "note": "Cần đo thêm threshold và project support",
+            "note": "Số local là CWE dạng số; tác giả tính thêm CWE-Other",
         },
         {
             "criterion": "timestamp commit",
             "diversevul_measured": "không có trong artifact đã audit",
-            "megavul_measured": "chưa đo",
+            "megavul_measured": _commit_date_status(measured, has_commit_date),
             "megavul_author_reported": "có trong megavul.json; không có trong bản Simple",
             "note": "Chronological split cần bản đầy đủ",
         },
         {
             "criterion": "graph Joern công bố sẵn",
             "diversevul_measured": "không",
-            "megavul_measured": "chưa đo",
+            "megavul_measured": _graph_status(measured),
             "megavul_author_reported": f"{AUTHOR_RELEASE['graph_success_percentage']:.0f}% function tạo graph thành công",
-            "note": "Chưa đối chiếu node, edge và failure bias",
+            "note": "Path trong JSON chưa được kiểm tra bằng file graph",
         },
         {
             "criterion": "mirror Hugging Face thay được artifact gốc",
@@ -242,6 +260,67 @@ def candidate_matrix(
         },
     ]
     return pd.DataFrame(rows)
+
+
+def _commit_date_status(measured: pd.Series | None, has_commit_date: bool | None) -> str:
+    if measured is None:
+        return "chưa đo"
+    if has_commit_date:
+        return "có"
+    return "không có commit_date"
+
+
+def _graph_status(measured: pd.Series | None) -> str:
+    if measured is None or "vulnerable_before_graph_percentage" not in measured.index:
+        return "chưa đo"
+    percentage = float(measured["vulnerable_before_graph_percentage"])
+    return f"{percentage:.2f}% vulnerable có path graph trước vá"
+
+
+def _path_present(values: pd.Series) -> pd.Series:
+    text = values.fillna("").astype(str).str.strip()
+    return text.ne("") & text.str.lower().ne("none") & text.str.lower().ne("null")
+
+
+def _graph_tables(records: pd.DataFrame) -> dict[str, pd.DataFrame] | None:
+    """Đếm path graph được khai báo. Chưa kiểm tra file graph có tồn tại trên đĩa."""
+    if "graph_path_before" not in records.columns and "graph_path_after" not in records.columns:
+        return None
+    vulnerable = records[records["is_vulnerable"].eq(True)]
+    non_vulnerable = records[records["is_vulnerable"].eq(False)]
+    before = _path_present(vulnerable["graph_path_before"]) if "graph_path_before" in vulnerable else pd.Series(False, index=vulnerable.index)
+    after_vul = _path_present(vulnerable["graph_path_after"]) if "graph_path_after" in vulnerable else pd.Series(False, index=vulnerable.index)
+    after_non = _path_present(non_vulnerable["graph_path_after"]) if "graph_path_after" in non_vulnerable else pd.Series(False, index=non_vulnerable.index)
+    matching = pd.Series(False, index=records.index)
+    if len(vulnerable):
+        matching.loc[vulnerable.index] = before.to_numpy()
+    if len(non_vulnerable):
+        matching.loc[non_vulnerable.index] = after_non.to_numpy()
+    summary = pd.DataFrame([
+        {"metric": "vulnerable_with_before_graph", "value": int(before.sum())},
+        {"metric": "vulnerable_missing_before_graph", "value": int((~before).sum())},
+        {"metric": "vulnerable_before_graph_percentage", "value": 100.0 * float(before.mean()) if len(vulnerable) else 0.0},
+        {"metric": "vulnerable_with_after_graph", "value": int(after_vul.sum())},
+        {"metric": "non_vulnerable_with_after_graph", "value": int(after_non.sum())},
+        {"metric": "non_vulnerable_after_graph_percentage", "value": 100.0 * float(after_non.mean()) if len(non_vulnerable) else 0.0},
+        {"metric": "source_with_matching_graph", "value": int(matching.sum())},
+        {"metric": "source_with_matching_graph_percentage", "value": 100.0 * float(matching.mean()) if len(records) else 0.0},
+        {"metric": "author_reported_graph_success_percentage", "value": AUTHOR_RELEASE["graph_success_percentage"]},
+    ])
+    labeled = vulnerable[vulnerable["cwe_list"].map(bool)].copy()
+    labeled["has_before_graph"] = before.reindex(labeled.index).fillna(False).to_numpy()
+    exploded = labeled.explode("cwe_list")
+    if exploded.empty:
+        by_cwe = pd.DataFrame(columns=["cwe", "sample_count", "with_graph", "missing_graph", "missing_percentage"])
+    else:
+        counts = exploded.groupby("cwe_list")["sample_id"].nunique().rename("sample_count")
+        with_graph = exploded[exploded["has_before_graph"]].groupby("cwe_list")["sample_id"].nunique().rename("with_graph")
+        by_cwe = pd.concat([counts, with_graph], axis=1).fillna(0).reset_index().rename(columns={"cwe_list": "cwe"})
+        by_cwe["with_graph"] = by_cwe["with_graph"].astype(int)
+        by_cwe["missing_graph"] = by_cwe["sample_count"] - by_cwe["with_graph"]
+        by_cwe["missing_percentage"] = by_cwe["missing_graph"].div(by_cwe["sample_count"]).mul(100)
+        by_cwe = by_cwe.sort_values(["sample_count", "cwe"], ascending=[False, True], ignore_index=True)
+    return {"graph_path_summary": summary, "graph_path_by_cwe": by_cwe}
 
 
 def _repository_from_commit_url(value: object) -> str | None:

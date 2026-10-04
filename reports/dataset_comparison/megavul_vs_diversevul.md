@@ -1,45 +1,41 @@
 # So sánh MegaVul với DiverseVul
 
-**Quyết định hiện tại:** DiverseVul vẫn là dataset chính tạm thời. Chưa chốt dataset. Mirror Hugging Face đã bị loại. File gốc `megavul_simple.json` chưa có trên máy, nên mọi số MegaVul bên dưới mới là số tác giả công bố.
+**Quyết định:** giữ DiverseVul làm dataset chính. Dùng MegaVul C/C++ 2024-04 làm tập kiểm chứng ngoài. Chưa chuyển dataset chính.
 
-## Đã đo: mirror không dùng được
+File đã đo là `data/raw/megavul/megavul_simple.json`, 1.181.509.201 byte, SHA-256 `5316dc02e04f4dfd6a9c93e146236ed76da17d8473e1f4721f7e49dc23424b84`. Số function, CVE, commit và repository khớp công bố của tác giả. File không có `commit_date`.
 
-Nguồn đã kiểm tra là `hitoshura25/megavul` trên Hugging Face, revision `dbca97fe510045492baa1592f934ae7b44f8ffe1`. Dataset card tự mô tả đây là bản chuyển sang format CVEfixes từ Kaggle `marcdamie/megavul-a-cc-java-vulnerability-dataset`. Repository tác giả không dẫn tới bản này.
+## Số đã đo
 
-| Chỉ số | Giá trị đo được |
-| --- | ---: |
-| Số dòng | 671.797 |
-| Hash duy nhất | 24.352 |
-| Dòng metadata lặp hoàn toàn | 644.189 |
-| Dòng thuộc nhóm hash lặp | 670.548 |
-| Số lần lặp lớn nhất của một hash | 9.306 |
-| CVE duy nhất | 8.476 |
-| CWE thô duy nhất | 171 |
-| Commit URL duy nhất | 9.284 |
+| Tiêu chí | DiverseVul | MegaVul |
+| --- | ---: | ---: |
+| Tổng function | 330.492 | 353.873 |
+| Vulnerable function | 18.945 | 17.975 |
+| Vulnerable có CWE | 16.109 (85,0%) | 16.458 (91,6%) |
+| Vulnerable không có CWE | 2.836 | 1.517 |
+| CWE dạng số | 150 | 175 |
+| Vulnerable có từ 2 CWE | 4.215 (22,2%) | 1.167 (6,5%) |
+| CWE đạt ít nhất 50 mẫu | 42 | 48 |
+| CWE đạt ít nhất 100 mẫu | 31 | 27 |
+| CWE đạt ít nhất 200 mẫu | 21 | 17 |
+| CWE có ít nhất 5 project và 50 mẫu | 42 | 48 |
+| CWE có ít nhất 5 project và 100 mẫu | 31 | 27 |
+| Nhóm source trùng hoàn toàn | 0 | 11.136 |
+| Nhóm trùng source nhưng khác nhãn vulnerable | 459 sau chuẩn hóa whitespace | 143 |
+| Path graph Joern cho hàm vulnerable trước vá | không có | 87,14% |
 
-Mirror trùng số CVE tác giả công bố (8.476) nên trông giống bản gốc, nhưng 671.797 dòng không phải 353.873 function, và schema không còn `is_vul`, `func`, `func_before`, `cwe_ids`, `repo_name`, `commit_hash`. Không dùng mirror cho train, test hoặc thống kê luận văn.
+Tác giả công bố 176 CWE. File có thêm nhãn `CWE-Other` ở 33.444 chỗ. Nhãn này không phải một lớp CWE dạng số, nên bảng local đếm 175.
 
-Checksum nằm trong `tables/comparison_status.json`. File Parquet không được commit.
+87,14% là tỷ lệ record có đường dẫn graph trong JSON. Chưa có `megavul_graph.zip`, nên chưa kiểm tra file graph có mở được hay không. Với các CWE từ 100 mẫu trở lên, tỷ lệ thiếu path ở mức trung vị 11%. CWE-20 thiếu cao nhất trong nhóm này, 24,7%. Chưa thấy một CWE lớn nào mất phần lớn graph.
 
-## Chưa đo: release chính thức
+11.136 nhóm source trùng nhau chủ yếu là hàm non-vulnerable lặp giữa các commit. Trong đó 7.280 nhóm non-vulnerable mang các CWE khác nhau. Nhóm vulnerable trùng source nhưng khác CWE dạng số chỉ có 38 nhóm, 78 dòng.
 
-| Tiêu chí | DiverseVul đã audit | MegaVul đo local | MegaVul tác giả công bố |
-| --- | --- | --- | --- |
-| Artifact | `diversevul.jsonl` | chưa có file | `megavul_simple.json` trên OneDrive của tác giả |
-| Tổng function | 330.492 | chưa đo | 353.873 |
-| Vulnerable function | 18.945 | chưa đo | 17.975 |
-| CWE unique | 150 | chưa đo | 176 |
-| Commit timestamp | không có | chưa đo | có trong `megavul.json`, không có trong bản Simple |
-| Graph Joern sẵn | không | chưa đo | tác giả báo 87% function tạo graph thành công |
+## Vì sao chưa chuyển sang MegaVul
 
-Số cột cuối không được đưa vào luận văn như kết quả của nhóm. MegaVul chỉ trở thành dataset chính sau khi file gốc vượt cùng các phép đo đã dùng cho DiverseVul: duplicate, label conflict, multi-CWE, threshold 20/50/100/200 và project support 2/3/5/10.
+MegaVul có metadata CVE, commit, file và path graph. Phủ CWE trên hàm vulnerable cũng cao hơn, và ít mẫu multi-CWE hơn. DiverseVul vẫn hơn ở ba điểm đang cần cho thí nghiệm chính: nhiều hàm vulnerable hơn, nhiều lớp CWE lớn hơn, và gần như không có source trùng hoàn toàn. DiverseVul cũng đã có audit label-noise. MegaVul chưa thắng đủ rõ để đổi dataset chính.
 
-## Việc cần làm
+## Việc làm tiếp
 
-1. Tải `megavul_simple.json` từ OneDrive mà repository [Icyrockton/MegaVul](https://github.com/Icyrockton/MegaVul) trỏ tới.
-2. Đặt file tại `data/raw/megavul/megavul_simple.json`.
-3. Chạy `python scripts/run_dataset_comparison.py`.
-4. Đọc `tables/megavul_official_summary.csv`, `megavul_official_author_comparison.csv`, `megavul_official_duplicate_summary.csv` và `megavul_official_project_support.csv`.
-5. Chỉ sau bảng đó mới chọn một trong ba hướng: giữ DiverseVul, chuyển sang MegaVul, hoặc dùng dataset còn lại làm external validation. Không trộn hai corpus trước khi deduplicate xuyên nguồn.
-
-Đối chiếu graph Joern là bước sau, khi schema function đã khớp. Tỷ lệ 87% hiện chưa phải kết quả của nhóm.
+1. Giữ DiverseVul cho thí nghiệm chính.
+2. Giữ `megavul_simple.json` để kiểm chứng ngoài sau khi pipeline DiverseVul chạy được.
+3. Chưa tải `megavul_graph.zip`.
+4. Chỉ tải `megavul.json` nếu sau này cần chronological split. Bản simple không có ngày commit.

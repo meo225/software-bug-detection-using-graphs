@@ -1,0 +1,10 @@
+metric,value
+vulnerable_with_before_graph,15664.0
+vulnerable_missing_before_graph,2311.0
+vulnerable_before_graph_percentage,87.1432545201669
+vulnerable_with_after_graph,15664.0
+non_vulnerable_with_after_graph,293305.0
+non_vulnerable_after_graph_percentage,87.31966251659729
+source_with_matching_graph,308969.0
+source_with_matching_graph_percentage,87.31070186196743
+author_reported_graph_success_percentage,87.0

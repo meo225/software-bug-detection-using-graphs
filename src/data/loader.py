@@ -96,6 +96,11 @@ def read_records(path: Path) -> pd.DataFrame:
             chunks.append(pd.DataFrame.from_records(records))
         return pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
     if suffix == ".json":
+        with path.open(encoding="utf-8") as handle:
+            prefix = handle.read(4096).lstrip()
+            handle.seek(0)
+            if prefix.startswith("["):
+                return pd.DataFrame(json.load(handle))
         try:
             return pd.read_json(path, lines=True)
         except ValueError:
