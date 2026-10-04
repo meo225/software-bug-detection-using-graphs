@@ -1,0 +1,13 @@
+metric,value,note
+metadata_rows,7511,
+dataset_unique_commits,7653,
+metadata_unique_commits,7511,
+joined_unique_commits,7169,Phần giao của commit ID
+unjoined_dataset_commits,484,
+unjoined_metadata_commits,342,
+joined_dataset_records,308696,Record có commit ID xuất hiện trong metadata
+unjoined_dataset_records,21796,
+missing_commit_url_rows,0,
+missing_repo_url_rows,1,
+missing_cve_rows,3472,
+missing_cwe_rows,201,

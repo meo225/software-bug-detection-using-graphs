@@ -1,6 +1,6 @@
-"""Preprocess a candidate dataset.
+"""Tiền xử lý một dataset ứng viên.
 
-Planned usage, from the repository root::
+Cách dùng dự kiến từ thư mục gốc repository::
 
     python scripts/preprocess.py --config configs/data/diversevul.yaml
 """
@@ -22,7 +22,7 @@ LOGGER = get_logger("preprocess")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Preprocess the dataset named by a YAML config.")
+    parser = argparse.ArgumentParser(description="Tiền xử lý dataset được chỉ định trong config YAML.")
     parser.add_argument("--config", type=Path, required=True)
     return parser.parse_args()
 
@@ -34,8 +34,8 @@ def main() -> None:
     LOGGER.info("Config: %s", args.config)
     LOGGER.info("Dataset: %s", name)
     raise NotImplementedError(
-        "Preprocessing is not implemented. "
-        "Implement src/data/preprocessing.py without deleting duplicates or relabeling CWE."
+        "Chưa triển khai bước tiền xử lý. "
+        "Triển khai src/data/preprocessing.py mà không xóa duplicate hoặc đổi label CWE."
     )
 
 

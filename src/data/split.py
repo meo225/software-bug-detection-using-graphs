@@ -1,8 +1,8 @@
-"""Reproducible ID splits.
+"""Chia dữ liệu theo ID có thể tái lập.
 
-A split is three lists of sample IDs written under ``data/splits/``.
-Do not copy source code into separate train, validation, and test datasets.
-``train.py`` must load these files instead of drawing a new random split.
+Mỗi cách chia gồm ba danh sách sample ID được ghi trong ``data/splits/``.
+Không sao chép source code thành các dataset train, validation và test riêng.
+``train.py`` phải load các file này thay vì tạo một cách chia ngẫu nhiên mới.
 """
 
 from __future__ import annotations
@@ -19,19 +19,19 @@ def create_split(
     group_ids: list[str] | None = None,
     timestamps: list[str] | None = None,
 ) -> dict[str, list[str]]:
-    """Return ``train``, ``validation``, and ``test`` ID lists.
+    """Trả về các danh sách ID ``train``, ``validation`` và ``test``.
 
-    ``project`` requires ``group_ids`` and must keep each project in only one
-    side of the train/test cut. ``chronological`` requires usable timestamps.
-    TODO: implement the three strategies. Do not choose a default strategy here.
+    Chiến lược ``project`` cần ``group_ids`` và phải giữ mỗi project ở đúng một
+    phía của phép chia train/test. ``chronological`` cần timestamp hợp lệ.
+    TODO: triển khai ba chiến lược. Không chọn chiến lược mặc định tại đây.
     """
     if strategy not in SPLIT_STRATEGIES:
-        raise ValueError(f"Unknown split strategy: {strategy}")
+        raise ValueError(f"Chiến lược chia dữ liệu không xác định: {strategy}")
     raise NotImplementedError(
-        f"create_split({strategy!r}, seed={seed}) is not implemented. "
-        f"Received {len(sample_ids)} ids, "
-        f"groups={'yes' if group_ids is not None else 'no'}, "
-        f"timestamps={'yes' if timestamps is not None else 'no'}."
+        f"Chưa triển khai create_split({strategy!r}, seed={seed}). "
+        f"Đã nhận {len(sample_ids)} ID, "
+        f"group={'có' if group_ids is not None else 'không'}, "
+        f"timestamp={'có' if timestamps is not None else 'không'}."
     )
 
 
@@ -40,10 +40,10 @@ def assert_project_disjoint(
     validation_groups: set[str],
     test_groups: set[str],
 ) -> None:
-    """Fail when the same project appears in more than one split.
+    """Báo lỗi khi cùng một project xuất hiện trong nhiều tập dữ liệu.
 
-    Project-wise splits must keep a project out of both train and test.
-    The same rule is applied to the validation set.
+    Cách chia theo project phải ngăn một project đồng thời có mặt trong train và test.
+    Quy tắc tương tự cũng áp dụng cho tập validation.
     """
     overlaps = {
         "train_validation": sorted(train_groups & validation_groups),
@@ -52,14 +52,14 @@ def assert_project_disjoint(
     }
     found = {name: groups for name, groups in overlaps.items() if groups}
     if found:
-        raise ValueError(f"Project IDs overlap across splits: {found}")
+        raise ValueError(f"Project ID bị trùng giữa các tập dữ liệu: {found}")
 
 
 def save_split_ids(split: dict[str, list[str]], output_dir: Path) -> None:
-    """Write one ID list per split name. TODO: choose a stable text format."""
-    raise NotImplementedError(f"save_split_ids is not implemented for {output_dir}.")
+    """Ghi một danh sách ID cho mỗi tập. TODO: chọn định dạng văn bản ổn định."""
+    raise NotImplementedError(f"Chưa triển khai save_split_ids cho {output_dir}.")
 
 
 def load_split_ids(output_dir: Path) -> dict[str, list[str]]:
-    """Read ID lists produced by :func:`save_split_ids`."""
-    raise NotImplementedError(f"load_split_ids is not implemented for {output_dir}.")
+    """Đọc các danh sách ID do :func:`save_split_ids` tạo ra."""
+    raise NotImplementedError(f"Chưa triển khai load_split_ids cho {output_dir}.")

@@ -1,0 +1,7 @@
+metric,paper,dataset_actual,difference
+total_samples,349437,330492,-18945
+vulnerable_samples,18945,18945,0
+non_vulnerable_samples,330492,311547,-18945
+unique_projects,797,800,3
+unique_commits,7514,7653,139
+unique_cwe,150,150,0

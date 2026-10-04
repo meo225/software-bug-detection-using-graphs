@@ -1,8 +1,8 @@
-"""Deterministic seeds for later experiments.
+"""Seed xác định cho các thí nghiệm sau này.
 
-Python, NumPy, and PyTorch are seeded when those libraries are installed.
-The dataset split itself must still be saved. A seed alone is not a record
-of which sample IDs were used.
+Python, NumPy và PyTorch được đặt seed khi các thư viện này đã cài đặt.
+Split của dataset vẫn phải được lưu. Chỉ seed không đủ để ghi nhận các sample ID
+đã được sử dụng.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import random
 
 
 def set_seed(seed: int) -> None:
-    """Seed the standard library and any optional numeric libraries."""
+    """Đặt seed cho thư viện chuẩn và các thư viện số tùy chọn."""
     os.environ["PYTHONHASHSEED"] = str(seed)
     random.seed(seed)
 

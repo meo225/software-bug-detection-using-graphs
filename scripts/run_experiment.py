@@ -1,12 +1,12 @@
-"""Run one configured experiment from data config through evaluation.
+"""Chạy một thí nghiệm theo cấu hình từ dữ liệu đến đánh giá.
 
-Planned usage, from the repository root::
+Cách dùng dự kiến từ thư mục gốc repository::
 
     python scripts/run_experiment.py --config configs/experiment/baseline.yaml
 
-The stages are not connected yet. This entry point exists so later runs share
-one manifest: seed, dataset version, CWE selection, split IDs, graph config,
-model config, hyperparameters, and metrics.
+Các phase chưa được nối với nhau. Entry point này giúp các lần chạy sau dùng chung
+một manifest gồm seed, phiên bản dataset, lựa chọn CWE, split ID, config graph,
+config model, hyperparameter và metric.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ LOGGER = get_logger("run_experiment")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the pipeline described by an experiment config.")
+    parser = argparse.ArgumentParser(description="Chạy pipeline được mô tả bằng một config thí nghiệm.")
     parser.add_argument("--config", type=Path, required=True)
     return parser.parse_args()
 
@@ -39,8 +39,8 @@ def main() -> None:
     LOGGER.info("Graph config: %s", experiment.get("graph_config"))
     LOGGER.info("Model config: %s", experiment.get("model_config"))
     raise NotImplementedError(
-        "The experiment runner is not implemented. "
-        "Do not start training until EDA, the CWE label policy, and a saved split exist."
+        "Chưa triển khai runner cho thí nghiệm. "
+        "Không train trước khi có EDA, chính sách label CWE và split đã lưu."
     )
 
 

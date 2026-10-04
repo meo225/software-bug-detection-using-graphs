@@ -1,6 +1,6 @@
-"""Show where a candidate dataset should be placed.
+"""Hiển thị vị trí cần đặt dataset candidate.
 
-This command does not download archives. Dataset files stay out of Git.
+Lệnh này không tự tải archive. Các file dataset không được đưa vào Git.
 """
 
 from __future__ import annotations
@@ -21,8 +21,8 @@ LOGGER = get_logger("download_data")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Print manual download instructions for a dataset config.")
-    parser.add_argument("--config", type=Path, required=True, help="Dataset YAML under configs/data/.")
+    parser = argparse.ArgumentParser(description="In hướng dẫn tải thủ công cho một config dataset.")
+    parser.add_argument("--config", type=Path, required=True, help="File YAML dataset trong configs/data/.")
     return parser.parse_args()
 
 
@@ -33,11 +33,14 @@ def main() -> None:
     raw_dir = resolve_from_root(dataset.get("local_raw_dir", "data/raw"))
     raw_dir.mkdir(parents=True, exist_ok=True)
     LOGGER.info("Dataset: %s (%s)", dataset.get("name"), dataset.get("status"))
-    LOGGER.info("Place files in: %s", raw_dir)
-    LOGGER.info("Source page: %s", dataset.get("source_url"))
-    LOGGER.info("Download page: %s", dataset.get("download_url"))
-    LOGGER.info("Automatic download is disabled.")
-    LOGGER.info("After the files are local, set dataset.version in %s.", args.config)
+    LOGGER.info("Đặt file tại: %s", raw_dir)
+    LOGGER.info("Trang nguồn: %s", dataset.get("source_url"))
+    LOGGER.info("Trang tải xuống: %s", dataset.get("download_url"))
+    if dataset.get("metadata_url"):
+        LOGGER.info("Trang metadata tùy chọn: %s", dataset.get("metadata_url"))
+    LOGGER.info("Tính năng tải tự động đã bị tắt.")
+    LOGGER.info("Sau khi có file local, đặt dataset.version trong %s.", args.config)
+    LOGGER.info("Sau đó chạy: python scripts/run_diversevul_eda.py --strict")
 
 
 if __name__ == "__main__":

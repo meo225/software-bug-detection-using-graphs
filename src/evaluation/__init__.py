@@ -1,1 +1,1 @@
-"""Metrics, evaluation, and error analysis."""
+"""Metric, đánh giá và phân tích lỗi."""

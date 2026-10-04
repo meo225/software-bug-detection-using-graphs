@@ -1,4 +1,4 @@
-"""Logging helpers for scripts. Prefer these over ad-hoc print calls."""
+"""Helper logging cho script. Ưu tiên dùng thay cho các lệnh print rời rạc."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from pathlib import Path
 
 
 def get_logger(name: str, log_file: Path | None = None) -> logging.Logger:
-    """Return a logger that writes to stderr and, optionally, ``log_file``.
+    """Trả về logger ghi vào stderr và tùy chọn ghi thêm vào ``log_file``.
 
-    Repeated calls with the same name reuse the existing handlers.
+    Các lần gọi cùng tên sẽ dùng lại handler hiện có.
     """
     logger = logging.getLogger(name)
     if logger.handlers:

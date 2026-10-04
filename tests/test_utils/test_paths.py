@@ -1,4 +1,4 @@
-"""Path helpers resolve inside this repository."""
+"""Kiểm thử helper phân giải đường dẫn bên trong repository."""
 
 from src.utils.paths import data_dir, repo_root, resolve_from_root
 

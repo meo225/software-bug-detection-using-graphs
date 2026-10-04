@@ -1,5 +1,5 @@
-# Reproducibility manifest. Values stay null until a real run is configured.
-# train.py must load the saved ID lists. It must not invent a new random split.
+# Manifest phục vụ khả năng tái lập. Các giá trị giữ nguyên null cho đến khi cấu hình một lần chạy thật.
+# train.py phải load các danh sách ID đã lưu, không được tự tạo một cách chia ngẫu nhiên mới.
 experiment:
   id: null
   seed: 42

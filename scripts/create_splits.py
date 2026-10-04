@@ -1,10 +1,10 @@
-"""Write reproducible train, validation, and test ID lists.
+"""Ghi danh sách ID train, validation và test có thể tái lập.
 
-Planned usage, from the repository root::
+Cách dùng dự kiến từ thư mục gốc repository::
 
     python scripts/create_splits.py --config configs/data/diversevul.yaml --strategy project
 
-The strategy is required. This script does not pick one for the group.
+Bắt buộc chỉ định strategy. Script không tự chọn strategy thay cho nhóm.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ LOGGER = get_logger("create_splits")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Create a saved sample-ID split.")
+    parser = argparse.ArgumentParser(description="Tạo và lưu cách chia dữ liệu theo sample ID.")
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--strategy", choices=SPLIT_STRATEGIES, required=True)
     parser.add_argument("--seed", type=int, default=42)
@@ -38,12 +38,12 @@ def main() -> None:
     config = load_config(args.config)
     set_seed(args.seed)
     LOGGER.info("Dataset: %s", config.get("dataset", {}).get("name"))
-    LOGGER.info("Strategy: %s", args.strategy)
+    LOGGER.info("Chiến lược: %s", args.strategy)
     LOGGER.info("Seed: %s", args.seed)
     raise NotImplementedError(
-        "Split creation is not implemented. "
-        "Persist ID lists under data/splits/. Do not copy source code into three datasets. "
-        "A project-wise split must keep each project out of both train and test."
+        "Chưa triển khai bước tạo split. "
+        "Lưu danh sách ID trong data/splits/. Không sao chép mã nguồn thành ba dataset. "
+        "Khi chia theo project, mỗi project không được đồng thời xuất hiện trong train và test."
     )
 
 

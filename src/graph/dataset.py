@@ -1,7 +1,7 @@
-"""Adapt parsed graphs to the object a GNN batch expects.
+"""Chuyển graph đã parse thành object mà batch GNN yêu cầu.
 
-PyTorch Geometric is intentionally not imported here. The training phase will
-choose the concrete tensor type once the schema is known.
+Chủ động không import PyTorch Geometric tại đây. Phase training sẽ chọn kiểu
+tensor cụ thể sau khi schema được xác định.
 """
 
 from __future__ import annotations
@@ -10,11 +10,11 @@ from pathlib import Path
 
 
 def graphs_to_dataset(graph_dir: Path, split_ids: dict[str, list[str]]) -> object:
-    """Build a dataset view for the IDs in ``split_ids``.
+    """Tạo dataset view cho các ID trong ``split_ids``.
 
-    TODO: read parsed graphs and attach CWE labels. Do not resplit the data.
+    TODO: đọc graph đã parse và gắn label CWE. Không chia lại dữ liệu.
     """
     raise NotImplementedError(
-        f"graphs_to_dataset is not implemented for {graph_dir} "
-        f"and splits {sorted(split_ids)}."
+        f"Chưa triển khai graphs_to_dataset cho {graph_dir} "
+        f"và các tập {sorted(split_ids)}."
     )

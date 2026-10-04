@@ -1,32 +1,34 @@
-"""Cleaning and normalization that EDA may measure, but must not apply destructively yet.
+"""Các phép làm sạch và normalization để EDA đo lường nhưng chưa áp dụng phá hủy.
 
-Duplicate reports should count normalized copies. They should not delete rows
-until the group chooses a policy.
+Báo cáo duplicate nên đếm các bản đã normalization nhưng không xóa dòng cho đến
+khi nhóm chọn policy.
 """
 
 from __future__ import annotations
 
 
 def normalize_line_endings(source: str) -> str:
-    """Convert CRLF and CR to LF.
-
-    TODO: implement and unit test before using the result as a duplicate key.
+    """Chuyển line ending CRLF và CR thành LF.
     """
-    raise NotImplementedError("normalize_line_endings is not implemented.")
+    return source.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def normalize_whitespace(source: str) -> str:
-    """Normalize line endings and trailing whitespace per line.
+    """Chuẩn hóa line ending, trailing whitespace và dòng trống ở biên.
 
-    TODO: define the exact rule during EDA and keep the original column.
+    Whitespace bên trong và comment được giữ nguyên để tránh thay đổi string
+    literal, preprocessor directive hoặc ranh giới token trong C/C++.
     """
-    raise NotImplementedError("normalize_whitespace is not implemented.")
+    lines = [line.rstrip(" \t") for line in normalize_line_endings(source).split("\n")]
+    while lines and not lines[0]:
+        lines.pop(0)
+    while lines and not lines[-1]:
+        lines.pop()
+    return "\n".join(lines)
 
 
 def strip_comments(source: str) -> str:
-    """Remove comments only if the rule is safe for C/C++.
-
-    TODO: do not ship a brittle regex that corrupts strings. Leave this
-    unimplemented until the group decides the normalization is worth the risk.
-    """
-    raise NotImplementedError("strip_comments is not implemented.")
+    """Chủ động không hỗ trợ xóa comment để audit C/C++ an toàn."""
+    raise NotImplementedError(
+        "Không dùng bước xóa comment vì regex có thể làm hỏng string và macro."
+    )

@@ -1,11 +1,11 @@
-"""Train a GNN from an experiment config.
+"""Train GNN từ một config thí nghiệm.
 
-Planned usage, from the repository root::
+Cách dùng dự kiến từ thư mục gốc repository::
 
     python scripts/train.py --config configs/experiment/baseline.yaml
 
-The config must point at saved train, validation, and test ID lists.
-This script must not create an unsaved random split.
+Config phải trỏ đến danh sách ID train, validation và test đã lưu.
+Script không được tạo random split mà không lưu lại.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ LOGGER = get_logger("train")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Train the model named by an experiment config.")
+    parser = argparse.ArgumentParser(description="Train model được chỉ định trong config thí nghiệm.")
     parser.add_argument("--config", type=Path, required=True)
     return parser.parse_args()
 
@@ -41,13 +41,13 @@ def main() -> None:
     split = body.get("split", {})
     LOGGER.info("Experiment: %s", body.get("id"))
     LOGGER.info("Model config: %s", body.get("model_config"))
-    LOGGER.info("Split strategy: %s", split.get("strategy"))
+    LOGGER.info("Chiến lược chia dữ liệu: %s", split.get("strategy"))
     if not split.get("train_ids") or not split.get("validation_ids") or not split.get("test_ids"):
         raise NotImplementedError(
-            "Refusing to train without saved train, validation, and test ID lists. "
-            "Create them with scripts/create_splits.py and record the paths in the experiment config."
+            "Từ chối train khi chưa có danh sách ID train, validation và test đã lưu. "
+            "Tạo chúng bằng scripts/create_splits.py và ghi đường dẫn trong config thí nghiệm."
         )
-    raise NotImplementedError("Trainer.fit is not implemented. See src/training/trainer.py.")
+    raise NotImplementedError("Chưa triển khai Trainer.fit. Xem src/training/trainer.py.")
 
 
 if __name__ == "__main__":

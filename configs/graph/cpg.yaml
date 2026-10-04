@@ -1,4 +1,4 @@
-# CPG is a candidate representation, not a confirmed choice.
+# CPG là representation ứng viên, chưa phải lựa chọn đã xác nhận.
 graph:
   name: cpg
   status: candidate

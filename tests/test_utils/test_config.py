@@ -1,4 +1,4 @@
-"""Config files stay dataset-agnostic and do not pretend EDA is finished."""
+"""Config không phụ thuộc riêng một dataset và không giả định EDA đã hoàn tất."""
 
 from pathlib import Path
 

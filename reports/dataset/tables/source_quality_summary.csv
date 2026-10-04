@@ -1,0 +1,5 @@
+check,sample_count,definition
+missing_source,0,giá trị source thô là null
+empty_source,1,"source là null, rỗng hoặc chỉ có whitespace"
+very_short_source,5608,ít hơn 20 ký tự hoặc 3 dòng (chỉ là cờ sàng lọc)
+very_long_source,4876,nhiều hơn 10.000 ký tự hoặc 500 dòng (chỉ là cờ sàng lọc)

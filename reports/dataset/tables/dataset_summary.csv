@@ -1,0 +1,10 @@
+metric,value
+total_samples,330492.0
+vulnerable_samples,18945.0
+non_vulnerable_samples,311547.0
+unique_projects,800.0
+unique_commits,7653.0
+unique_cwe,150.0
+vulnerable_with_cwe,16109.0
+vulnerable_without_cwe,2836.0
+vulnerable_cwe_coverage_percentage,85.03035101609923

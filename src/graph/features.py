@@ -1,16 +1,16 @@
-"""Node features and edge features.
+"""Feature của node và edge.
 
-Feature choices depend on the graph schema and are not fixed yet.
+Việc chọn feature phụ thuộc vào graph schema và chưa được chốt.
 """
 
 from __future__ import annotations
 
 
 def build_node_features(graph: object) -> object:
-    """Map graph nodes to a feature matrix. TODO: choose the feature set in config."""
-    raise NotImplementedError("build_node_features is not implemented.")
+    """Ánh xạ node của graph thành ma trận feature. TODO: chọn tập feature trong config."""
+    raise NotImplementedError("Chưa triển khai build_node_features.")
 
 
 def build_edge_features(graph: object) -> object:
-    """Map graph edges to a feature matrix. TODO: encode edge types when the schema exists."""
-    raise NotImplementedError("build_edge_features is not implemented.")
+    """Ánh xạ edge của graph thành ma trận feature. TODO: mã hóa loại edge khi có schema."""
+    raise NotImplementedError("Chưa triển khai build_edge_features.")

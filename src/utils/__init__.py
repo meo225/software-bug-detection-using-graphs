@@ -1,1 +1,1 @@
-"""Shared helpers: config, logging, seeds, and repository paths."""
+"""Các helper dùng chung cho config, logging, seed và đường dẫn repository."""

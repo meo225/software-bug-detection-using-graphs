@@ -15,7 +15,7 @@ Cấu hình dataset nằm ở `configs/data/`: DiverseVul, Big-Vul, PrimeVul. C�
 ```text
 configs/       dataset, graph, model, experiment
 data/          raw, interim, processed, splits, graphs
-notebooks/     01_dataset_overview.ipynb
+notebooks/     01_diversevul_eda.ipynb
 src/           data, graph, models, training, evaluation, utils
 scripts/       lệnh dòng lệnh
 tests/
@@ -48,7 +48,16 @@ python scripts/download_data.py --config configs/data/diversevul.yaml
 
 Lệnh in thư mục đích và đường dẫn nguồn. Đặt file vào `local_raw_dir` và ghi `version` trong config.
 
-Notebook: `notebooks/01_dataset_overview.ipynb`. Báo cáo: `reports/dataset/dataset_eda.md`.
+Notebook: `notebooks/01_diversevul_eda.ipynb`. Báo cáo: `reports/dataset/dataset_eda.md`.
+
+Sau khi đặt dữ liệu thật vào `data/raw/diversevul/`, chạy audit có kiểm tra đầu vào:
+
+```powershell
+python scripts/run_diversevul_eda.py --strict
+jupyter nbconvert --to notebook --execute notebooks/01_diversevul_eda.ipynb --output 01_diversevul_eda.ipynb --output-dir notebooks
+```
+
+Nếu chưa có dữ liệu, chạy không có `--strict` sẽ sinh báo cáo và artifact giữ chỗ ghi rõ `BLOCKED`; chúng không dùng số liệu paper làm kết quả EDA giả.
 
 ## Đóng góp
 

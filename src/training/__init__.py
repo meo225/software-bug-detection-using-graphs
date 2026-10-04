@@ -1,1 +1,1 @@
-"""Training loop shared by every encoder."""
+"""Training loop dùng chung cho mọi encoder."""

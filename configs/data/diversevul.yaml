@@ -1,5 +1,5 @@
-# Candidate dataset. Not a final selection.
-# Confirm every field name during EDA. Do not copy paper statistics into this file.
+# Dataset ứng viên, chưa phải lựa chọn cuối cùng.
+# Xác nhận từng tên field trong EDA. Không chép thống kê từ paper vào file này.
 dataset:
   name: diversevul
   status: candidate
@@ -10,10 +10,10 @@ dataset:
   download_url: https://drive.google.com/file/d/12IWKhmLhq7qn5B_iXgn5YerOQtkH-6RG/view
   metadata_url: https://drive.google.com/file/d/19cJ7avNtsziaYkrrYuW7FeFdvgrxoNLc/view
   local_raw_dir: data/raw/diversevul
-  code_field: null
-  label_field: null
-  cwe_field: null
-  project_field: null
-  commit_field: null
-  hash_field: null
+  code_field: func
+  label_field: target
+  cwe_field: cwe
+  project_field: project
+  commit_field: commit_id
+  hash_field: hash
   timestamp_field: null

@@ -1,4 +1,4 @@
-"""Gated graph neural network encoder. Architecture only; the training loop lives elsewhere."""
+"""Encoder gated graph neural network. File chỉ chứa kiến trúc; training loop nằm ở nơi khác."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ from typing import Any
 
 
 def build_encoder(config: dict[str, Any]) -> object:
-    """Build a GGNN encoder from ``configs/model/ggnn.yaml``.
+    """Tạo GGNN encoder từ ``configs/model/ggnn.yaml``.
 
-    TODO: implement after node and edge features exist.
+    TODO: triển khai sau khi có feature của node và edge.
     """
-    raise NotImplementedError(f"GGNN encoder is not implemented. Config name={config.get('model', {}).get('name')!r}.")
+    raise NotImplementedError(f"Chưa triển khai GGNN encoder. Tên config={config.get('model', {}).get('name')!r}.")

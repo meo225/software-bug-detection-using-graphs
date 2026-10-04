@@ -1,7 +1,7 @@
-"""Loss functions for CWE classification.
+"""Các hàm loss cho bài toán phân loại CWE.
 
-Class imbalance is expected. The loss is a config choice, not a silent default
-that resamples the dataset.
+Dữ liệu dự kiến mất cân bằng giữa các class. Loss là lựa chọn trong config,
+không phải giá trị mặc định ngầm resample dataset.
 """
 
 from __future__ import annotations
@@ -10,8 +10,8 @@ from typing import Any
 
 
 def build_loss(config: dict[str, Any]) -> object:
-    """Return the training loss named by ``config``.
+    """Trả về training loss được chỉ định trong ``config``.
 
-    TODO: support a standard multiclass loss. Do not oversample or undersample here.
+    TODO: hỗ trợ loss multiclass tiêu chuẩn. Không oversample hoặc undersample tại đây.
     """
-    raise NotImplementedError(f"build_loss is not implemented for keys {sorted(config)}.")
+    raise NotImplementedError(f"Chưa triển khai build_loss cho các key {sorted(config)}.")

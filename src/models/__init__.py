@@ -1,10 +1,10 @@
-"""GNN architectures.
+"""Các kiến trúc GNN.
 
-Each module exposes ``build_encoder(config)``. ``CWEClassifier`` is the shared
-head used by the trainer:
+Mỗi module cung cấp ``build_encoder(config)``. ``CWEClassifier`` là head dùng
+chung cho trainer:
 
     graph batch -> GNN encoder -> graph pooling -> classifier -> CWE logits
 
-Do not implement a placeholder network that looks trainable. The graph schema
-and the class set are still open.
+Không triển khai network giữ chỗ có vẻ như train được. Graph schema và tập
+class vẫn là các quyết định còn mở.
 """
