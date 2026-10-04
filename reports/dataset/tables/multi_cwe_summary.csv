@@ -1,1 +1,4 @@
 category,sample_count,percentage_of_vulnerable
+zero_cwe,2836,14.969648983900766
+exactly_one_cwe,11894,62.78173660596463
+two_or_more_cwe,4215,22.2486144101346

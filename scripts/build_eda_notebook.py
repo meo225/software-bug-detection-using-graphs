@@ -41,7 +41,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.data.loader import load_dataset
-from src.data.diversevul_audit import run_audit, read_optional_metadata, metadata_audit, schema_table
+from src.data.diversevul_audit import run_audit, read_optional_metadata, metadata_audit, read_label_noise_summary, schema_table
 from src.utils.config import load_config
 
 SEED = 105
@@ -110,6 +110,7 @@ else:
 if dataset_available:
     display(result.tables["source_quality_summary"])
     display(result.tables["function_length_summary"])
+    display(result.tables["source_syntax_profile"])
     display(result.tables["source_inspection_sample"])
 else:
     print("Chưa tính được.")
@@ -121,7 +122,7 @@ if dataset_available:
 else:
     print("Không thể tạo manifest khi chưa có dataset thô.")
 """),
-        md("15. Kết quả", "Sinh tất cả bảng, biểu đồ, danh mục mẫu, kết quả kiểm tra siêu dữ liệu và báo cáo Markdown từ cùng một kết quả đã tính."),
+        md("15. Kết quả", "Sinh tất cả bảng, biểu đồ, danh mục mẫu, kết quả kiểm tra metadata, bảng label-noise và báo cáo Markdown từ cùng một kết quả đã tính."),
         code("""
 import subprocess
 completed = subprocess.run(
@@ -135,6 +136,10 @@ print(completed.stdout.strip())
 if dataset_available:
     metadata, _ = read_optional_metadata(raw_dir)
     result.tables["metadata_audit"] = metadata_audit(result.records, metadata)
+    label_noise, _ = read_label_noise_summary(raw_dir)
+    result.tables["label_noise_summary"] = label_noise
+    display(result.tables["metadata_audit"])
+    display(result.tables["label_noise_summary"])
     print(result.findings)
 else:
     print("Không có kết quả EDA nào được tuyên bố; các artifact được sinh đều ghi rõ trạng thái BLOCKED.")

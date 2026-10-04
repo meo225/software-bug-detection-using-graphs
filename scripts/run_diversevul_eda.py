@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import sys
 from pathlib import Path
@@ -23,7 +24,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from src.data.diversevul_audit import metadata_audit, read_optional_metadata, run_audit, write_json
+from src.data.diversevul_audit import (
+    metadata_audit,
+    read_label_noise_summary,
+    read_optional_metadata,
+    run_audit,
+    write_json,
+)
 from src.data.loader import load_dataset
 from src.utils.config import load_config
 from src.utils.paths import resolve_from_root
@@ -179,7 +186,7 @@ def _markdown_table(frame: pd.DataFrame, limit: int | None = None) -> str:
     return "\n".join(lines)
 
 
-def write_report(result, dataset_file: Path, metadata_file: Path | None) -> None:
+def write_report(result, dataset_file: Path, metadata_file: Path | None, label_noise_file: Path | None) -> None:
     tables = result.tables
     f = result.findings
     cwe = tables["cwe_distribution"]
@@ -193,6 +200,7 @@ def write_report(result, dataset_file: Path, metadata_file: Path | None) -> None
 
 - Dataset chính: `{dataset_file.as_posix()}`
 - Metadata riêng: `{metadata_file.as_posix() if metadata_file else 'không được cung cấp'}`
+- Bảng label-noise: `{label_noise_file.as_posix() if label_noise_file else 'không được cung cấp'}`
 
 Kích thước: **{len(result.records):,} dòng x {f['raw_column_count']:,} cột thô**. Schema thô thực tế và missing values nằm trong `tables/missing_values.csv`.
 
@@ -203,6 +211,8 @@ Các field đã ánh xạ: `{result.fields}`
 {_markdown_table(tables['paper_comparison'])}
 
 Mọi chênh lệch được giữ nguyên như quan sát. Nguyên nhân có thể liên quan đến release/version, parsing, độ bao phủ metadata hoặc record bị trùng và cần được điều tra; số liệu không bao giờ bị sửa để khớp paper.
+
+Quan sát đáng chú ý: tổng số dòng của file chính thức đang dùng (**{f['total_samples']:,}**) đúng bằng con số non-vulnerable mà paper công bố, trong khi file vẫn chứa đủ **{f['vulnerable_samples']:,}** dòng vulnerable; vì vậy số non-vulnerable thực tế chỉ còn **{f['non_vulnerable_samples']:,}**. Quan hệ số học này gợi ý khác biệt giữa artifact phát hành và cách paper cộng các tập con, nhưng chưa đủ bằng chứng để khẳng định nguyên nhân.
 
 ## Coverage và mất cân bằng CWE
 
@@ -240,21 +250,33 @@ Bảng bằng chứng cho các candidate, không phải tập class đã chọn:
 
 Normalization chỉ chuyển đổi line ending, bỏ space/tab ở cuối từng dòng và xóa dòng trống ở biên. Quy trình không gộp whitespace bên trong hoặc xóa comment.
 
+Kiểm tra field hash do dataset cung cấp:
+
+{_markdown_table(tables['provided_hash_summary'])}
+
 ## Chất lượng source code và mức sẵn sàng cho graph
 
 {_markdown_table(tables['source_quality_summary'])}
 
 {_markdown_table(tables['function_length_summary'])}
 
+{_markdown_table(tables['source_syntax_profile'])}
+
 Sample giới hạn để kiểm tra thủ công nằm trong `tables/source_inspection_sample.csv`. Manifest `data/sample_manifests/diversevul_graph_sample.csv` chứa reference được chọn bằng seed cố định cho tối đa 30 vulnerable function, trải trên các nhóm độ dài và số CWE. Manifest không nhúng toàn bộ source code. Audit này không chạy Joern.
+
+Dataset không có field ngôn ngữ để tách C khỏi C++ một cách đáng tin cậy. Các dấu hiệu cú pháp ở trên chỉ là heuristic; tỷ lệ Joern parse thành công trên manifest mới là gate tiếp theo. Độ dài trải từ source rỗng đến hàng chục nghìn dòng và dữ liệu đến từ 800 project, nên corpus không thể xem là chỉ gồm các ví dụ C đơn điệu, nhưng các outlier cần giới hạn hoặc xử lý riêng khi tạo graph.
 
 ## Audit metadata
 
 {_markdown_table(tables['metadata_audit'])}
 
+Dataset chính không có CVE, repository URL hoặc timestamp; CVE/repository chỉ xuất hiện trong metadata riêng với coverage không hoàn chỉnh. Vì không có timestamp, EDA này không thể dựng chronological split có kiểm chứng từ các file chính thức đã tải.
+
 ## Bối cảnh label noise
 
-Paper báo cáo vulnerable-function label chỉ chính xác khoảng 60% trong sample được kiểm tra thủ công. Các dạng lỗi chính gồm vulnerability trải qua nhiều function, thay đổi helper/caller cần thiết cho bản vá và thay đổi không liên quan trong security-fixing commit. Đây là bối cảnh từ paper, không phải kết quả được tính lại trên full dataset. Nếu bảng label-noise chính thức được cung cấp, bảng đó phải được tóm tắt riêng và không được trộn vào mẫu số của full dataset.
+{_markdown_table(tables['label_noise_summary']) if not tables['label_noise_summary'].empty else 'Không tìm thấy spreadsheet label-noise chính thức trong thư mục dữ liệu thô.'}
+
+Bảng chính thức cho thấy 30/50 mẫu DiverseVul được đánh giá đúng (60%); phần còn lại gồm vulnerability trải qua nhiều function, thay đổi liên quan nhưng bản thân function không vulnerable và thay đổi không liên quan. Đây là audit thủ công mẫu nhỏ của authors, không phải thống kê được tính lại trên toàn bộ dataset và không được trộn vào mẫu số full EDA.
 
 ## Trả lời trực tiếp các câu hỏi nghiên cứu
 
@@ -301,14 +323,28 @@ def main() -> int:
     result = run_audit(loaded.frame, config)
     metadata, metadata_path = read_optional_metadata(raw_dir)
     result.tables["metadata_audit"] = metadata_audit(result.records, metadata)
+    label_noise, label_noise_path = read_label_noise_summary(raw_dir)
+    result.tables["label_noise_summary"] = label_noise
     for name, table in result.tables.items():
         if name == "graph_sample_manifest":
             table.to_csv(MANIFEST_PATH, index=False)
         else:
             table.to_csv(TABLE_DIR / f"{name}.csv", index=False)
     write_figures(result)
-    write_json(TABLE_DIR / "audit_status.json", {"status": "complete", "dataset_file": str(loaded.source_file), "fields": result.fields})
-    write_report(result, loaded.source_file, metadata_path)
+    digest = hashlib.sha256()
+    with loaded.source_file.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    write_json(TABLE_DIR / "audit_status.json", {
+        "status": "complete",
+        "dataset_file": str(loaded.source_file),
+        "dataset_size_bytes": loaded.source_file.stat().st_size,
+        "dataset_sha256": digest.hexdigest(),
+        "metadata_file": str(metadata_path) if metadata_path else None,
+        "label_noise_file": str(label_noise_path) if label_noise_path else None,
+        "fields": result.fields,
+    })
+    write_report(result, loaded.source_file, metadata_path, label_noise_path)
     print(f"EDA hoàn tất: {REPORT_PATH}")
     return 0
 

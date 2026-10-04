@@ -1,0 +1,4 @@
+check,sample_count,percentage_of_all_samples,note
+function_like_delimiters,326289,98.7282596855597,"heuristic lexical, không phải kết quả parse"
+preprocessor_directive,29947,9.061338852377668,"heuristic lexical, không phải kết quả parse"
+cpp_specific_marker,44420,13.44056739648766,"heuristic lexical, không phải kết quả parse"

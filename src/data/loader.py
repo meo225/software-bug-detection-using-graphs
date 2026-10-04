@@ -72,7 +72,28 @@ def read_records(path: Path) -> pd.DataFrame:
     if suffix == ".csv":
         return pd.read_csv(path, low_memory=False)
     if suffix in {".jsonl", ".ndjson"}:
-        return pd.read_json(path, lines=True)
+        # Parser JSON nhanh của pandas từ chối integer `hash` 128-bit trong bản
+        # phát hành DiverseVul chính thức ("Value is too big"). Parser chuẩn
+        # của Python giữ nguyên giá trị đó; chia chunk để giới hạn bộ nhớ tạm.
+        chunks: list[pd.DataFrame] = []
+        records: list[dict[str, Any]] = []
+        with path.open(encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                if not line.strip():
+                    continue
+                try:
+                    payload = json.loads(line)
+                except json.JSONDecodeError as error:
+                    raise ValueError(f"JSON không hợp lệ tại dòng {line_number} của {path}: {error}") from error
+                if not isinstance(payload, dict):
+                    raise ValueError(f"Record JSONL tại dòng {line_number} không phải object: {path}")
+                records.append(payload)
+                if len(records) == 50_000:
+                    chunks.append(pd.DataFrame.from_records(records))
+                    records = []
+        if records:
+            chunks.append(pd.DataFrame.from_records(records))
+        return pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
     if suffix == ".json":
         try:
             return pd.read_json(path, lines=True)

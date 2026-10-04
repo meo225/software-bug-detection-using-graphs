@@ -1,1 +1,12 @@
 field,meaning,dtype,missing_count,missing_percentage,example
+func,source_code,str,0,0.0,"int _gnutls_ciphertext2compressed(gnutls_session_t session,\n				  opaque * compress_data,\n				  int compress_size,\n				  gnutls_datum_t ciphertext, uint8 typ"
+target,is_vulnerable,int64,0,0.0,1
+cwe,cwe,object,0,0.0,[]
+project,project,str,0,0.0,gnutls
+commit_id,commit,str,0,0.0,7ad6162573ba79a4392c63b453ad0220ca6c5ace
+hash,provided_hash,object,0,0.0,73008646937836648589283922871188272089
+size,field thô chưa được ánh xạ,int64,0,0.0,157
+message,field thô chưa được ánh xạ,str,0,0.0,added an extra check while checking the padding.
+KHÔNG TỒN TẠI,sample_id,N/A,330492,100.0,
+KHÔNG TỒN TẠI,cve,N/A,330492,100.0,
+KHÔNG TỒN TẠI,repository,N/A,330492,100.0,

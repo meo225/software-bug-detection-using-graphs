@@ -1,0 +1,2 @@
+records_checked,matching_hash,mismatching_hash,invalid_provided_hash,algorithm
+330492,330492,0,0,"MD5(source UTF-8) biểu diễn dưới dạng integer; chỉ kiểm tra tính toàn vẹn, không dùng cho bảo mật"

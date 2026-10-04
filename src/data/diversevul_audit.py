@@ -7,6 +7,7 @@ sample multi-CWE thành một class và không chọn threshold cuối cùng cho
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -202,6 +203,46 @@ def _source_quality_summary(records: pd.DataFrame) -> pd.DataFrame:
     ])
 
 
+def _source_syntax_profile(records: pd.DataFrame) -> pd.DataFrame:
+    """Các dấu hiệu cú pháp bảo thủ; không thay thế parser C/C++ hoặc Joern."""
+    source = records["source_code"].fillna("").astype(str)
+    checks = {
+        "function_like_delimiters": source.str.contains("(", regex=False) & source.str.contains(")", regex=False)
+        & source.str.contains("{", regex=False) & source.str.contains("}", regex=False),
+        "preprocessor_directive": source.str.contains(r"(?m)^\s*#\s*\w+", regex=True),
+        "cpp_specific_marker": source.str.contains(r"::|\btemplate\s*<|\bclass\s+[A-Za-z_]", regex=True),
+    }
+    return pd.DataFrame([
+        {
+            "check": name,
+            "sample_count": int(mask.sum()),
+            "percentage_of_all_samples": 100.0 * int(mask.sum()) / len(records) if len(records) else 0.0,
+            "note": "heuristic lexical, không phải kết quả parse",
+        }
+        for name, mask in checks.items()
+    ])
+
+
+def _provided_hash_summary(records: pd.DataFrame) -> pd.DataFrame:
+    """Kiểm tra integer MD5 do DiverseVul cung cấp so với source thô."""
+    available = records[records["source_code"].notna() & records["provided_hash"].notna()]
+    matched = 0
+    invalid = 0
+    for source, provided in available[["source_code", "provided_hash"]].itertuples(index=False, name=None):
+        try:
+            expected = int(hashlib.md5(str(source).encode("utf-8", errors="replace")).hexdigest(), 16)  # noqa: S324
+            matched += int(int(provided) == expected)
+        except (TypeError, ValueError, OverflowError):
+            invalid += 1
+    return pd.DataFrame([{
+        "records_checked": len(available),
+        "matching_hash": matched,
+        "mismatching_hash": len(available) - matched - invalid,
+        "invalid_provided_hash": invalid,
+        "algorithm": "MD5(source UTF-8) biểu diễn dưới dạng integer; chỉ kiểm tra tính toàn vẹn, không dùng cho bảo mật",
+    }])
+
+
 def _sample_manifest(vulnerable: pd.DataFrame, size: int = 30, seed: int = 105) -> pd.DataFrame:
     candidates = vulnerable[vulnerable["source_code"].fillna("").astype(str).str.strip().ne("")].copy()
     if candidates.empty:
@@ -272,7 +313,9 @@ def run_audit(frame: pd.DataFrame, configured: dict[str, str | None] | None = No
         "cwe_project_distribution": cwe_project,
         "project_split_feasibility": feasibility,
         "duplicate_summary": duplicate_summary(records),
+        "provided_hash_summary": _provided_hash_summary(records),
         "source_quality_summary": _source_quality_summary(records),
+        "source_syntax_profile": _source_syntax_profile(records),
         "function_length_summary": _length_table(records),
         "source_inspection_sample": vulnerable.sample(min(30, len(vulnerable)), random_state=105).assign(
             cwe=lambda data: data["cwe_list"].map(lambda labels: "|".join(labels)),
@@ -293,7 +336,7 @@ def run_audit(frame: pd.DataFrame, configured: dict[str, str | None] | None = No
 
 def read_optional_metadata(raw_dir: Path) -> tuple[pd.DataFrame | None, Path | None]:
     """Load một bảng metadata có tên rõ ràng khi tồn tại."""
-    from src.data.loader import read_records
+    from src.data.loader import METADATA_MARKERS, read_records
 
     candidates = [path for path in Path(raw_dir).rglob("*") if path.is_file() and any(marker in path.name.lower() for marker in METADATA_MARKERS)]
     candidates = [path for path in candidates if path.suffix.lower() in {".csv", ".json", ".jsonl", ".ndjson", ".parquet"}]
@@ -311,19 +354,66 @@ def metadata_audit(records: pd.DataFrame, metadata: pd.DataFrame | None) -> pd.D
     commit_col = _pick_column(list(metadata.columns), FIELD_ALIASES["commit"])
     repo_url_col = _pick_column(list(metadata.columns), ("repository_url", "repo_url", "repository"))
     commit_url_col = _pick_column(list(metadata.columns), ("commit_url", "url"))
+    cve_col = _pick_column(list(metadata.columns), FIELD_ALIASES["cve"])
+    cwe_col = _pick_column(list(metadata.columns), FIELD_ALIASES["cwe"])
     if commit_col is None:
         return pd.DataFrame([["metadata_status", "unjoinable", "Không phát hiện field commit ID trong metadata."]], columns=columns)
     record_commits = set(records["commit"].dropna().astype(str))
     meta_commits = set(metadata[commit_col].dropna().astype(str))
     joined = len(record_commits & meta_commits)
+    joined_records = int(records["commit"].astype(str).isin(meta_commits).sum())
     return pd.DataFrame([
+        ["metadata_rows", len(metadata), ""],
         ["dataset_unique_commits", len(record_commits), ""],
         ["metadata_unique_commits", len(meta_commits), ""],
         ["joined_unique_commits", joined, "Phần giao của commit ID"],
         ["unjoined_dataset_commits", len(record_commits - meta_commits), ""],
+        ["unjoined_metadata_commits", len(meta_commits - record_commits), ""],
+        ["joined_dataset_records", joined_records, "Record có commit ID xuất hiện trong metadata"],
+        ["unjoined_dataset_records", len(records) - joined_records, ""],
         ["missing_commit_url_rows", int(metadata[commit_url_col].isna().sum()) if commit_url_col else len(metadata), "field không tồn tại" if not commit_url_col else ""],
         ["missing_repo_url_rows", int(metadata[repo_url_col].isna().sum()) if repo_url_col else len(metadata), "field không tồn tại" if not repo_url_col else ""],
+        ["missing_cve_rows", int(metadata[cve_col].isna().sum()) if cve_col else len(metadata), "field không tồn tại" if not cve_col else ""],
+        ["missing_cwe_rows", int(metadata[cwe_col].isna().sum()) if cwe_col else len(metadata), "field không tồn tại" if not cwe_col else ""],
     ], columns=columns)
+
+
+def read_label_noise_summary(raw_dir: Path) -> tuple[pd.DataFrame, Path | None]:
+    """Đọc bảng Summary của spreadsheet label-noise chính thức, tách khỏi full EDA."""
+    candidates = sorted(
+        (path for path in Path(raw_dir).rglob("*") if path.is_file() and "label_noise" in path.name.lower()
+         and path.suffix.lower() in {".xlsx", ".xlsm"}),
+        key=lambda path: path.stat().st_size,
+        reverse=True,
+    )
+    columns = [
+        "dataset", "sample_size", "correct_label", "vulnerability_spread_multiple_functions",
+        "relevant_but_not_vulnerable", "irrelevant", "correct_percentage",
+    ]
+    if not candidates:
+        return pd.DataFrame(columns=columns), None
+    raw = pd.read_excel(candidates[0], sheet_name="Summary", header=None)
+    wanted = {"DiverseVul", "Union of Three", "CVEFixes", "BigVul", "CrossVul"}
+    rows = []
+    for values in raw.itertuples(index=False, name=None):
+        if str(values[0]).strip() not in wanted:
+            continue
+        try:
+            counts = [int(values[index]) for index in range(1, 6)]
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if sum(counts[1:]) != counts[0]:
+            continue
+        rows.append({
+            "dataset": str(values[0]).strip(),
+            "sample_size": counts[0],
+            "correct_label": counts[1],
+            "vulnerability_spread_multiple_functions": counts[2],
+            "relevant_but_not_vulnerable": counts[3],
+            "irrelevant": counts[4],
+            "correct_percentage": 100.0 * counts[1] / counts[0] if counts[0] else 0.0,
+        })
+    return pd.DataFrame(rows, columns=columns), candidates[0].resolve()
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:

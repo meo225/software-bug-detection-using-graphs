@@ -34,6 +34,16 @@ def test_dataset_loader_reads_jsonl_without_dropping_rows(tmp_path) -> None:
     assert list(loaded.frame.columns) == ["project", "commit_id", "target", "func", "cwe"]
 
 
+def test_jsonl_loader_preserves_integer_larger_than_uint64(tmp_path) -> None:
+    raw_dir = tmp_path / "diversevul"
+    raw_dir.mkdir()
+    path = raw_dir / "diversevul.jsonl"
+    expected = 27696392987383562433164405181263025184
+    path.write_text(json.dumps({"hash": expected}) + "\n", encoding="utf-8")
+    loaded = load_dataset("diversevul", raw_dir)
+    assert int(loaded.frame.loc[0, "hash"]) == expected
+
+
 def test_cwe_preprocessing_keeps_every_label() -> None:
     assert parse_cwe_labels(["CWE-787", "CWE-119"]) == ["CWE-787", "CWE-119"]
     assert parse_cwe_labels("['CWE-125', 'CWE-416']") == ["CWE-125", "CWE-416"]

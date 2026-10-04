@@ -1,0 +1,6 @@
+dataset,sample_size,correct_label,vulnerability_spread_multiple_functions,relevant_but_not_vulnerable,irrelevant,correct_percentage
+DiverseVul,50,30,5,6,9,60.0
+Union of Three,50,18,6,6,20,36.0
+CVEFixes,29,15,3,5,6,51.724137931034484
+BigVul,32,8,5,3,16,25.0
+CrossVul,23,11,3,5,4,47.82608695652174
