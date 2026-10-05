@@ -1,6 +1,6 @@
 # So sánh MegaVul với DiverseVul
 
-**Quyết định:** giữ DiverseVul làm dataset chính. Dùng MegaVul C/C++ 2024-04 làm tập kiểm chứng ngoài. Chưa chuyển dataset chính.
+Giữ DiverseVul làm dataset chính. Dùng MegaVul C/C++ bản 2024-04 làm tập kiểm chứng ngoài. Chưa chuyển dataset chính.
 
 File đã đo là `data/raw/megavul/megavul_simple.json`, 1.181.509.201 byte, SHA-256 `5316dc02e04f4dfd6a9c93e146236ed76da17d8473e1f4721f7e49dc23424b84`. Số function, CVE, commit và repository khớp công bố của tác giả. File không có `commit_date`.
 
@@ -25,7 +25,7 @@ File đã đo là `data/raw/megavul/megavul_simple.json`, 1.181.509.201 byte, SH
 
 Tác giả công bố 176 CWE. File có thêm nhãn `CWE-Other` ở 33.444 chỗ. Nhãn này không phải một lớp CWE dạng số, nên bảng local đếm 175.
 
-87,14% là tỷ lệ record có đường dẫn graph trong JSON. Chưa có `megavul_graph.zip`, nên chưa kiểm tra file graph có mở được hay không. Với các CWE từ 100 mẫu trở lên, tỷ lệ thiếu path ở mức trung vị 11%. CWE-20 thiếu cao nhất trong nhóm này, 24,7%. Chưa thấy một CWE lớn nào mất phần lớn graph.
+87,14% là tỷ lệ record có đường dẫn graph trong JSON. Chưa có `megavul_graph.zip`, nên chưa kiểm tra file graph có mở được hay không. Với các CWE từ 100 mẫu trở lên, tỷ lệ thiếu đường dẫn ở mức trung vị 11%. CWE-20 thiếu cao nhất trong nhóm này, 24,7%. Chưa thấy một CWE lớn nào mất phần lớn graph.
 
 11.136 nhóm source trùng nhau chủ yếu là hàm non-vulnerable lặp giữa các commit. Trong đó 7.280 nhóm non-vulnerable mang các CWE khác nhau. Nhóm vulnerable trùng source nhưng khác CWE dạng số chỉ có 38 nhóm, 78 dòng.
 

@@ -57,7 +57,7 @@ python scripts/run_diversevul_eda.py --strict
 jupyter nbconvert --to notebook --execute notebooks/01_diversevul_eda.ipynb --output 01_diversevul_eda.ipynb --output-dir notebooks
 ```
 
-Nếu chưa có dữ liệu, chạy không có `--strict` sẽ sinh báo cáo và artifact giữ chỗ ghi rõ `BLOCKED`; chúng không dùng số liệu paper làm kết quả EDA giả.
+Nếu chưa có dữ liệu, chạy không có `--strict` sẽ sinh báo cáo và artifact giữ chỗ ghi rõ `BLOCKED`. Các artifact đó không dùng số liệu paper làm kết quả EDA giả.
 
 ## Đóng góp
 

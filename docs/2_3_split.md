@@ -1,6 +1,6 @@
-# Task 2.3: Split DiverseVul chống leakage
+# Task 2.3. Split DiverseVul chống leakage
 
-**Quyết định:** mọi model dùng chung 9.077 function của task 2.2 và hai cách chia dưới đây. Không tạo split mới khi train.
+Mọi model dùng chung 9.077 function của task 2.2 và hai cách chia dưới đây. Không tạo split mới khi train.
 
 Manifest chung: `data/splits/diversevul_experiment_manifest.csv`.
 
@@ -9,7 +9,7 @@ Manifest chung: `data/splits/diversevul_experiment_manifest.csv`.
 | Project-wise | Đánh giá chính, unseen project | `data/splits/diversevul_project_wise/` |
 | Seen-project | Đánh giá đối chứng, project được phép lặp lại | `data/splits/diversevul_seen_project/` |
 
-Mỗi thư mục có `train.txt`, `validation.txt`, `test.txt`. Mỗi dòng là một `sample_id` dạng `row-{số thứ tự trong jsonl}`. File manifest thêm CWE, project, commit, CVE, `group_id` và tên split của cả hai protocol.
+Mỗi thư mục có `train.txt`, `validation.txt` và `test.txt`. Mỗi dòng là một `sample_id` dạng `row-` cộng số thứ tự trong jsonl. File manifest thêm CWE, project, commit, CVE, `group_id` và tên split của cả hai cách chia.
 
 Số liệu kiểm tra nằm ở `data/splits/diversevul_split_report.json`. Tạo lại bằng:
 
@@ -27,13 +27,13 @@ Hai record đi cùng nhau nếu chúng chia sẻ một trong ba khóa sau. Khóa
 2. `commit_id`.
 3. Mã CVE lấy từ `diversevul_metadata.jsonl`, nối theo `commit_id`.
 
-9.077 function tạo thành 3.352 thành phần liên thông. Trước khi hợp các khóa lại, có 6 mã source, 1.342 commit và 877 CVE được dùng chung bởi ít nhất hai function. 5.663 function có CVE; function không có CVE vẫn được gom theo commit hoặc source. 41 thành phần chạm đúng hai project.
+9.077 function tạo thành 3.352 thành phần liên thông. Trước khi hợp các khóa lại, có 6 mã source, 1.342 commit và 877 CVE được dùng chung bởi ít nhất hai function. 5.663 function có CVE. Function không có CVE vẫn được gom theo commit hoặc source. 41 thành phần chạm đúng hai project.
 
 ## Project-wise
 
 Đây là đánh giá chính của task 1.4. Một project chỉ nằm ở một split. Nếu một group chạm hai project, hai project đó bị dính thành một siêu-project và đi cùng nhau. 538 project được gom thành 524 siêu-project.
 
-Chia theo siêu-project, nhắm 80/10/10, class hiếm được xếp trước. Đơn vị nhỏ được chuyển thêm để mỗi CWE có ít nhất 5 mẫu ở mỗi split mà split nguồn vẫn còn class đó.
+Chia theo siêu-project, nhắm tỷ lệ 80, 10 và 10. Lớp hiếm được xếp trước. Đơn vị nhỏ được chuyển thêm để mỗi CWE có ít nhất 5 mẫu ở mỗi split mà split nguồn vẫn còn class đó.
 
 | Split | Function | Tỷ lệ | Project |
 | --- | ---: | ---: | ---: |
@@ -41,7 +41,7 @@ Chia theo siêu-project, nhắm 80/10/10, class hiếm được xếp trước. 
 | validation | 1.047 | 11,53% | 37 |
 | test | 1.047 | 11,53% | 33 |
 
-Tỷ lệ lệch khỏi 80/10/10 vì cả project phải đi cùng nhau. Kiểm tra leakage: 0 group, 0 commit, 0 duplicate và 0 project bị cắt qua hai split.
+Tỷ lệ lệch khỏi mục tiêu 80, 10 và 10 vì cả project phải đi cùng nhau. Kiểm tra leakage cho kết quả 0 group, 0 commit, 0 mẫu trùng và 0 project bị cắt qua hai split.
 
 | CWE | Tổng | Train | Validation | Test |
 | --- | ---: | ---: | ---: | ---: |
@@ -69,11 +69,11 @@ Tỷ lệ lệch khỏi 80/10/10 vì cả project phải đi cùng nhau. Kiểm 
 | CWE-59 | 93 | 75 | 9 | 9 |
 | CWE-770 | 89 | 72 | 9 | 8 |
 
-Ô nhỏ nhất là CWE-703 validation (5) và CWE-401 test (5). Khi báo per-CWE F1 ở protocol này, phải kèm support. Các ô dưới 10 mẫu không đủ để kết luận class đó khó hay dễ.
+Ô nhỏ nhất là CWE-703 ở validation và CWE-401 ở test, mỗi ô 5 mẫu. Khi báo F1 từng CWE ở cách chia này, phải kèm số mẫu. Các ô dưới 10 mẫu không đủ để kết luận lớp đó khó hay dễ.
 
 ## Seen-project
 
-Cùng 9.077 function, nhưng đơn vị chia là group chứ không phải project. Cùng một project được xuất hiện ở nhiều split. Group, commit, CVE và duplicate vẫn không được cắt.
+Cùng 9.077 function, nhưng đơn vị chia là nhóm leakage chứ không phải project. Cùng một project được xuất hiện ở nhiều split. Nhóm, commit, CVE và mẫu trùng vẫn không được cắt.
 
 174 project có mặt ở nhiều hơn một split. Đó là khác biệt cố ý so với protocol chính.
 
@@ -83,7 +83,7 @@ Cùng 9.077 function, nhưng đơn vị chia là group chứ không phải proje
 | validation | 902 | 9,94% |
 | test | 903 | 9,95% |
 
-Kiểm tra leakage: 0 group, 0 commit và 0 duplicate bị cắt. Mọi CWE có ít nhất 8 mẫu ở mỗi split.
+Kiểm tra leakage cho kết quả 0 nhóm, 0 commit và 0 mẫu trùng bị cắt. Mọi CWE có ít nhất 8 mẫu ở mỗi split.
 
 | CWE | Tổng | Train | Validation | Test |
 | --- | ---: | ---: | ---: | ---: |
@@ -111,4 +111,4 @@ Kiểm tra leakage: 0 group, 0 commit và 0 duplicate bị cắt. Mọi CWE có 
 | CWE-59 | 93 | 75 | 9 | 9 |
 | CWE-770 | 89 | 72 | 8 | 9 |
 
-Không có chronological split. DiverseVul local không có timestamp đủ tin cậy; task 1.4 đã khóa điểm này.
+Không có chronological split. DiverseVul local không có timestamp đủ tin cậy. Task 1.4 đã khóa điểm này.

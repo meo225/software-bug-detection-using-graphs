@@ -1,200 +1,162 @@
-# Task 1.3-1.4: Lựa chọn biểu diễn graph và khung thực nghiệm
+# Task 1.3 và 1.4. Biểu diễn graph và khung thực nghiệm
 
-- **Task 1.1:** Khảo sát nghiên cứu và pipeline
-- **Task 1.2:** Khảo sát và lựa chọn dataset có nhãn CWE
-- **Task 2.1:** Audit và EDA DiverseVul
+- Task 1.1. Khảo sát nghiên cứu và pipeline
+- Task 1.2. Khảo sát và lựa chọn dataset có nhãn CWE
+- Task 2.1. Audit và EDA DiverseVul
 
-## 1. Mục tiêu của tài liệu
+## 1. Mục tiêu
 
-Tài liệu này trả lời hai quyết định trước khi xây pipeline graph:
+Tài liệu chốt hai việc trước khi xây pipeline graph.
 
-- **Task 1.3:** biểu diễn graph nào đủ hợp lý để thử nghiệm trên DiverseVul?
-- **Task 1.4:** câu hỏi nghiên cứu, baseline, model và protocol đánh giá nào vừa có giá trị khoa học vừa khả thi trong phạm vi đồ án?
+- Task 1.3. Biểu diễn graph nào đủ hợp lý để thử trên DiverseVul?
+- Task 1.4. Câu hỏi nghiên cứu, baseline, model và cách đánh giá nào vừa có giá trị vừa làm được trong phạm vi đồ án?
 
-Kết luận được xây dựng từ related work, tài liệu Joern và kết quả EDA thực tế của repository. Đây là quyết định cho giai đoạn pilot, không phải cam kết rằng một cấu hình sẽ là phương án cuối cùng.
+Kết luận dựa trên related work, tài liệu Joern và EDA của repository. Đây là quyết định cho giai đoạn pilot, không phải cam kết cấu hình cuối.
 
-## 2. Các câu hỏi nghiên cứu đã đặt ra
+## 2. Câu hỏi đã dùng để chọn
 
-### 2.1. Về đơn vị đầu vào
+Về đầu vào: dataset có đủ context project hay chỉ từng function? Một function có luôn chứa đủ nguyên nhân lỗ hổng không? Thêm hàm gọi, hàm được gọi hoặc program slice mà vẫn tái lập và không vượt phạm vi môn học được không?
 
-1. Dataset cung cấp function độc lập hay đủ context của cả project?
-2. Một function có luôn chứa đủ nguyên nhân của vulnerability không?
-3. Có thể bổ sung caller/callee hoặc program slice mà vẫn tái lập và không làm vượt phạm vi môn học không?
+Về graph: AST giữ gì và mất gì? Control flow và data dependence có thêm tín hiệu cho phân loại CWE không? Cần cả CPG hay chỉ một subgraph đã chọn? Joern có tạo graph ổn từ function rời, macro và C/C++ thiếu context không? Graph quá lớn, graph rỗng và parse lỗi có tập trung vào một số CWE hoặc project không? Có cần giữ loại cạnh, chiều cạnh và cạnh ngược không?
 
-### 2.2. Về graph
+Về feature: node type và token có đủ làm baseline không? Giữ identifier và literal hay chuẩn hóa để hạn chế học thuộc project? Embedding học từ đầu hay dùng encoder có sẵn? Feature có được tạo chỉ từ tập train không?
 
-1. AST giữ được thông tin gì và bỏ mất thông tin gì?
-2. Control flow và data dependence có cung cấp tín hiệu bổ sung cho phân loại CWE không?
-3. Có cần toàn bộ CPG hay chỉ một subgraph gồm các loại node/edge đã chọn?
-4. Joern có tạo graph ổn định từ các function rời, macro và C/C++ không đầy đủ context không?
-5. Graph quá lớn, graph rỗng và parse failure có tập trung vào một số CWE/project hay không?
-6. Có cần giữ edge type, direction và reverse edge khi đưa graph vào GNN không?
+Về bằng chứng: graph có hơn baseline không dùng graph trên cùng split không? Thêm CFG và data dependence vào AST có tăng Macro-F1 hay chỉ tăng chi phí? Giữ loại cạnh có hơn gộp mọi cạnh không? Kết quả giảm bao nhiêu từ seen-project sang unseen-project? Kết luận có ổn qua nhiều seed và từng CWE không?
 
-### 2.3. Về node feature
+## 3. Bằng chứng
 
-1. Node type và lexical token có đủ làm baseline không?
-2. Có nên giữ identifier/literal nguyên bản hay chuẩn hóa để hạn chế học thuộc project?
-3. Embedding token nên học từ đầu hay dùng encoder source-code có sẵn?
-4. Node feature có được tạo chỉ từ train set để tránh leakage không?
+### 3.1 Từ EDA
 
-### 2.4. Về model và bằng chứng thực nghiệm
+Dataset local có 330.492 function, trong đó 18.945 function vulnerable. 16.109 hàm vulnerable có ít nhất một CWE. 4.215 hàm có từ hai CWE. 150 CWE tạo đuôi dài. Ngưỡng 100 mẫu còn 31 CWE và 14.581 function. Đó là bằng chứng để chọn lớp, không phải quyết định tự động.
 
-1. Graph có tốt hơn baseline không dùng graph trên cùng split không?
-2. Thêm CFG/data-dependence vào AST có cải thiện Macro-F1 hay chỉ làm tăng chi phí?
-3. Model có giữ edge type có tốt hơn model gộp mọi edge thành một loại không?
-4. Kết quả giảm bao nhiêu khi chuyển từ seen-project sang unseen-project?
-5. Kết luận có ổn định qua nhiều seed và theo từng CWE không?
+Chuẩn hóa bảo thủ thấy 863 nhóm trùng, 459 nhóm lệch nhãn vulnerable và 299 nhóm lệch CWE. Nhiều CWE trải nhiều project, nhưng một số lớp vẫn dồn vào một project. 98,73% mẫu trông giống function theo từ vựng, nhưng có source rỗng, hàm rất ngắn, hàm rất dài, macro và cú pháp C++. Không có trường ngôn ngữ đáng tin và không có timestamp đủ để chia theo thời gian. Tác giả chỉ đánh giá đúng 30 trên 50 nhãn vulnerable. Nhãn mức function phải được xem là nhãn có nhiễu.
 
-## 3. Bằng chứng liên quan
+Hệ quả: trích graph cần pilot và phải báo lệch do parse lỗi. Split phải gom mẫu trùng và conflict trước. Đánh giá chính phải theo project. Kết luận không được diễn giải như ground truth hoàn hảo.
 
-### 3.1. Từ EDA DiverseVul
+### 3.2 Từ nghiên cứu và công cụ
 
-- Dataset local có 330.492 function, trong đó 18.945 function vulnerable.
-- 16.109 vulnerable function có ít nhất một CWE; 4.215 function có từ hai CWE trở lên.
-- 150 CWE tạo thành long-tail. Threshold 100 còn 31 CWE và 14.581 function, nhưng đây chỉ là bằng chứng để team chọn class, không phải quyết định tự động.
-- Normalization bảo thủ phát hiện 863 nhóm duplicate, 459 nhóm xung đột vulnerable/non-vulnerable và 299 nhóm xung đột CWE.
-- Nhiều CWE trải trên nhiều project, nhưng một số class vẫn tập trung mạnh vào một project.
-- 98,73% sample có dấu hiệu lexical giống function; tuy nhiên có source rỗng, function rất ngắn, function cực dài, macro và cú pháp C++.
-- Dataset không có field ngôn ngữ đáng tin cậy và không có timestamp đủ để dựng chronological split có kiểm chứng.
-- Manual audit của authors chỉ đánh giá đúng 30/50 vulnerable labels. Function-level label vì vậy phải được xem là nhãn có nhiễu.
+Chi tiết từng paper nằm ở `docs/1_1_related_work.md`. Phần dưới chỉ giữ hệ quả cho việc chọn graph.
 
-Hệ quả: graph extraction cần có pilot và báo cáo parse bias; split phải gom duplicate/conflict trước; đánh giá chính phải project-aware; kết luận không được diễn giải như ground truth hoàn hảo.
+- Devign cho thấy graph gộp nhiều quan hệ có thể dùng cho phân loại mức graph, với GGNN. Bài toán là binary và chia ngẫu nhiên, nên không đủ trả lời khả năng tổng quát sang project mới.
+- DeepWukong dùng slice và XFG để tập trung control flow cùng data flow. Thông tin phụ thuộc có giá trị, nhưng slicing và ngữ cảnh liên thủ tục nặng hơn baseline mức function.
+- IVDetect tách câu lệnh vulnerable và context qua phụ thuộc dữ liệu và điều khiển. PDG hữu ích cho biểu diễn và giải thích. Điều đó không chứng minh mọi cạnh CPG đều cần.
+- LineVul cho thấy mô hình source và token có thể là baseline mạnh. Không có baseline này thì không kết luận được phần cải thiện đến từ graph.
+- PrimeVul nhấn mạnh dedup, chia theo thời gian và metric sát thực tế. DiverseVul local thiếu timestamp, nên không tạo chronological split giả. Project-wise split là phương án thay thế kiểm được.
+- Real-Vul cho thấy kết quả có thể giảm mạnh trên dữ liệu gần thực tế và cả codebase. Đề tài đang phân loại CWE trên tập vulnerable. False alarm trên cả codebase chỉ là metric phụ nếu có bước sàng nhị phân.
+- Joern biểu diễn CPG là multigraph có hướng, cạnh có nhãn, node có thuộc tính, gồm nhiều lớp như AST, control flow và data flow trong hàm. Có thể dùng Joern để sinh dữ liệu rồi tự chọn một tập node và cạnh. Không cần đưa cả CPG vào model.
+- GCN là baseline message passing đơn giản, nhưng bản chuẩn không phân biệt loại cạnh.
+- GAT học trọng số láng giềng. Attention không tự thay thế ý nghĩa của loại cạnh.
+- GGNN cập nhật có cổng qua nhiều bước và hợp để thử graph có hướng. Cách triển khai vẫn phải xác nhận nó dùng loại cạnh thế nào.
+- R-GCN xử lý loại quan hệ tường minh nhưng chi phí tăng theo số loại quan hệ. Chỉ thêm nếu ablation cho thấy loại cạnh thực sự quan trọng.
 
-### 3.2. Từ nghiên cứu và công cụ
+## 4. Kết luận task 1.3
 
-- **Devign** cho thấy graph tổng hợp nhiều quan hệ chương trình có thể dùng cho graph-level vulnerability classification và sử dụng GGNN. Tuy nhiên bài toán là binary và evaluation random split không đủ trả lời project generalization.
-- **DeepWukong** dùng program slicing/XFG để tập trung control/data flow liên quan. Kết quả ủng hộ giá trị của dependency information, nhưng slicing và context liên thủ tục làm pipeline phức tạp hơn baseline function-level.
-- **IVDetect** tách vulnerable statements và context qua data/control dependency, cho thấy PDG có ích cho biểu diễn và giải thích. Đây vẫn không phải bằng chứng rằng mọi edge CPG đều cần thiết.
-- **LineVul** là bằng chứng rằng source/token model có thể là baseline mạnh. Không có baseline không dùng graph thì không thể kết luận cải thiện đến từ graph.
-- **PrimeVul** nhấn mạnh deduplication, split theo thời gian và realistic metrics. DiverseVul local thiếu timestamp, nên không nên tạo chronological split giả; project-wise split là lựa chọn thay thế có thể kiểm chứng.
-- **Real-Vul** cho thấy kết quả có thể giảm mạnh trên dữ liệu gần thực tế và toàn codebase. Vì đề tài đang làm CWE classification trên vulnerable subset, false alarms trên toàn codebase chỉ nên là metric phụ nếu có binary screening stage.
-- **Joern** biểu diễn CPG như directed, edge-labeled, attributed multigraph gồm nhiều layer, trong đó có AST, control flow và intra-procedural data flow. Vì vậy có thể dùng Joern để sinh dữ liệu rồi chủ động chọn một tập node/edge; không cần đưa toàn bộ CPG vào model.
-- **GCN** là baseline message-passing đơn giản và hiệu quả, nhưng bản chuẩn không phân biệt edge type.
-- **GAT** học trọng số láng giềng, nhưng attention không tự động thay thế semantics của edge type.
-- **GGNN** dùng cập nhật có cổng qua nhiều bước message passing và phù hợp để kiểm tra graph chương trình có hướng; cách triển khai vẫn phải xác nhận nó sử dụng edge type như thế nào.
-- **R-GCN** xử lý relation type tường minh nhưng tăng chi phí theo số relation; chỉ nên thêm nếu ablation cho thấy edge type thực sự quan trọng.
+### 4.1 Quyết định cho pilot
 
-## 4. Kết luận Task 1.3: phương án biểu diễn graph
+Chọn Joern làm công cụ ứng viên để pilot. Không coi Joern hay CPG là quyết định cuối. Trên cùng manifest khoảng 30 function đã tạo từ EDA, sinh hai biến thể.
 
-### 4.1. Quyết định cho pilot
+1. Graph A, baseline AST. Node là các node cú pháp trong phạm vi function. Cạnh là cha con trên AST, thêm cạnh ngược khi model cần truyền tin hai chiều. Mục đích là baseline graph đơn giản, dễ kiểm và rẻ hơn.
+2. Graph B, semantic graph tối thiểu. Node dùng cùng miền với Graph A khi có thể. Cạnh là AST, CFG và data dependence. Giữ loại cạnh và chiều cạnh. Mục đích là kiểm control flow và data dependence có hơn AST hay không.
 
-Chọn **Joern làm công cụ ứng viên để pilot**, không coi Joern hay CPG là quyết định cuối cùng. Trên cùng manifest khoảng 30 function đã tạo từ EDA, sinh hai biến thể:
+Không đưa toàn bộ cạnh CPG vào lần chạy đầu. Call graph, ngữ cảnh liên thủ tục, slicing, cạnh dominator và các lớp phủ khác chỉ xem xét khi baseline thất bại theo một giả thuyết cụ thể.
 
-1. **Graph A - AST baseline**
-   - Node: các node cú pháp trong phạm vi function.
-   - Edge: AST parent-child, thêm reverse edge khi model cần truyền thông tin hai chiều.
-   - Mục đích: baseline graph đơn giản, dễ kiểm tra và rẻ hơn.
+### 4.2 Node feature ban đầu
 
-2. **Graph B - semantic graph tối thiểu**
-   - Node: dùng cùng miền node với Graph A khi có thể.
-   - Edge: AST + CFG + data-dependence; giữ edge type và direction.
-   - Mục đích: kiểm tra control/data relation có mang lại giá trị vượt AST hay không.
+Feature tối thiểu gồm node type, token của node sau chuẩn hóa bảo thủ, và tùy chọn vị trí tương đối hoặc số dòng nếu không tạo đường tắt theo project.
 
-Không đưa toàn bộ edge CPG vào lần chạy đầu. Call graph, interprocedural context, slicing/XFG, dominator edges và các overlay khác chỉ được xem xét khi baseline thất bại theo một giả thuyết cụ thể.
+Không dùng project, commit, CVE hoặc CWE trong node feature. Identifier và literal cần một ablation nhỏ giữa giữ subtoken và thay bằng placeholder. Vocabulary hoặc tokenizer phải fit trên tập train.
 
-### 4.2. Node feature ban đầu
+### 4.3 Cổng trước khi chạy toàn bộ
 
-Feature tối thiểu gồm:
+Pilot chỉ qua khi báo cáo được các mục sau.
 
-- node type;
-- token/code của node sau normalization bảo thủ;
-- tùy chọn vị trí tương đối hoặc line number nếu không tạo shortcut theo project.
+- tỷ lệ parse thành công theo mẫu, CWE, project và nhóm độ dài
+- nguyên nhân parse lỗi
+- số node, số cạnh, loại cạnh, graph rỗng và thành phần bất thường
+- thời gian và dung lượng trên mỗi function
+- khả năng ánh xạ graph về đúng mẫu và đúng nhãn
+- khác biệt giữa AST và semantic graph
+- lệch nếu mẫu bị loại vì parse lỗi hoặc vượt giới hạn kích thước
 
-Không dùng project, commit, CVE hoặc CWE trong node feature. Identifier/literal cần một ablation nhỏ giữa giữ subtoken và chuẩn hóa placeholder; vocabulary hoặc tokenizer phải được fit trên train set.
+Nếu Joern không parse ổn function rời, thử wrapper tối thiểu hoặc dựng lại context có kiểm soát, và ghi lại thay đổi. Không được âm thầm loại mẫu parse lỗi.
 
-### 4.3. Gate trước khi chạy toàn bộ
+## 5. Kết luận task 1.4
 
-Pilot chỉ được thông qua khi báo cáo được:
+### 5.1 Bài toán
 
-- parse success theo sample, CWE, project và nhóm độ dài;
-- nguyên nhân parse failure;
-- số node/edge, edge type, graph rỗng và component bất thường;
-- thời gian và dung lượng trên mỗi function;
-- khả năng ánh xạ graph về đúng sample/label;
-- khác biệt giữa AST và semantic graph;
-- bias nếu sample bị loại do parse lỗi hoặc vượt giới hạn kích thước.
+Input chính là source của một function C/C++ vulnerable có CWE. Output là CWE theo chính sách nhãn chốt ở task 2.2. Đề tài là phân loại weakness theo CWE, không phải phát hiện malware và không đồng nhất với binary vulnerability detection.
 
-Nếu Joern không parse ổn function rời, thử wrapper tối thiểu hoặc context reconstruction có kiểm soát và ghi lại thay đổi. Không được âm thầm loại sample parse lỗi.
+22,25% mẫu vulnerable là multi-CWE, nên chưa mặc định dùng softmax một lớp. Task 2.2 phải chọn một trong ba phương án bảo vệ được: tập single-label, phân loại multi-label, hoặc ánh xạ phân cấp có tài liệu. Không lấy CWE đầu tiên. Không nhân một function thành nhiều dòng single-label trước khi chia.
 
-## 5. Kết luận Task 1.4: khung thực nghiệm
+### 5.2 Câu hỏi nghiên cứu
 
-### 5.1. Phát biểu bài toán
+- RQ1. Biểu diễn graph có cải thiện phân loại CWE so với baseline chỉ dùng source và token, trên cùng dữ liệu và cùng split, hay không?
+- RQ2. AST kèm control flow và data dependence có hơn chỉ AST hay không, và chi phí tăng bao nhiêu?
+- RQ3. Kết quả thay đổi thế nào giữa seen-project và unseen-project?
+- RQ4. CWE nào chạy tốt hoặc kém, và lỗi có liên quan kích thước lớp, tập trung project, nhiễu nhãn hoặc parse lỗi hay không?
 
-Input chính là source code của một function C/C++ vulnerable có CWE. Output là CWE theo chính sách label được chốt ở task 2.2. Đề tài là **phân loại weakness theo CWE**, không phải malware detection và không đồng nhất với binary vulnerability detection.
+So sánh GCN, GAT và GGNN không nên là câu hỏi trung tâm riêng. Đó là so sánh phụ để xem inductive bias nào hợp graph đã chọn.
 
-Do 22,25% vulnerable sample là multi-CWE, chưa thể mặc định dùng softmax multiclass. Task 2.2 phải chọn một trong ba phương án có thể bảo vệ được: subset single-label; multi-label classification; hoặc mapping/hierarchy có tài liệu. Không lấy CWE đầu tiên và không nhân bản một function thành nhiều single-label record trước khi split.
+### 5.3 Baseline và thứ tự model
 
-### 5.2. Câu hỏi nghiên cứu chính
+1. Baseline majority và baseline random có phân tầng.
+2. Baseline source và token, không dùng graph. Ưu tiên mô hình nhẹ và tái lập được.
+3. GCN trên AST để kiểm pipeline graph cơ bản.
+4. GGNN hoặc message passing có loại quan hệ trên semantic graph, để dùng chiều cạnh và loại cạnh.
+5. GAT chỉ thêm khi còn thời gian, hoặc khi có giả thuyết rằng trọng số láng giềng giúp ích.
 
-- **RQ1:** Biểu diễn graph có cải thiện CWE classification so với baseline chỉ dùng source/token trên cùng dữ liệu và split không?
-- **RQ2:** AST + control/data dependence có cải thiện so với AST-only không, và chi phí tăng bao nhiêu?
-- **RQ3:** Kết quả thay đổi như thế nào giữa seen-project và unseen-project evaluation?
-- **RQ4:** Những CWE nào hoạt động tốt/kém, và lỗi có liên quan đến class size, project concentration, label noise hoặc parse failure không?
+Không chạy đồng thời mọi kiến trúc. R-GCN và heterogeneous GNN chỉ là bước mở rộng nếu thí nghiệm gộp cạnh với giữ loại cạnh cho thấy loại quan hệ quan trọng.
 
-So sánh GCN, GAT và GGNN không nên là câu hỏi trung tâm độc lập. Đây là so sánh phụ để tìm xem inductive bias nào phù hợp với graph đã chọn.
+### 5.4 Split và chống leakage
 
-### 5.3. Baseline và model ladder
+- Trước khi chia, tạo nhóm từ mẫu trùng sau chuẩn hóa. Các record cùng nhóm không được nằm ở nhiều split.
+- Xử lý hoặc tách riêng nhóm conflict nhãn. Không để cùng mã nguồn với nhãn khác nhau xuất hiện ở cả train và test.
+- Gom thêm theo commit và CVE khi metadata cho phép, để giảm leakage từ cùng một ngữ cảnh sửa lỗ hổng.
+- Đánh giá chính là project-wise. Project trong test không xuất hiện trong train.
+- Đánh giá đối chứng là seen-project, chia theo nhóm đã gom, để so với setting dễ hơn và với nghiên cứu cũ.
+- Không dùng chronological split cho bản DiverseVul hiện tại vì timestamp không đủ tin.
+- Split tạo một lần, lưu manifest, và dùng chung cho mọi baseline và model.
 
-Thứ tự tối thiểu:
+### 5.5 Metric
 
-1. Majority baseline và stratified-random baseline.
-2. Baseline source/token không dùng graph, ưu tiên một mô hình nhẹ và tái lập được.
-3. GCN trên AST để kiểm tra pipeline graph cơ bản.
-4. GGNN hoặc relational message-passing trên semantic graph để khai thác direction/edge relation.
-5. GAT chỉ thêm khi có đủ thời gian hoặc có giả thuyết rằng trọng số láng giềng giúp ích.
-
-Không chạy đồng thời mọi kiến trúc. R-GCN/heterogeneous GNN chỉ là bước mở rộng nếu thí nghiệm gộp-và-giữ edge type cho thấy relation type quan trọng.
-
-### 5.4. Split và leakage control
-
-- Trước split, tạo group từ normalized duplicate; các record cùng group không được nằm ở nhiều split.
-- Xử lý hoặc cô lập nhóm xung đột label; không để cùng code với label khác nhau xuất hiện ở train và test.
-- Gom thêm theo commit/CVE khi metadata cho phép để giảm leakage từ cùng vulnerability-fix context.
-- **Primary evaluation:** project-wise split với project test hoàn toàn không xuất hiện trong train.
-- **Secondary evaluation:** seen-project stratified-group split để so sánh với setting dễ hơn và nghiên cứu cũ.
-- Không dùng chronological split cho bản DiverseVul hiện tại vì timestamp không đủ tin cậy.
-- Split phải được tạo một lần, lưu manifest và dùng chung cho mọi baseline/model.
-
-### 5.5. Metric và cách báo cáo
-
-- Metric chính: Macro-F1.
-- Metric bổ sung: macro Precision/Recall, weighted-F1, per-CWE Precision/Recall/F1, confusion matrix và support.
+- Metric chính là Macro-F1.
+- Metric bổ sung là macro precision, macro recall, weighted-F1, precision, recall và F1 từng CWE, confusion matrix và support.
 - Báo riêng seen-project và unseen-project.
-- Báo mean và standard deviation qua ít nhất ba seed nếu tài nguyên cho phép.
-- Báo coverage sau mỗi filter: missing CWE, multi-CWE policy, duplicate/conflict, parse failure và graph-size cap.
-- Báo runtime, peak memory, số parameter và dung lượng graph để so sánh tính khả thi.
-- Accuracy không được dùng làm metric chính vì long-tail distribution.
+- Báo trung bình và độ lệch chuẩn qua ít nhất ba seed nếu tài nguyên cho phép.
+- Báo coverage sau mỗi bộ lọc: thiếu CWE, chính sách multi-CWE, mẫu trùng và conflict, parse lỗi, và trần kích thước graph.
+- Báo thời gian chạy, bộ nhớ đỉnh, số parameter và dung lượng graph để so khả năng làm được.
+- Accuracy không làm metric chính vì phân bố đuôi dài.
 
-False alarms trên 1.000 function chỉ có ý nghĩa trực tiếp nếu hệ thống có bước binary vulnerable/non-vulnerable. Với thí nghiệm chỉ phân loại CWE trên vulnerable subset, không nên trình bày metric này như false-positive rate triển khai thực tế.
+False alarm trên 1.000 function chỉ có nghĩa trực tiếp nếu hệ thống có bước phân vulnerable và non-vulnerable. Với thí nghiệm chỉ phân loại CWE trên tập vulnerable, không trình bày metric này như tỷ lệ false positive khi triển khai.
 
-### 5.6. Ablation tối thiểu
+### 5.6 Ablation tối thiểu
 
-- source/token baseline so với graph model;
-- AST-only so với AST+CFG+data-dependence;
-- gộp edge type so với giữ edge type, nếu model hỗ trợ;
-- identifier/literal nguyên bản so với normalization, nếu còn thời gian.
+- baseline source và token so với model graph
+- chỉ AST so với AST kèm CFG và data dependence
+- gộp loại cạnh so với giữ loại cạnh, nếu model hỗ trợ
+- identifier và literal nguyên bản so với chuẩn hóa, nếu còn thời gian
 
-Không cần đưa slicing, interprocedural graph, LLM hoặc explainability vào core experiment.
+Không đưa slicing, graph liên thủ tục, LLM hoặc giải thích model vào thí nghiệm lõi.
 
-## 6. Tiêu chí dừng và phạm vi thực tế
+## 6. Phạm vi đủ cho đồ án
 
-Core experiment được xem là đủ cho đồ án khi:
+Thí nghiệm lõi đủ khi có đủ năm mục sau.
 
-1. Có một label policy và candidate CWE set được giải thích bằng EDA.
-2. Có split manifest chống duplicate leakage và có unseen-project test.
-3. Có source/token baseline, AST graph baseline và một semantic graph model.
-4. Có RQ1-RQ4, Macro-F1, per-CWE result và phân tích failure/limitation.
+1. Có chính sách nhãn và tập CWE candidate được giải thích bằng EDA.
+2. Có manifest split chống leakage do mẫu trùng, và có tập test project chưa thấy.
+3. Có baseline source và token, baseline graph AST, và một model semantic graph.
+4. Có RQ1 đến RQ4, Macro-F1, kết quả từng CWE, và phân tích lỗi cùng giới hạn.
 5. Pipeline, seed, config và artifact đủ để chạy lại.
 
-Tuning sâu, thêm model, slicing, context liên thủ tục, LLM và demo giải thích là phần mở rộng. Chỉ thực hiện khi core experiment đã hoàn tất và còn thời gian.
+Tuning sâu, thêm model, slicing, ngữ cảnh liên thủ tục, LLM và demo giải thích là phần mở rộng. Chỉ làm khi thí nghiệm lõi đã xong và còn thời gian.
 
-## 7. Hành động tiếp theo
+## 7. Việc tiếp theo
 
-1. Task 2.2: tạo bảng candidate CWE theo sample count, project count và concentration; chốt policy multi-CWE.
-2. Task 2.3: dựng hai split manifest, kèm kiểm tra leakage và class coverage.
-3. Task 3.1: đặc tả schema Graph A và Graph B ở mức node/edge/feature.
-4. Task 3.2: cài Joern và chạy pilot trên manifest 30 function; xuất báo cáo parse/runtime/graph size.
-5. Chỉ sau khi pilot đạt gate mới chạy extraction trên toàn subset thực nghiệm.
+1. Task 2.2 đã chốt tập CWE và chính sách nhãn tại `docs/2_2_cwe_policy.md`.
+2. Task 2.3 đã chốt hai manifest split tại `docs/2_3_split.md`.
+3. Task 3.1 đặc tả schema Graph A và Graph B ở mức node, cạnh và feature.
+4. Task 3.2 cài Joern và chạy pilot trên manifest 30 function. Xuất báo cáo parse, thời gian chạy và kích thước graph.
+5. Chỉ sau khi pilot đạt cổng mới trích graph trên toàn subset thí nghiệm.
 
 ## 8. Nguồn chính
 

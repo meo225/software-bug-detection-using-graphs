@@ -1,23 +1,16 @@
-# Task 2.2: Candidate CWE và chính sách multi-CWE
+# Task 2.2. Candidate CWE và chính sách multi-CWE
 
-**Quyết định:** thí nghiệm chính dùng **subset single-label, 23 CWE, 9.077 function**.
+Thí nghiệm chính dùng tập single-label: 23 CWE và 9.077 function.
 
-Mỗi function trong tập này có đúng một CWE, và CWE đó nằm trong danh sách bên dưới. Model dự đoán một nhãn. Metric chính vẫn là Macro-F1 như task 1.4.
+Mỗi function có đúng một CWE trong danh sách dưới. Model dự đoán một nhãn. Metric chính vẫn là Macro-F1 như task 1.4.
 
-## Căn cứ đã đọc
+## Căn cứ
 
-Sheet kế hoạch chỉ gắn hai link. Cả hai đã được dùng:
+Phase 0 mô tả bài toán là multiclass: một function cho ra một CWE. `docs/1_3_1_4_graph.md` cấm lấy CWE đầu tiên và cấm nhân một function multi-CWE thành nhiều dòng trước khi chia. Chỉ được chọn tập single-label, multi-label, hoặc phân cấp có tài liệu.
 
-- [Ghi chép Phase 0](https://docs.google.com/document/d/1bxmiV-OPSb2Jot5LfVE0qR8GnxBAqQ3YajirxSRt6IA/edit?usp=sharing): bài toán được mô tả là multiclass, một function cho ra một CWE.
-- [Repo](https://github.com/meo225/software-bug-detection-using-graphs): kết quả task 1.1–2.1 nằm ở đây, không nằm ở link riêng.
+Số mẫu, số project và mức tập trung lấy từ `reports/dataset/dataset_eda.md` và `reports/dataset/tables/cwe_project_distribution.csv`. Script đã đối chiếu lại và khớp bảng này, gồm 459 nhóm lệch nhãn vulnerable và 299 nhóm lệch CWE. `reports/dataset_comparison/megavul_vs_diversevul.md` giữ DiverseVul làm dataset chính.
 
-Ba tài liệu trong repo được lấy làm ràng buộc:
-
-- `docs/1_3_1_4_graph.md`: cấm lấy CWE đầu tiên; cấm nhân một function multi-CWE thành nhiều dòng trước khi split; chỉ được chọn single-label subset, multi-label, hoặc hierarchy có tài liệu.
-- `reports/dataset/dataset_eda.md` và `reports/dataset/tables/cwe_project_distribution.csv`: số mẫu, số project và mức tập trung. Script đã đối chiếu lại và khớp bảng này, gồm 459 nhóm lệch nhãn vulnerable và 299 nhóm lệch CWE.
-- `reports/dataset_comparison/megavul_vs_diversevul.md`: dataset chính vẫn là DiverseVul.
-
-Multi-label và hierarchy không được chọn. Multi-label đổi loss và cách tính Macro-F1 của core experiment. Hierarchy chưa có bảng ánh xạ được task 1.4 thông qua. CWE-119, CWE-787 và CWE-125 vì vậy giữ là ba lớp riêng, dù CWE-119 là lớp bộ nhớ rất rộng. CWE-189, CWE-264, CWE-399 và CWE-703 cũng là lớp rộng và được giữ nguyên ID.
+Không chọn multi-label vì đổi loss và cách tính Macro-F1 của thí nghiệm lõi. Không chọn phân cấp vì task 1.4 chưa có bảng ánh xạ. CWE-119, CWE-787 và CWE-125 giữ là ba lớp riêng, dù CWE-119 là lớp bộ nhớ rất rộng. CWE-189, CWE-264, CWE-399 và CWE-703 cũng là lớp rộng và được giữ nguyên mã.
 
 ## Tiêu chí lọc
 
@@ -30,7 +23,7 @@ Một CWE được giữ khi đạt cả bốn điều kiện:
 | Phần trăm mẫu thuộc project lớn nhất | ≤ 50% | Một project không được chiếm đa số class. Nếu chiếm đa số, unseen-project test không còn đại diện cho class. |
 | Số function đúng một CWE, sau khi loại conflict | ≥ 80 | Class phải còn đủ mẫu sau chính sách single-label. |
 
-`sample_count` và `largest_project_share` tính như EDA: một function nhiều CWE được đếm ở từng CWE. Cột `single-label` là số function còn lại khi function đó chỉ có một CWE và source đã chuẩn hóa không nằm trong nhóm conflict.
+Số mẫu và phần của project lớn nhất tính như EDA. Một function nhiều CWE được đếm ở từng CWE. Cột single-label là số function còn lại khi function đó chỉ có một CWE và source đã chuẩn hóa không nằm trong nhóm conflict.
 
 ## 23 CWE được giữ
 
@@ -62,7 +55,7 @@ Một CWE được giữ khi đạt cả bốn điều kiện:
 
 Tên MITRE chỉ để đọc. Dataset không có cột tên.
 
-CWE-416 (43,18%) và CWE-264 (46,90%) được giữ vì chưa quá một nửa và vẫn có nhiều project. Phase 0 cũng lấy CWE-416 làm ví dụ C/C++.
+CWE-416 và CWE-264 được giữ vì project lớn nhất chưa quá một nửa, lần lượt 43,18% và 46,90%, và cả hai vẫn có nhiều project. Phase 0 cũng lấy CWE-416 làm ví dụ C/C++.
 
 ## CWE có ít nhất 100 mẫu nhưng bị loại
 
@@ -89,6 +82,6 @@ Mọi CWE dưới 100 mẫu đều ra khỏi thí nghiệm chính.
 | Đúng một CWE trong 23 lớp, nhưng source chuẩn hóa nằm trong nhóm conflict | 316 trên 9.393 | Loại khỏi mọi split. |
 | Non-vulnerable | 311.547 | Không thuộc bài toán phân loại CWE. |
 
-Chuẩn hóa source chỉ đổi line ending, xóa whitespace cuối dòng và dòng trống ở biên. Đây là quy ước của EDA. Conflict là các nhóm source đó không thống nhất nhãn vulnerable hoặc không thống nhất tập CWE. Có 737 hash rơi vào ít nhất một trong hai loại: 459 nhóm lệch vulnerable và 299 nhóm lệch CWE.
+Chuẩn hóa source chỉ đổi line ending, xóa khoảng trắng cuối dòng và dòng trống ở biên. Đây là quy ước của EDA. Conflict là các nhóm source đó không thống nhất nhãn vulnerable, hoặc không thống nhất tập CWE. Có 737 hash rơi vào ít nhất một trong hai loại. Đó là 459 nhóm lệch vulnerable và 299 nhóm lệch CWE.
 
 Tập đưa vào task 2.3 là **9.077 function, 23 CWE**.

@@ -16,4 +16,4 @@ Chiến lược cần hỗ trợ: random, project-wise, chronological. Cùng m�
 
 Đặt DiverseVul vào `raw/diversevul/`. Big-Vul và PrimeVul có thư mục riêng khi được thêm: `raw/bigvul/`, `raw/primevul/`.
 
-Chi tiết thiết lập và định dạng file được hỗ trợ nằm ở `raw/README.md`. Chạy `python scripts/run_diversevul_eda.py --strict` sau khi đặt file; pipeline sẽ báo lỗi nếu thiếu field bắt buộc thay vì tự tạo schema.
+Chi tiết thiết lập và định dạng file được hỗ trợ nằm ở `raw/README.md`. Chạy `python scripts/run_diversevul_eda.py --strict` sau khi đặt file. Pipeline sẽ báo lỗi nếu thiếu field bắt buộc, thay vì tự tạo schema.

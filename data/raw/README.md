@@ -2,7 +2,7 @@
 
 Dữ liệu thô được Git chủ động bỏ qua.
 
-Với DiverseVul, tạo thư mục `data/raw/diversevul/` và đặt file dataset chính thức vào đó. Metadata riêng về commit/repository và bản xuất label-noise chính thức là tùy chọn; có thể đặt cùng thư mục với tên dễ nhận biết chứa `metadata` hoặc `label_noise`.
+Với DiverseVul, tạo thư mục `data/raw/diversevul/` và đặt file dataset chính thức vào đó. Metadata riêng về commit và repository, cùng bản xuất label-noise chính thức, là tùy chọn. Có thể đặt cùng thư mục, với tên dễ nhận biết chứa `metadata` hoặc `label_noise`.
 
 Nguồn chính thức và đường dẫn tải hiện tại: <https://github.com/wagner-group/diversevul>
 

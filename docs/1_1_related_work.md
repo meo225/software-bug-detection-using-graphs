@@ -1,153 +1,97 @@
-# Task 1.1: Khảo sát nghiên cứu và pipeline phát hiện software weakness bằng đồ thị
+# Task 1.1. Khảo sát nghiên cứu và pipeline
 
-## 1. Mục tiêu và phạm vi
+## 1. Mục tiêu
 
-Tài liệu tổng hợp các hướng nghiên cứu tiêu biểu về phát hiện software weakness trong mã nguồn C/C++ bằng đồ thị và mô hình học máy. Đầu ra của task 1.1 là một bản related work giúp nhóm hiểu rõ: đơn vị đầu vào, cách tạo graph, node và edge, feature, model, output, metric, hạn chế của từng nghiên cứu và bài học áp dụng cho đồ án.
+Đây là related work cho bài toán từ function sang graph, rồi GNN, rồi lớp CWE. Phần lớn nghiên cứu trước chỉ dự đoán có lỗ hổng hay không. Paper dùng để kế thừa kỹ thuật và cách đánh giá, không sao chép nguyên bài toán.
 
-Mục tiêu cuối của nhóm là function source code → graph → GNN → CWE class. Đây là bài toán phân loại loại weakness theo CWE, khác với phần lớn nghiên cứu trước vốn chỉ dự đoán vulnerable hoặc non-vulnerable. Vì vậy, các paper được dùng để kế thừa kỹ thuật và thiết kế thực nghiệm, không được sao chép nguyên bài toán hoặc protocol đánh giá.
+## 2. Khái niệm dùng chung
 
-## 2. Khái niệm và pipeline chung
+Function-level lấy cả hàm làm một mẫu. Cách này khớp DiverseVul và dễ làm baseline. Program slice chỉ giữ đoạn liên quan một điểm nhạy cảm. Biểu diễn tập trung hơn, nhưng cần phân tích phụ thuộc và có thể cần ngữ cảnh liên thủ tục.
 
-### 2.1 Đơn vị phân tích
+AST giữ cú pháp. CFG giữ đường thực thi. Data-flow theo dõi dữ liệu được tạo và được dùng ở đâu. PDG gộp phụ thuộc điều khiển và dữ liệu. CPG gộp nhiều góc nhìn vào một graph. CPG và Joern hiện chỉ là phương án ứng viên.
 
-Function-level dùng toàn bộ một hàm làm một mẫu. Cách này phù hợp trực tiếp với DiverseVul và dễ xây baseline. Program slice chỉ giữ phần code liên quan đến một điểm nhạy cảm; biểu diễn tập trung hơn nhưng cần phân tích phụ thuộc và có thể cần ngữ cảnh liên thủ tục.
+Pipeline đi từ mã nguồn C/C++ tới function hoặc slice, phân tích tĩnh, graph, vector node và edge, message passing, pooling, rồi phân loại. Output của đồ án là CWE. Phải xử lý mất cân bằng lớp, multi-CWE, mẫu trùng và lệch theo project.
 
-### 2.2 Biểu diễn mã nguồn bằng graph
-
-AST mô tả cấu trúc cú pháp. CFG mô tả các đường thực thi. Data-flow graph theo dõi sự hình thành và sử dụng dữ liệu. PDG kết hợp phụ thuộc điều khiển và dữ liệu. CPG hợp nhất nhiều góc nhìn trong cùng một graph. Lựa chọn graph quyết định mô hình nhìn thấy thông tin nào; CPG và Joern hiện chỉ là phương án ứng viên, chưa phải quyết định cuối.
-
-### 2.3 Pipeline khái quát
-
-Mã nguồn C/C++ → chọn function hoặc slice → phân tích tĩnh → tạo graph → mã hóa node/edge thành vector → message passing bằng GNN → graph pooling → classifier → dự đoán binary hoặc CWE. Đối với đồ án, output mong muốn là CWE và phải xử lý class imbalance, multi-CWE, duplicate và project generalization.
-
-## 3. Khảo sát các nghiên cứu chính
+## 3. Các nghiên cứu
 
 ### 3.1 Devign
 
-Devign (NeurIPS 2019) giải bài toán binary vulnerability detection ở mức function. Paper tạo joint graph gồm AST, CFG, data flow và natural code sequence; node feature kết hợp code embedding với node type. Gated graph recurrent network truyền thông tin theo loại edge, sau đó Conv module tổng hợp node để dự đoán toàn graph.
+Devign, NeurIPS 2019, làm binary detection ở mức function. Joint graph gồm AST, CFG, data flow và natural code sequence. Node feature gồm code embedding và node type. GGNN truyền tin theo loại cạnh, rồi một lớp conv dự đoán cho cả graph.
 
-Bài học áp dụng: composite graph cho phép kết hợp cú pháp, control flow và data dependence; GGNN là baseline hợp lý cho graph nhiều loại cạnh. Hạn chế: output chỉ có hai lớp và paper dùng random split 75/25, nên không phù hợp để sao chép nguyên protocol cho CWE classification hoặc unseen-project evaluation.
+Graph nhiều loại cạnh là hướng đáng thử, và GGNN là baseline hợp lý. Hạn chế là output chỉ có hai lớp và paper chia ngẫu nhiên 75/25, nên không sao chép protocol này cho phân loại CWE hay đánh giá project chưa thấy.
 
 ### 3.2 ReVeal
 
-ReVeal thực hiện function-level binary detection bằng Code Property Graph và GGNN. CPG cung cấp node source code, node type và typed edges; graph embedding được đưa vào classifier. Đây là pipeline gần hướng CPG của nhóm, nhưng tài liệu hiện chưa có PDF gốc ReVeal nên các chi tiết chỉ được xem là thông tin đối chiếu từ DiverseVul và implementation công khai.
+ReVeal cũng làm binary detection ở mức function, bằng CPG và GGNN. Node có source và node type, cạnh có loại, rồi graph embedding đưa vào classifier. Hướng này gần CPG, nhưng nhóm chưa có PDF gốc. Chi tiết hiện chỉ để đối chiếu từ DiverseVul và mã công khai.
 
 ### 3.3 DeepWukong
 
-DeepWukong xây program slice từ program dependence graph rồi biểu diễn slice bằng XFG. Node là statement; edge thể hiện control dependency và data dependency. Paper thử GCN, GAT và k-GNN, đồng thời loại duplicate và conflict trước khi chia dữ liệu.
+DeepWukong cắt program slice từ PDG rồi biểu diễn bằng XFG. Node là statement. Cạnh là control dependency và data dependency. Paper thử GCN, GAT và k-GNN, và loại duplicate cùng conflict trước khi chia dữ liệu.
 
-Bài học áp dụng: slicing giúp tập trung vào vùng code liên quan và control flow bổ sung cho data flow. Tuy nhiên pipeline phức tạp hơn function-level. Slicing và interprocedural context nên là hướng mở rộng sau khi baseline function-level hoạt động ổn định.
+Slice giúp tập trung vào vùng liên quan, và control flow bổ sung cho data flow. Pipeline này nặng hơn function-level. Slicing và ngữ cảnh liên thủ tục để sau, khi baseline function-level đã chạy ổn.
 
 ### 3.4 Big-Vul
 
-Big-Vul là dataset C/C++ liên kết CVE, CWE, fixing commit và code change. Điểm mạnh là metadata phong phú và hỗ trợ truy vết từ vulnerability đến thay đổi mã nguồn. Tuy nhiên nhãn vẫn chủ yếu được suy ra từ fixing commit, vì vậy một function bị sửa không đồng nghĩa chắc chắn function đó chứa weakness.
+Big-Vul nối CVE, CWE, fixing commit và thay đổi mã nguồn. Metadata tốt để truy từ lỗ hổng về commit. Nhãn chủ yếu suy từ commit sửa lỗi, nên hàm bị sửa chưa chắc tự nó chứa weakness.
 
-Bài học áp dụng: dùng Big-Vul làm nguồn so sánh hoặc bổ sung, nhưng không mặc định dataset này đáng tin hơn DiverseVul. Mọi lựa chọn dataset vẫn cần audit label, duplicate, metadata và project distribution.
+Dùng Big-Vul để so sánh hoặc bổ sung. Không mặc định dataset này đáng tin hơn DiverseVul. Dataset nào cũng cần audit nhãn, mẫu trùng, metadata và phân bố project.
 
 ### 3.5 DiverseVul
 
-DiverseVul (RAID 2023) cung cấp function C/C++, nhãn vulnerable, CWE, project, commit và source code. Paper mở rộng số project và loại CWE so với nhiều dataset trước, đồng thời báo cáo hiệu năng giảm đáng kể khi test trên project chưa xuất hiện trong train.
+DiverseVul, RAID 2023, có function C/C++, nhãn vulnerable, CWE, project, commit và source. Paper tăng số project và số CWE so với nhiều dataset trước, và cho thấy kết quả giảm rõ khi test trên project chưa có trong train.
 
-Paper cũng tự audit label noise: 30/50 vulnerable function trong mẫu kiểm tra được đánh giá là đúng, tương đương 60%. Các lỗi còn lại gồm vulnerability trải qua nhiều function, function liên quan nhưng không trực tiếp vulnerable và thay đổi không liên quan. Vì vậy DiverseVul phù hợp có điều kiện, không phải ground truth hoàn toàn sạch.
+Tác giả tự kiểm 50 hàm vulnerable và chỉ nhận 30 hàm là đúng, tức 60%. Phần còn lại là lỗ hổng trải nhiều hàm, hàm liên quan nhưng không trực tiếp vulnerable, và thay đổi không liên quan. DiverseVul dùng được nếu kiểm soát nhiễu nhãn, không phải ground truth sạch.
 
 ### 3.6 GRACE
 
-GRACE nghiên cứu cách kết hợp thông tin cấu trúc graph với mô hình ngôn ngữ và có thực nghiệm vulnerability-type multiclass, gần mục tiêu phân loại CWE hơn các binary detector truyền thống. Kết quả gợi ý graph vẫn bổ sung tín hiệu ngay cả khi backbone là mô hình ngôn ngữ.
+GRACE kết hợp cấu trúc graph với mô hình ngôn ngữ và có thí nghiệm phân loại loại lỗ hổng, gần mục tiêu CWE hơn các detector nhị phân. Graph vẫn thêm tín hiệu khi backbone là mô hình ngôn ngữ.
 
-Bài học áp dụng: cần có baseline source/token không dùng graph để đo phần giá trị thực sự của graph. LLM chưa nên là trọng tâm vì phụ thuộc phiên bản, chi phí, khả năng tái lập và rủi ro contamination; chỉ nên xem là hướng mở rộng hoặc công cụ giải thích.
+Vì vậy cần baseline source và token, không dùng graph, để đo phần giá trị thật của graph. LLM chưa nên là trọng tâm vì phụ thuộc phiên bản, chi phí, khả năng tái lập và rủi ro contamination. Chỉ xem là hướng mở rộng hoặc công cụ giải thích.
 
 ### 3.7 Real-Vul
 
-Real-Vul chỉ ra rằng hiệu năng có thể giảm mạnh khi đánh giá trên toàn codebase thực tế. Nhiều function được gọi là non-vulnerable thực chất chỉ là chưa có bằng chứng vulnerability và nên được xem là uncertain. Paper nhấn mạnh chronological hoặc project-aware evaluation và false-positive burden.
+Real-Vul cho thấy kết quả có thể giảm mạnh trên cả codebase thực tế. Nhiều hàm gọi là non-vulnerable thực ra chỉ chưa có bằng chứng, nên nên xem là uncertain. Paper nhấn mạnh đánh giá theo thời gian hoặc theo project, và gánh nặng false positive.
 
-Bài học áp dụng: ngoài Macro-F1 cần báo FPR hoặc số false alarm trên 1.000 function; kết quả trên split cân bằng không đủ để suy ra khả năng triển khai. Với DiverseVul, chronological split chưa thể kiểm chứng vì artifact hiện dùng không có timestamp đáng tin cậy.
+Ngoài Macro-F1 cần báo số false alarm trên 1.000 function. Kết quả trên split cân bằng không đủ để nói về triển khai. DiverseVul local không có timestamp đáng tin, nên chưa kiểm được chronological split.
 
 ### 3.8 PrimeVul
 
-PrimeVul tập trung vào label quality, normalized deduplication, chronological split và realistic evaluation. Paper cho thấy duplicate leakage và split không thực tế có thể làm benchmark lạc quan; function riêng lẻ cũng có thể thiếu caller hoặc interprocedural context.
+PrimeVul tập trung vào chất lượng nhãn, dedup sau chuẩn hóa, chronological split và đánh giá sát thực tế. Trùng mẫu và split không thực tế làm benchmark lạc quan. Một hàm riêng cũng có thể thiếu caller và ngữ cảnh liên thủ tục.
 
-Bài học áp dụng: duplicate group, commit/CVE group và label conflict phải được xử lý trước khi split. Model architecture không thể bù cho dữ liệu hoặc evaluation protocol kém tin cậy.
+Nhóm trùng source, nhóm commit và CVE, và conflict nhãn phải xử lý trước khi chia. Kiến trúc model không bù được dữ liệu hoặc protocol đánh giá kém.
 
 ## 4. Ma trận related work
 
-| Nghiên cứu | Bài toán / dữ liệu | Biểu diễn | Mô hình / output | Bài học cho đồ án |
+| Nghiên cứu | Bài toán | Biểu diễn | Mô hình và output | Bài học |
 | --- | --- | --- | --- | --- |
-| Devign | Function C; binary | AST + CFG + DFG + NCS | GGNN + Conv; vulnerable/safe | Typed-edge graph hữu ích; không sao chép random split |
-| ReVeal | Function; binary | CPG | GGNN; vulnerable/safe | CPG baseline gần hướng nhóm; cần audit nguồn gốc |
-| DeepWukong | Program slice; chủ yếu SARD | XFG từ PDG | GCN/GAT/k-GNN; slice binary | Slicing tập trung hơn; loại duplicate/conflict |
-| Big-Vul | Dataset C/C++; CVE/CWE/commit | Function + code change | Dataset, không phải graph model | Metadata tốt nhưng label từ fixing commit |
-| DiverseVul | Function C/C++; 150 CWE | Source + metadata; benchmark graph/text | Nhiều baseline binary | Phù hợp có điều kiện; label noise và project shift |
-| GRACE | Vulnerability type multiclass | Graph bổ trợ code model | Graph + LLM/CLM | Cần baseline text; LLM chỉ là hướng mở rộng |
-| Real-Vul | Đánh giá trên codebase thực tế | Không tập trung graph architecture | Realistic evaluation | Đo false alarm; non-vulnerable có thể uncertain |
-| PrimeVul | Dataset và evaluation | Normalized dedup + grouping | Code language models | Chống leakage; split và label quan trọng như model |
+| Devign | Function C, binary | AST, CFG, DFG và NCS | GGNN và conv, vulnerable hoặc safe | Cạnh có loại thì hữu ích. Không sao chép random split |
+| ReVeal | Function, binary | CPG | GGNN, vulnerable hoặc safe | Gần hướng CPG. Cần kiểm nguồn chi tiết |
+| DeepWukong | Program slice, chủ yếu SARD | XFG từ PDG | GCN, GAT, k-GNN, slice binary | Slice tập trung hơn. Loại duplicate và conflict |
+| Big-Vul | Dataset C/C++, CVE, CWE, commit | Function và code change | Dataset, không phải model graph | Metadata tốt, nhãn từ fixing commit |
+| DiverseVul | Function C/C++, 150 CWE | Source và metadata | Nhiều baseline binary | Phù hợp có điều kiện. Có nhiễu nhãn và lệch project |
+| GRACE | Phân loại loại lỗ hổng | Graph bổ trợ code model | Graph và LLM | Cần baseline text. LLM chỉ là hướng mở rộng |
+| Real-Vul | Đánh giá trên codebase thực tế | Không tập trung kiến trúc graph | Đánh giá sát thực tế | Đo false alarm. Non-vulnerable có thể là uncertain |
+| PrimeVul | Dataset và evaluation | Dedup và grouping sau chuẩn hóa | Code language model | Chống leakage. Split và nhãn quan trọng như model |
 
-## 5. Kết quả EDA DiverseVul và tác động đến kế hoạch
+## 5. Hệ quả cho đồ án
 
-### 5.1 Quy mô và độ phủ CWE
+Số liệu đầy đủ nằm ở `reports/dataset/dataset_eda.md`. Artifact local có 330.492 function, gồm 18.945 vulnerable và 311.547 non-vulnerable, trên 800 project và 7.653 commit. So với paper, tổng dòng thấp hơn 18.945, project nhiều hơn 3, commit nhiều hơn 139. Chênh lệch được giữ nguyên.
 
-Artifact thực tế có 330.492 function, gồm 18.945 vulnerable và 311.547 non-vulnerable, trải trên 800 project và 7.653 commit. Tổng số dòng thấp hơn paper 18.945 mẫu; số project cao hơn 3 và số commit cao hơn 139. EDA giữ nguyên chênh lệch này và chưa khẳng định nguyên nhân khi chưa có bằng chứng về release hoặc quy trình cộng mẫu của paper.
+Trong các hàm vulnerable, 16.109 mẫu có CWE, 11.894 mẫu có đúng một CWE, 4.215 mẫu có từ hai CWE và 2.836 mẫu không có CWE. Không lấy CWE đầu tiên. Có 150 CWE và phân bố đuôi dài. Ngưỡng 100 mẫu còn 31 CWE, nhưng đó chỉ là bằng chứng để chọn lớp, chưa phải ngưỡng đã chốt.
 
-Trong 18.945 vulnerable function, 16.109 mẫu có ít nhất một CWE parse được và 2.836 mẫu không có CWE. Có 150 CWE nhưng phân bố long-tail. Với ngưỡng tối thiểu 20/50/100/200 mẫu, còn lần lượt 76/42/31/21 CWE và giữ lại 98,17%/93,02%/90,51%/84,15% số vulnerable sample đã có CWE. Đây là evidence để chọn candidate, không phải quyết định threshold.
+Source thô không trùng tuyệt đối. Sau chuẩn hóa line ending, khoảng trắng cuối dòng và dòng trống ở biên, có 863 nhóm trùng, ảnh hưởng 1.726 record. Trong đó 459 nhóm lệch nhãn vulnerable và 299 nhóm lệch CWE. Các nhóm này phải đi cùng một split.
 
-### 5.2 Multi-CWE và label policy
+CWE-787 có project lớn nhất chiếm 13,85%. CWE-362 chiếm 60,70% và CWE-284 chiếm 55,32%. Project-wise split khả thi với một tập candidate, không mặc định cho cả 150 CWE. Có 1 source rỗng. 98,73% mẫu trông giống function theo heuristic. Median 19 dòng, outlier tới 24.047 dòng. Parse success phải đo bằng pilot.
 
-Có 11.894 vulnerable function mang đúng một CWE, 4.215 function mang từ hai CWE trở lên và 2.836 function không có CWE. Multi-CWE chiếm 22,25% vulnerable data, đủ lớn để không thể tùy ý lấy CWE đầu tiên. Nhóm phải chốt riêng single-label, multi-label, hierarchical mapping hoặc loại ambiguous sample.
+Đánh giá chính là project-wise, để đo project chưa thấy. Đánh giá đối chứng là seen-project, chia theo nhóm sau khi đã gom mẫu trùng. Chưa dùng chronological split vì không có timestamp đủ tin. Mọi model dùng chung một split. Metric chính là Macro-F1, kèm precision, recall và F1 từng CWE.
 
-### 5.3 Duplicate, conflict và leakage
+Baseline gồm majority, random, và một mô hình source hoặc token không dùng graph. Với graph, ưu tiên GGNN. GCN và GAT chỉ thêm khi phục vụ một câu hỏi so sánh. Pilot khoảng 30 function trước khi chạy toàn bộ. So AST tối thiểu với graph có control flow và data dependence.
 
-Raw source không có exact duplicate. Sau normalization an toàn về line ending, trailing whitespace và dòng trống ở biên, có 863 duplicate group ảnh hưởng 1.726 record (0,52%). Trong đó có 459 group xung đột vulnerable/non-vulnerable và 299 group xung đột CWE. Các group này phải được xử lý hoặc gom cùng split trước khi train.
+Tại thời điểm task 1.1, nhóm chưa chốt ngưỡng, danh sách CWE, single-label hay multi-label, cách xử lý conflict, biểu diễn graph và model cuối. Các mục đó được chốt ở các task sau.
 
-### 5.4 Project generalization
+Đề tài đáng làm nếu được đặt là phân loại CWE có kiểm soát leakage và khả năng tổng quát sang project mới. Đóng góp khả thi nhất là protocol đánh giá trung thực, ablation graph rõ, và phân tích giới hạn dữ liệu. Function-level là điểm bắt đầu. Slicing, ngữ cảnh liên thủ tục và LLM là phần mở rộng sau baseline.
 
-Nhiều CWE phổ biến trải trên nhiều project, nhưng mức tập trung khác nhau đáng kể. Ví dụ largest-project share của CWE-787 là 13,85%, trong khi CWE-362 là 60,70% và CWE-284 là 55,32%. Với ngưỡng 100 mẫu, 31 CWE xuất hiện ở ít nhất 5 project và 30 CWE xuất hiện ở ít nhất 10 project. Project-wise split khả thi cho một tập candidate phù hợp, không mặc định cho toàn bộ 150 CWE.
-
-### 5.5 Mức sẵn sàng cho graph
-
-Dataset chỉ có 1 source rỗng; 98,73% mẫu có dấu phân cách giống function theo heuristic. Median là 19 dòng, nhưng có outlier tới 24.047 dòng; 5.608 mẫu rất ngắn và 4.876 mẫu rất dài theo cờ sàng lọc. Corpus đến từ 800 project và có cả dấu hiệu C++ nên không thể xem là code C đơn điệu, nhưng parse success và graph-size bias vẫn phải được đo bằng pilot.
-
-## 6. Pipeline thực nghiệm đề xuất
-
-### 6.1 Dataset và label gate
-
-Chỉ xét vulnerable function có CWE cho bài toán chính. Candidate CWE phải đồng thời đủ sample và đủ project. Trước khi train, nhóm phải chốt policy multi-CWE, xử lý missing CWE, duplicate conflict và class imbalance. Binary vulnerable/non-vulnerable chỉ dùng để kiểm tra pipeline nếu cần, không thay thế mục tiêu CWE.
-
-### 6.2 Split protocol
-
-Primary protocol là project-wise split để đo unseen-project generalization. Secondary protocol là seen-project stratified-group split để so sánh với nghiên cứu cũ trong điều kiện project đã xuất hiện ở train. Trước khi chia, phải group normalized duplicate, commit/CVE liên quan và conflict; mọi model dùng cùng split cố định. Chưa chọn chronological split vì metadata local không có timestamp đủ tin cậy.
-
-### 6.3 Graph pilot
-
-Chạy pilot khoảng 30 function đại diện trước khi xử lý toàn bộ. So sánh AST tối thiểu với graph có control/data dependence; Joern/CPG chỉ được giữ nếu parse success, runtime và chất lượng graph phù hợp. Báo cáo tỷ lệ parse thành công, runtime, node/edge count, graph rỗng, outlier và bias do parse failure.
-
-### 6.4 Baseline và model ladder
-
-Baseline gồm majority/random và một mô hình source/token không dùng graph. Với graph, ưu tiên GGNN vì phù hợp typed edges; GCN và GAT chỉ được thêm khi phục vụ câu hỏi so sánh. R-GCN hoặc heterogeneous GNN chỉ xem xét nếu edge-type ablation cho thấy loại cạnh mang giá trị rõ ràng.
-
-### 6.5 Đánh giá và ablation
-
-Macro-F1 là metric chính; báo thêm precision, recall, F1 theo từng CWE, confusion matrix và kết quả riêng cho seen-project/unseen-project. Khi đánh giá binary hoặc trên codebase rộng hơn, bổ sung FPR hoặc false alarm trên 1.000 function. Hai ablation ưu tiên là graph-vs-text và AST-vs-control/data graph.
-
-## 7. Câu hỏi nghiên cứu đề xuất
-
-RQ1. Graph-based model phân loại CWE tốt hơn baseline source/token đến mức nào trên cùng dataset và split?
-
-RQ2. Bổ sung control-flow và data-dependence vào AST ảnh hưởng thế nào đến Macro-F1 và từng CWE?
-
-RQ3. Hiệu năng thay đổi ra sao giữa seen-project và unseen-project evaluation?
-
-RQ4. Duplicate/conflict handling và label policy ảnh hưởng thế nào đến kết quả và độ tin cậy của thí nghiệm?
-
-## 8. Các quyết định còn mở
-
-Nhóm chưa nên chốt: threshold cuối, danh sách CWE, single-label hay multi-label, cách xử lý conflict, graph representation, Joern/CPG, node feature và model cuối. Ba đầu việc kế tiếp là chốt candidate CWE bằng evidence EDA, thiết kế split có thể tái lập và chạy graph pilot trên manifest 30 function.
-
-## 9. Kết luận của task 1.1
-
-Hướng hiện tại phù hợp nếu đề tài được định vị là nghiên cứu CWE classification có kiểm soát leakage và project generalization, thay vì chỉ tạo CPG rồi thử nhiều GNN. DiverseVul phù hợp có điều kiện: quy mô và độ phủ project tốt, nhưng có label noise, multi-CWE, long-tail, normalized duplicate conflict và metadata thiếu.
-
-Đóng góp thực tế và khả thi nhất của đồ án là một protocol đánh giá trung thực, graph ablation rõ ràng và phân tích giới hạn dữ liệu. Function-level là điểm khởi đầu hợp lý; slicing, interprocedural context và LLM là hướng mở rộng sau baseline.
-
-## 10. Tài liệu tham khảo
+## 6. Tài liệu tham khảo
 
 [1] Zhou et al. Devign: Effective Vulnerability Identification by Learning Comprehensive Program Semantics via Graph Neural Networks. NeurIPS, 2019.
 
