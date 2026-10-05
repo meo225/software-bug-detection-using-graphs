@@ -208,7 +208,7 @@ def write_report(result, dataset_file: Path, metadata_file: Path | None, label_n
     top_candidate = tables["cwe_project_distribution"].query("sample_count >= 20").head(20)
     text = f"""# Audit dataset DiverseVul
 
-**Trạng thái: HOÀN TẤT đối với các file local liệt kê dưới đây.** Báo cáo mô tả bản dữ liệu đã load; không tự chọn dataset cuối cùng, tập class, chính sách label, split, graph representation hoặc model.
+Báo cáo này mô tả bản dữ liệu đã load. Báo cáo không tự chọn dataset cuối, tập lớp, chính sách nhãn, split, biểu diễn graph hoặc model.
 
 ## File dataset thực tế đã sử dụng
 
@@ -224,9 +224,9 @@ Các field đã ánh xạ: `{result.fields}`
 
 {_markdown_table(tables['paper_comparison'])}
 
-Mọi chênh lệch được giữ nguyên như quan sát. Nguyên nhân có thể liên quan đến release/version, parsing, độ bao phủ metadata hoặc record bị trùng và cần được điều tra; số liệu không bao giờ bị sửa để khớp paper.
+Mọi chênh lệch được giữ nguyên. Nguyên nhân có thể là phiên bản phát hành, parsing, độ phủ metadata hoặc record trùng, và cần được điều tra. Số liệu không bị sửa để khớp paper.
 
-Quan sát đáng chú ý: tổng số dòng của file chính thức đang dùng (**{f['total_samples']:,}**) đúng bằng con số non-vulnerable mà paper công bố, trong khi file vẫn chứa đủ **{f['vulnerable_samples']:,}** dòng vulnerable; vì vậy số non-vulnerable thực tế chỉ còn **{f['non_vulnerable_samples']:,}**. Quan hệ số học này gợi ý khác biệt giữa artifact phát hành và cách paper cộng các tập con, nhưng chưa đủ bằng chứng để khẳng định nguyên nhân.
+Tổng số dòng của file đang dùng, {f['total_samples']:,}, đúng bằng số non-vulnerable mà paper công bố, trong khi file vẫn có đủ {f['vulnerable_samples']:,} dòng vulnerable. Vì vậy số non-vulnerable thực tế chỉ còn {f['non_vulnerable_samples']:,}. Quan hệ này gợi ý khác biệt giữa bản phát hành và cách paper cộng các tập con, nhưng chưa đủ bằng chứng để khẳng định nguyên nhân.
 
 ## Coverage và mất cân bằng CWE
 
@@ -238,7 +238,7 @@ Top 20:
 
 {_markdown_table(cwe, 20)}
 
-Bằng chứng theo threshold (một multi-CWE function chỉ được tính giữ lại một lần nếu có bất kỳ label nào đạt ngưỡng):
+Bằng chứng theo ngưỡng. Một function có nhiều CWE chỉ được tính giữ lại một lần nếu có bất kỳ nhãn nào đạt ngưỡng.
 
 {_markdown_table(tables['threshold_analysis'])}
 
@@ -256,7 +256,7 @@ Bảng bằng chứng cho các candidate, không phải tập class đã chọn:
 
 {_markdown_table(top_candidate, 20)}
 
-`largest_project_share` cao cho thấy rủi ro tập trung theo project hoặc leakage ngay cả khi class có nhiều sample.
+Phần của project lớn nhất cao cho thấy rủi ro tập trung theo project hoặc leakage, ngay cả khi lớp có nhiều mẫu.
 
 ## Duplicate và label conflict
 
@@ -276,46 +276,46 @@ Kiểm tra field hash do dataset cung cấp:
 
 {_markdown_table(tables['source_syntax_profile'])}
 
-Sample giới hạn để kiểm tra thủ công nằm trong `tables/source_inspection_sample.csv`. Manifest `data/sample_manifests/diversevul_graph_sample.csv` chứa reference được chọn bằng seed cố định cho tối đa 30 vulnerable function, trải trên các nhóm độ dài và số CWE. Manifest không nhúng toàn bộ source code. Audit này không chạy Joern.
+Mẫu để kiểm tra thủ công nằm trong `tables/source_inspection_sample.csv`. Manifest `data/sample_manifests/diversevul_graph_sample.csv` chứa tối đa 30 hàm vulnerable, chọn bằng seed cố định, trải trên các nhóm độ dài và số CWE. Manifest không nhúng toàn bộ source. Audit này không chạy Joern.
 
-Dataset không có field ngôn ngữ để tách C khỏi C++ một cách đáng tin cậy. Các dấu hiệu cú pháp ở trên chỉ là heuristic; tỷ lệ Joern parse thành công trên manifest mới là gate tiếp theo. Độ dài trải từ source rỗng đến hàng chục nghìn dòng và dữ liệu đến từ 800 project, nên corpus không thể xem là chỉ gồm các ví dụ C đơn điệu, nhưng các outlier cần giới hạn hoặc xử lý riêng khi tạo graph.
+Dataset không có trường ngôn ngữ để tách C khỏi C++ một cách đáng tin. Các dấu hiệu cú pháp ở trên chỉ là heuristic. Tỷ lệ Joern parse thành công trên manifest mới là cổng tiếp theo. Độ dài trải từ source rỗng đến hàng chục nghìn dòng và dữ liệu đến từ 800 project, nên corpus không phải chỉ gồm các ví dụ C đơn điệu. Các outlier cần giới hạn hoặc xử lý riêng khi tạo graph.
 
 ## Audit metadata
 
 {_markdown_table(tables['metadata_audit'])}
 
-Dataset chính không có CVE, repository URL hoặc timestamp; CVE/repository chỉ xuất hiện trong metadata riêng với coverage không hoàn chỉnh. Vì không có timestamp, EDA này không thể dựng chronological split có kiểm chứng từ các file chính thức đã tải.
+Dataset chính không có CVE, URL repository hoặc timestamp. CVE và repository chỉ xuất hiện trong metadata riêng, và chưa phủ hết. Vì không có timestamp, EDA này không dựng được chronological split có kiểm chứng từ các file đã tải.
 
 ## Bối cảnh label noise
 
 {_markdown_table(tables['label_noise_summary']) if not tables['label_noise_summary'].empty else 'Không tìm thấy spreadsheet label-noise chính thức trong thư mục dữ liệu thô.'}
 
-Bảng chính thức cho thấy 30/50 mẫu DiverseVul được đánh giá đúng (60%); phần còn lại gồm vulnerability trải qua nhiều function, thay đổi liên quan nhưng bản thân function không vulnerable và thay đổi không liên quan. Đây là audit thủ công mẫu nhỏ của authors, không phải thống kê được tính lại trên toàn bộ dataset và không được trộn vào mẫu số full EDA.
+Bảng chính thức cho thấy 30 trên 50 mẫu DiverseVul được đánh giá đúng, tức 60%. Phần còn lại gồm lỗ hổng trải nhiều function, thay đổi liên quan nhưng bản thân function không vulnerable, và thay đổi không liên quan. Đây là kiểm tay trên mẫu nhỏ của tác giả, không phải thống kê tính lại trên toàn bộ dataset, và không được cộng vào mẫu số của EDA.
 
-## Trả lời trực tiếp các câu hỏi nghiên cứu
+## Trả lời các câu hỏi nghiên cứu
 
-1. **Có khớp paper không:** xem chênh lệch chính xác ở trên; không mismatch nào bị sửa để khớp paper.
-2. **Vulnerable function có CWE:** {f['vulnerable_with_cwe']:,}.
-3. **Có bao nhiêu CWE usable:** không có một con số duy nhất nếu chưa có policy; các bảng threshold và project support cung cấp số candidate.
-4. **Mức mất cân bằng:** phân bố theo rank và biểu đồ tích lũy thể hiện long tail quan sát được.
-5. **Threshold:** cả bốn threshold được báo cáo và không threshold nào được tự chọn.
-6. **Multi-CWE:** {f['multi_cwe_samples']:,} vulnerable sample có ít nhất hai CWE parse được.
-7. **Duplicate:** tỷ lệ exact và normalized duplicate được báo cáo ở trên.
-8. **Label conflict:** số nhóm conflict vulnerable/non-vulnerable và CWE được báo cáo ở trên.
-9. **Độ trải theo project:** xem project count trên từng CWE và largest-project share.
-10. **Project-wise split:** chỉ khả thi đối với các class đạt mức project support mong muốn; audit không tạo final split.
-11. **Mức sẵn sàng cho Joern:** độ đầy đủ/độ dài source và sample manifest hỗ trợ một thử nghiệm giới hạn; tỷ lệ parse thành công vẫn cần được đo ở phase tiếp theo.
-12. **Candidate CWE:** dùng bảng bằng chứng không ràng buộc ở trên, sau đó team quyết định policy.
-13. **Mức phù hợp tổng thể:** DiverseVul chỉ phù hợp có điều kiện cho nghiên cứu function-to-CWE khi có policy multi-CWE tường minh, xử lý duplicate/conflict, caveat về label noise và đánh giá project-aware.
+1. Khớp paper hay không. Xem chênh lệch ở bảng trên. Không số nào bị sửa để khớp paper.
+2. Hàm vulnerable có CWE là {f['vulnerable_with_cwe']:,}.
+3. Số CWE dùng được không có một con số duy nhất khi chưa có chính sách nhãn. Bảng ngưỡng và bảng project cho số ứng viên.
+4. Mất cân bằng thể hiện ở phân bố theo hạng và biểu đồ tích lũy, tức đuôi dài đã quan sát.
+5. Cả bốn ngưỡng đều được báo. Không ngưỡng nào được tự chọn.
+6. Multi-CWE gồm {f['multi_cwe_samples']:,} mẫu vulnerable có ít nhất hai CWE.
+7. Tỷ lệ trùng tuyệt đối và trùng sau chuẩn hóa nằm ở bảng trên.
+8. Số nhóm lệch nhãn vulnerable và lệch CWE nằm ở bảng trên.
+9. Độ trải theo project xem số project từng CWE và phần của project lớn nhất.
+10. Project-wise split chỉ khả thi với các lớp đạt mức phủ project mong muốn. Audit không tạo split cuối.
+11. Độ đầy đủ và độ dài source, cùng manifest mẫu, đủ cho một thử nghiệm giới hạn. Tỷ lệ parse thành công vẫn phải đo ở phase sau.
+12. Tập CWE candidate lấy từ bảng bằng chứng ở trên, rồi nhóm tự chốt chính sách.
+13. DiverseVul chỉ phù hợp có điều kiện cho nghiên cứu từ function sang CWE, khi có chính sách multi-CWE rõ, xử lý mẫu trùng và conflict, ghi nhận nhiễu nhãn, và đánh giá theo project.
 
 ## Các quyết định nghiên cứu còn mở
 
-- kích thước class tối thiểu và tập CWE candidate
-- chính sách single-label, multi-label, hierarchical hoặc xử lý ambiguous sample
-- các ràng buộc cho project-aware split cuối cùng
-- cách xử lý duplicate và conflict
-- graph representation và thiết lập trích xuất Joern
-- kiến trúc GNN cuối cùng và evaluation protocol
+- kích thước lớp tối thiểu và tập CWE candidate
+- chính sách single-label, multi-label, phân cấp, hoặc cách xử lý mẫu mơ hồ
+- ràng buộc cho split cuối theo project
+- cách xử lý mẫu trùng và conflict
+- biểu diễn graph và cách trích xuất bằng Joern
+- kiến trúc GNN cuối và cách đánh giá
 """
     REPORT_PATH.write_text(text, encoding="utf-8")
 
