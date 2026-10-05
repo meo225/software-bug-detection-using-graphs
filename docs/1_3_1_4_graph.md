@@ -1,5 +1,9 @@
 # Task 1.3-1.4: Lựa chọn biểu diễn graph và khung thực nghiệm
 
+- **Task 1.1:** Khảo sát nghiên cứu và pipeline
+- **Task 1.2:** Khảo sát và lựa chọn dataset có nhãn CWE
+- **Task 2.1:** Audit và EDA DiverseVul
+
 ## 1. Mục tiêu của tài liệu
 
 Tài liệu này trả lời hai quyết định trước khi xây pipeline graph:

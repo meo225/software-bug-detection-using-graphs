@@ -14,7 +14,7 @@ Mỗi thư mục có `train.txt`, `validation.txt`, `test.txt`. Mỗi dòng là 
 Số liệu kiểm tra nằm ở `data/splits/diversevul_split_report.json`. Tạo lại bằng:
 
 ```powershell
-python scripts/create_diversevul_experiment_splits.py
+python scripts/split_diversevul.py
 ```
 
 `src/data/split.py` vẫn là stub cho ba strategy tổng quát. Split của đồ án là các file trên, không phải một lần gọi `create_split` mới. Manifest 30 function trong `data/sample_manifests/` chỉ dành cho pilot Joern, không phải split thí nghiệm.

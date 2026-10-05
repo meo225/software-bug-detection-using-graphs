@@ -13,7 +13,7 @@ Sheet kế hoạch chỉ gắn hai link. Cả hai đã được dùng:
 
 Ba tài liệu trong repo được lấy làm ràng buộc:
 
-- `reports/research/task_1_3_1_4.md`: cấm lấy CWE đầu tiên; cấm nhân một function multi-CWE thành nhiều dòng trước khi split; chỉ được chọn single-label subset, multi-label, hoặc hierarchy có tài liệu.
+- `docs/1_3_1_4_graph.md`: cấm lấy CWE đầu tiên; cấm nhân một function multi-CWE thành nhiều dòng trước khi split; chỉ được chọn single-label subset, multi-label, hoặc hierarchy có tài liệu.
 - `reports/dataset/dataset_eda.md` và `reports/dataset/tables/cwe_project_distribution.csv`: số mẫu, số project và mức tập trung. Script đã đối chiếu lại và khớp bảng này, gồm 459 nhóm lệch nhãn vulnerable và 299 nhóm lệch CWE.
 - `reports/dataset_comparison/megavul_vs_diversevul.md`: dataset chính vẫn là DiverseVul.
 
