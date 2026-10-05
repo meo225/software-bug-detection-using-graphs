@@ -1,0 +1,623 @@
+{
+  "criteria": {
+    "min_sample_count": 100,
+    "min_project_count": 10,
+    "max_largest_project_share": 50.0,
+    "min_single_label_after_conflict_removal": 80,
+    "min_samples_per_class_per_split": 5,
+    "split_fractions": {
+      "train": 0.8,
+      "validation": 0.1,
+      "test": 0.1
+    },
+    "label_policy": "single_label_subset"
+  },
+  "funnel": {
+    "records": 330492,
+    "vulnerable": 18945,
+    "labeled_vulnerable": 16109,
+    "missing_cwe": 2836,
+    "exactly_one_cwe": 11894,
+    "two_or_more_cwe": 4215,
+    "conflict_hashes": 737,
+    "vulnerable_label_conflict_groups": 459,
+    "cwe_conflict_groups": 299,
+    "eligible": 9077
+  },
+  "group_stats": {
+    "normalized_duplicate_groups": 6,
+    "commit_groups": 1342,
+    "cve_groups": 877
+  },
+  "candidates": [
+    {
+      "cwe": "CWE-787",
+      "sample_count": 2896,
+      "project_count": 277,
+      "largest_project_share": 13.846685082872929,
+      "single_label_eligible": 1368
+    },
+    {
+      "cwe": "CWE-125",
+      "sample_count": 1869,
+      "project_count": 176,
+      "largest_project_share": 16.586409844836812,
+      "single_label_eligible": 1101
+    },
+    {
+      "cwe": "CWE-119",
+      "sample_count": 1633,
+      "project_count": 192,
+      "largest_project_share": 17.085119412124925,
+      "single_label_eligible": 697
+    },
+    {
+      "cwe": "CWE-20",
+      "sample_count": 1315,
+      "project_count": 148,
+      "largest_project_share": 18.935361216730037,
+      "single_label_eligible": 873
+    },
+    {
+      "cwe": "CWE-703",
+      "sample_count": 1228,
+      "project_count": 152,
+      "largest_project_share": 33.22475570032573,
+      "single_label_eligible": 362
+    },
+    {
+      "cwe": "CWE-416",
+      "sample_count": 1005,
+      "project_count": 79,
+      "largest_project_share": 43.18407960199005,
+      "single_label_eligible": 751
+    },
+    {
+      "cwe": "CWE-476",
+      "sample_count": 975,
+      "project_count": 125,
+      "largest_project_share": 23.48717948717949,
+      "single_label_eligible": 736
+    },
+    {
+      "cwe": "CWE-190",
+      "sample_count": 783,
+      "project_count": 96,
+      "largest_project_share": 16.219667943805874,
+      "single_label_eligible": 441
+    },
+    {
+      "cwe": "CWE-200",
+      "sample_count": 747,
+      "project_count": 102,
+      "largest_project_share": 28.647925033467203,
+      "single_label_eligible": 500
+    },
+    {
+      "cwe": "CWE-399",
+      "sample_count": 509,
+      "project_count": 59,
+      "largest_project_share": 28.880157170923383,
+      "single_label_eligible": 329
+    },
+    {
+      "cwe": "CWE-189",
+      "sample_count": 422,
+      "project_count": 43,
+      "largest_project_share": 22.274881516587676,
+      "single_label_eligible": 255
+    },
+    {
+      "cwe": "CWE-264",
+      "sample_count": 420,
+      "project_count": 41,
+      "largest_project_share": 46.904761904761905,
+      "single_label_eligible": 209
+    },
+    {
+      "cwe": "CWE-400",
+      "sample_count": 402,
+      "project_count": 49,
+      "largest_project_share": 29.1044776119403,
+      "single_label_eligible": 179
+    },
+    {
+      "cwe": "CWE-401",
+      "sample_count": 366,
+      "project_count": 30,
+      "largest_project_share": 30.87431693989071,
+      "single_label_eligible": 184
+    },
+    {
+      "cwe": "CWE-120",
+      "sample_count": 299,
+      "project_count": 56,
+      "largest_project_share": 18.06020066889632,
+      "single_label_eligible": 145
+    },
+    {
+      "cwe": "CWE-415",
+      "sample_count": 269,
+      "project_count": 53,
+      "largest_project_share": 15.241635687732341,
+      "single_label_eligible": 191
+    },
+    {
+      "cwe": "CWE-369",
+      "sample_count": 261,
+      "project_count": 31,
+      "largest_project_share": 37.93103448275862,
+      "single_label_eligible": 136
+    },
+    {
+      "cwe": "CWE-22",
+      "sample_count": 201,
+      "project_count": 40,
+      "largest_project_share": 20.398009950248756,
+      "single_label_eligible": 129
+    },
+    {
+      "cwe": "CWE-835",
+      "sample_count": 191,
+      "project_count": 39,
+      "largest_project_share": 22.5130890052356,
+      "single_label_eligible": 109
+    },
+    {
+      "cwe": "CWE-617",
+      "sample_count": 178,
+      "project_count": 29,
+      "largest_project_share": 17.415730337078653,
+      "single_label_eligible": 102
+    },
+    {
+      "cwe": "CWE-59",
+      "sample_count": 170,
+      "project_count": 29,
+      "largest_project_share": 12.352941176470589,
+      "single_label_eligible": 93
+    },
+    {
+      "cwe": "CWE-295",
+      "sample_count": 151,
+      "project_count": 28,
+      "largest_project_share": 21.192052980132452,
+      "single_label_eligible": 98
+    },
+    {
+      "cwe": "CWE-770",
+      "sample_count": 112,
+      "project_count": 28,
+      "largest_project_share": 21.428571428571427,
+      "single_label_eligible": 89
+    }
+  ],
+  "excluded_at_least_100_samples": [
+    {
+      "cwe": "CWE-362",
+      "sample_count": 458,
+      "project_count": 32,
+      "largest_project_share": 60.698689956331876,
+      "single_label_eligible": 306,
+      "exclude_reason": "largest_project_share>50.0"
+    },
+    {
+      "cwe": "CWE-284",
+      "sample_count": 432,
+      "project_count": 66,
+      "largest_project_share": 55.32407407407407,
+      "single_label_eligible": 97,
+      "exclude_reason": "largest_project_share>50.0"
+    },
+    {
+      "cwe": "CWE-310",
+      "sample_count": 361,
+      "project_count": 25,
+      "largest_project_share": 50.96952908587258,
+      "single_label_eligible": 339,
+      "exclude_reason": "largest_project_share>50.0"
+    },
+    {
+      "cwe": "CWE-269",
+      "sample_count": 196,
+      "project_count": 28,
+      "largest_project_share": 37.755102040816325,
+      "single_label_eligible": 67,
+      "exclude_reason": "single_label_eligible<80"
+    },
+    {
+      "cwe": "CWE-94",
+      "sample_count": 140,
+      "project_count": 26,
+      "largest_project_share": 29.28571428571429,
+      "single_label_eligible": 67,
+      "exclude_reason": "single_label_eligible<80"
+    },
+    {
+      "cwe": "CWE-772",
+      "sample_count": 139,
+      "project_count": 14,
+      "largest_project_share": 40.28776978417266,
+      "single_label_eligible": 75,
+      "exclude_reason": "single_label_eligible<80"
+    },
+    {
+      "cwe": "CWE-19",
+      "sample_count": 112,
+      "project_count": 9,
+      "largest_project_share": 44.642857142857146,
+      "single_label_eligible": 44,
+      "exclude_reason": "project_count<10"
+    },
+    {
+      "cwe": "CWE-287",
+      "sample_count": 108,
+      "project_count": 24,
+      "largest_project_share": 24.074074074074073,
+      "single_label_eligible": 53,
+      "exclude_reason": "single_label_eligible<80"
+    }
+  ],
+  "project_wise": {
+    "leakage": {
+      "samples": 9077,
+      "duplicate_groups_crossing_splits": 0,
+      "commit_groups_crossing_splits": 0,
+      "group_ids_crossing_splits": 0,
+      "projects_crossing_splits": 0
+    },
+    "split_counts": {
+      "train": 6983,
+      "validation": 1047,
+      "test": 1047
+    },
+    "projects": {
+      "train": 468,
+      "validation": 37,
+      "test": 33
+    },
+    "super_projects": 524,
+    "projects_total": 538,
+    "coverage": [
+      {
+        "cwe": "CWE-119",
+        "total": 697,
+        "train": 483,
+        "validation": 99,
+        "test": 115
+      },
+      {
+        "cwe": "CWE-120",
+        "total": 145,
+        "train": 108,
+        "validation": 13,
+        "test": 24
+      },
+      {
+        "cwe": "CWE-125",
+        "total": 1101,
+        "train": 874,
+        "validation": 112,
+        "test": 115
+      },
+      {
+        "cwe": "CWE-189",
+        "total": 255,
+        "train": 202,
+        "validation": 25,
+        "test": 28
+      },
+      {
+        "cwe": "CWE-190",
+        "total": 441,
+        "train": 311,
+        "validation": 33,
+        "test": 97
+      },
+      {
+        "cwe": "CWE-20",
+        "total": 873,
+        "train": 603,
+        "validation": 173,
+        "test": 97
+      },
+      {
+        "cwe": "CWE-200",
+        "total": 500,
+        "train": 447,
+        "validation": 20,
+        "test": 33
+      },
+      {
+        "cwe": "CWE-22",
+        "total": 129,
+        "train": 104,
+        "validation": 12,
+        "test": 13
+      },
+      {
+        "cwe": "CWE-264",
+        "total": 209,
+        "train": 181,
+        "validation": 22,
+        "test": 6
+      },
+      {
+        "cwe": "CWE-295",
+        "total": 98,
+        "train": 79,
+        "validation": 10,
+        "test": 9
+      },
+      {
+        "cwe": "CWE-369",
+        "total": 136,
+        "train": 110,
+        "validation": 13,
+        "test": 13
+      },
+      {
+        "cwe": "CWE-399",
+        "total": 329,
+        "train": 249,
+        "validation": 23,
+        "test": 57
+      },
+      {
+        "cwe": "CWE-400",
+        "total": 179,
+        "train": 127,
+        "validation": 45,
+        "test": 7
+      },
+      {
+        "cwe": "CWE-401",
+        "total": 184,
+        "train": 173,
+        "validation": 6,
+        "test": 5
+      },
+      {
+        "cwe": "CWE-415",
+        "total": 191,
+        "train": 132,
+        "validation": 26,
+        "test": 33
+      },
+      {
+        "cwe": "CWE-416",
+        "total": 751,
+        "train": 683,
+        "validation": 34,
+        "test": 34
+      },
+      {
+        "cwe": "CWE-476",
+        "total": 736,
+        "train": 559,
+        "validation": 44,
+        "test": 133
+      },
+      {
+        "cwe": "CWE-59",
+        "total": 93,
+        "train": 75,
+        "validation": 9,
+        "test": 9
+      },
+      {
+        "cwe": "CWE-617",
+        "total": 102,
+        "train": 82,
+        "validation": 10,
+        "test": 10
+      },
+      {
+        "cwe": "CWE-703",
+        "total": 362,
+        "train": 300,
+        "validation": 5,
+        "test": 57
+      },
+      {
+        "cwe": "CWE-770",
+        "total": 89,
+        "train": 72,
+        "validation": 9,
+        "test": 8
+      },
+      {
+        "cwe": "CWE-787",
+        "total": 1368,
+        "train": 941,
+        "validation": 294,
+        "test": 133
+      },
+      {
+        "cwe": "CWE-835",
+        "total": 109,
+        "train": 88,
+        "validation": 10,
+        "test": 11
+      }
+    ]
+  },
+  "seen_project": {
+    "leakage": {
+      "samples": 9077,
+      "duplicate_groups_crossing_splits": 0,
+      "commit_groups_crossing_splits": 0,
+      "group_ids_crossing_splits": 0,
+      "projects_crossing_splits": 174
+    },
+    "split_counts": {
+      "train": 7272,
+      "test": 903,
+      "validation": 902
+    },
+    "projects_crossing_splits": 174,
+    "coverage": [
+      {
+        "cwe": "CWE-119",
+        "total": 697,
+        "train": 559,
+        "validation": 69,
+        "test": 69
+      },
+      {
+        "cwe": "CWE-120",
+        "total": 145,
+        "train": 117,
+        "validation": 14,
+        "test": 14
+      },
+      {
+        "cwe": "CWE-125",
+        "total": 1101,
+        "train": 881,
+        "validation": 110,
+        "test": 110
+      },
+      {
+        "cwe": "CWE-189",
+        "total": 255,
+        "train": 205,
+        "validation": 25,
+        "test": 25
+      },
+      {
+        "cwe": "CWE-190",
+        "total": 441,
+        "train": 353,
+        "validation": 44,
+        "test": 44
+      },
+      {
+        "cwe": "CWE-20",
+        "total": 873,
+        "train": 699,
+        "validation": 87,
+        "test": 87
+      },
+      {
+        "cwe": "CWE-200",
+        "total": 500,
+        "train": 400,
+        "validation": 50,
+        "test": 50
+      },
+      {
+        "cwe": "CWE-22",
+        "total": 129,
+        "train": 103,
+        "validation": 13,
+        "test": 13
+      },
+      {
+        "cwe": "CWE-264",
+        "total": 209,
+        "train": 167,
+        "validation": 21,
+        "test": 21
+      },
+      {
+        "cwe": "CWE-295",
+        "total": 98,
+        "train": 79,
+        "validation": 10,
+        "test": 9
+      },
+      {
+        "cwe": "CWE-369",
+        "total": 136,
+        "train": 110,
+        "validation": 13,
+        "test": 13
+      },
+      {
+        "cwe": "CWE-399",
+        "total": 329,
+        "train": 263,
+        "validation": 33,
+        "test": 33
+      },
+      {
+        "cwe": "CWE-400",
+        "total": 179,
+        "train": 143,
+        "validation": 18,
+        "test": 18
+      },
+      {
+        "cwe": "CWE-401",
+        "total": 184,
+        "train": 148,
+        "validation": 18,
+        "test": 18
+      },
+      {
+        "cwe": "CWE-415",
+        "total": 191,
+        "train": 153,
+        "validation": 19,
+        "test": 19
+      },
+      {
+        "cwe": "CWE-416",
+        "total": 751,
+        "train": 601,
+        "validation": 75,
+        "test": 75
+      },
+      {
+        "cwe": "CWE-476",
+        "total": 736,
+        "train": 590,
+        "validation": 73,
+        "test": 73
+      },
+      {
+        "cwe": "CWE-59",
+        "total": 93,
+        "train": 75,
+        "validation": 9,
+        "test": 9
+      },
+      {
+        "cwe": "CWE-617",
+        "total": 102,
+        "train": 82,
+        "validation": 10,
+        "test": 10
+      },
+      {
+        "cwe": "CWE-703",
+        "total": 362,
+        "train": 290,
+        "validation": 36,
+        "test": 36
+      },
+      {
+        "cwe": "CWE-770",
+        "total": 89,
+        "train": 72,
+        "validation": 8,
+        "test": 9
+      },
+      {
+        "cwe": "CWE-787",
+        "total": 1368,
+        "train": 1095,
+        "validation": 136,
+        "test": 137
+      },
+      {
+        "cwe": "CWE-835",
+        "total": 109,
+        "train": 87,
+        "validation": 11,
+        "test": 11
+      }
+    ]
+  }
+}
