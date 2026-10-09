@@ -1,0 +1,67 @@
+# Cấu hình Graph B — Semantic Graph tối thiểu (Task 3.1)
+# Biểu diễn AST + CFG + Data Dependence trong phạm vi hàm (intra-procedural)
+# Tuân thủ: docs/1_3_1_4_graph.md, docs/2_2_cwe_policy.md, docs/2_3_split.md
+
+graph:
+  name: "graph_b"
+  display_name: "Graph B (AST + CFG + Data Dependence)"
+  representation_type: "ast_cfg_ddg"
+  scope: "intra_procedural_function"
+  description: "Đồ thị đa quan hệ có hướng kết hợp cấu trúc cú pháp (AST), luồng điều khiển (CFG) và phụ thuộc dữ liệu (DDG)."
+
+  # Node Specification (Tái sử dụng 100% miền node của Graph A)
+  nodes:
+    domain: "function_ast_nodes"
+    reuse_graph_a_domain: true # V_B đồng nhất với V_A
+    features:
+      - name: "node_type"
+        type: "categorical_string"
+        description: "Kiểu cú pháp AST (Method, Block, Call, Identifier, Literal, ControlStructure...)"
+      - name: "code_token"
+        type: "text_token"
+        description: "Token hoặc đoạn mã đại diện sau khi chuẩn hóa bảo thủ"
+      - name: "line_number"
+        type: "integer"
+        description: "Số dòng 1-indexed trong phạm vi hàm"
+      - name: "rel_line_number"
+        type: "float"
+        description: "Vị trí tương đối = line_number / max_function_lines (trong khoảng [0.0, 1.0])"
+    indexing: "zero_indexed_consecutive" # [0, 1, ..., N-1]
+
+  # Edge Specification
+  edges:
+    types:
+      - id: 0
+        name: "AST"
+        code: "AST_CHILD"
+        description: "Quan hệ cú pháp cha-con (parent -> child), kế thừa từ Graph A"
+      - id: 1
+        name: "CFG"
+        code: "CFG_FLOW"
+        description: "Quan hệ luồng điều khiển giữa các bước thực thi (predecessor -> successor)"
+      - id: 2
+        name: "DATA_DEP"
+        code: "DDG_REACHING_DEF"
+        description: "Quan hệ phụ thuộc dữ liệu định nghĩa-sử dụng biến (def_node -> use_node)"
+    direction: "directed_multigraph"
+    allow_reverse_in_storage: false # Không tự nhân đôi cạnh ngược vào file lưu trữ
+    allow_self_loops: false
+
+  # Phạm vi bị loại trừ rõ ràng (Explicit Exclusions)
+  exclusions:
+    inter_procedural: true   # Loại bỏ call graph liên hàm
+    slicing: false           # Giữ nguyên toàn bộ function, không cắt lát
+    dominator_tree: true     # Không đưa DOMINATE / POST_DOMINATE
+    full_cpg_overlays: true  # Không đưa REF, EVAL_TYPE, CONTAINS
+
+  # Cấu hình lưu trữ và trích xuất
+  extractor:
+    tool: "joern"
+    status: "pilot_candidate"
+    export_format: "json" # json hoặc dot trong giai đoạn pilot
+    timeout_sec: 120
+
+  paths:
+    raw_dir: "data/graphs/graph_b/raw"
+    processed_dir: "data/graphs/graph_b/processed"
+    manifest_file: "data/graphs/graph_b/manifest.csv"

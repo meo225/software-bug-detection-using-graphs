@@ -1,0 +1,50 @@
+# Cấu hình Graph A — Baseline AST (Task 3.1)
+# Biểu diễn cây cú pháp trừu tượng trong phạm vi hàm (intra-procedural)
+# Tuân thủ: docs/1_3_1_4_graph.md, docs/2_2_cwe_policy.md, docs/2_3_split.md
+
+graph:
+  name: "graph_a"
+  display_name: "Graph A (AST Baseline)"
+  representation_type: "ast"
+  scope: "intra_procedural_function"
+  description: "Cây cú pháp trừu tượng AST của function C/C++, chỉ giữ quan hệ cha-con có hướng."
+
+  # Node Specification
+  nodes:
+    domain: "function_ast_nodes"
+    features:
+      - name: "node_type"
+        type: "categorical_string"
+        description: "Kiểu cú pháp AST (Method, Block, Call, Identifier, Literal, ControlStructure...)"
+      - name: "code_token"
+        type: "text_token"
+        description: "Token hoặc đoạn mã đại diện sau khi chuẩn hóa bảo thủ"
+      - name: "line_number"
+        type: "integer"
+        description: "Số dòng 1-indexed trong phạm vi hàm"
+      - name: "rel_line_number"
+        type: "float"
+        description: "Vị trí tương đối = line_number / max_function_lines (trong khoảng [0.0, 1.0])"
+    indexing: "zero_indexed_consecutive" # [0, 1, ..., N-1]
+
+  # Edge Specification
+  edges:
+    types:
+      - id: 0
+        name: "AST"
+        description: "Quan hệ cú pháp cha-con từ node cha trỏ đến node con (parent -> child)"
+    direction: "directed"
+    allow_reverse_in_storage: false # Không tự nhân đôi cạnh ngược vào file lưu trữ
+    allow_self_loops: false
+
+  # Cấu hình lưu trữ và trích xuất
+  extractor:
+    tool: "joern"
+    status: "pilot_candidate"
+    export_format: "json" # json hoặc dot trong giai đoạn pilot
+    timeout_sec: 120
+
+  paths:
+    raw_dir: "data/graphs/graph_a/raw"
+    processed_dir: "data/graphs/graph_a/processed"
+    manifest_file: "data/graphs/graph_a/manifest.csv"
