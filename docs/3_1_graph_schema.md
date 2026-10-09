@@ -27,8 +27,8 @@ Bốn tài liệu nền tảng đã được đối chiếu chi tiết:
 | Vấn đề đối chiếu | Nội dung trong tài liệu trước | Quy ước bắt buộc tại Task 3.1 | Quyết định xử lý kỹ thuật |
 | :--- | :--- | :--- | :--- |
 | **Cạnh ngược (Reverse Edges)** | `docs/1_3_1_4_graph.md` ghi: "thêm cạnh ngược khi model cần truyền tin hai chiều". | Task 3.1 quy định: "Không giữ cạnh ngược chiều nếu không cần thiết theo thiết kế đã chốt." | **Tách biệt tầng lưu trữ (storage) và tầng mô hình (model)**. Tầng lưu trữ artifact (JSON/intermediate) **chỉ lưu cạnh có hướng thực tế** (canonical directed edges) để tiết kiệm dung lượng đĩa và phản ánh đúng ngữ nghĩa chương trình. Việc bổ sung cạnh ngược hoặc đồ thị vô hướng chỉ diễn ra ở tầng `DataLoader` / PyG Transform khi một mô hình cụ thể (như GCN) yêu cầu. |
-| **Miền Node giữa Graph A và Graph B** | `docs/1_3_1_4_graph.md` ghi: "Node dùng cùng miền với Graph A khi có thể." | Task 3.1 quy định: "Tái sử dụng miền node của Graph A khi có thể." | **Đồng nhất 100% miền node** ($V_B \equiv V_A$). Mọi node trong Graph B chính là các node AST của Graph A. Cạnh CFG và Data Dependence sẽ nối trực tiếp giữa các node câu lệnh/biểu thức trong cây AST đó. Điều này đảm bảo khi thực hiện ablation so sánh RQ2 (AST vs AST+CFG+DDG), tập node và feature là hằng số, loại bỏ biến ngoại lai. |
-| **Chính sách nhãn CWE** | `docs/1_3_1_4_graph.md` còn mở 3 hướng (single-label, multi-label, phân cấp). | `docs/2_2_cwe_policy.md` đã chốt: Single-label multiclass 23 CWE, loại bỏ multi-CWE, loại bỏ conflict. | **Tuân thủ tuyệt đối Task 2.2**: Áp dụng bài toán phân loại đơn nhãn 23 lớp trên 9.077 function. Không xét multi-label hay nhãn phân cấp ở pipeline lõi. |
+| **Miền Node giữa Graph A và Graph B** | `docs/1_3_1_4_graph.md` ghi: "Node dùng cùng miền với Graph A khi có thể." | Task 3.1 quy định: "Tái sử dụng miền node của Graph A khi có thể." | **Đồng nhất 100% miền node** ($V_B \equiv V_A$). Mọi node trong Graph B chính là các node AST của Graph A. Cạnh CFG và Data Dependence chỉ được giữ khi cả hai đầu mút ánh xạ hợp lệ vào $V_A$; cạnh không ánh xạ được sẽ bị loại bỏ và ghi log (không tạo node giả, không gây crash). Giữ cạnh khác loại, khử trùng lặp cạnh cùng loại và loại bỏ self-loop. |
+| **Chính sách nhãn CWE** | `docs/1_3_1_4_graph.md` còn mở 3 hướng (single-label, multi-label, phân cấp). | `docs/2_2_cwe_policy.md` đã chốt: Single-label multiclass 23 CWE, loại bỏ multi-CWE, loại bỏ conflict. | **Phân định ranh giới giữa Pilot và Thí nghiệm chính**:<br>1. **Pilot (30 function)**: Giữ nguyên vẹn 30 dòng trong `diversevul_graph_sample.csv`, không lọc mẫu thiếu CWE, multi-CWE hay ngoài 23 lớp. Nhãn CWE gốc lưu dạng chuỗi metadata; Task 3.2 chỉ tạo Intermediate JSON, chưa map sang class index $0-22$ và chưa tạo PyG `.pt`.<br>2. **Thí nghiệm chính (9.077 function)**: Áp dụng nghiêm ngặt bài toán đơn nhãn 23 lớp, map sang $[0, 22]$ ở Tier 2. |
 | **Phân chia dữ liệu (Splits)** | `docs/1_3_1_4_graph.md` định hướng chống leakage. | `docs/2_3_split.md` đã tạo file split cố định trong `data/splits/`. | **Khóa cứng split**: Mọi đồ thị trích xuất được ánh xạ trực tiếp theo `sample_id` về hai bộ split có sẵn. Tuyệt đối không tự động chia lại dữ liệu khi trích xuất graph. |
 | **Nguyên tắc khớp từ vựng (Vocabulary Anti-Leakage)** | `docs/1_3_1_4_graph.md` yêu cầu vocabulary fit trên tập train. | Task 3.1 cấm tuyệt đối fit trên toàn bộ dữ liệu. | **Tách rời Graph Trích xuất thô và Graph Tensor**: Graph trích xuất thô lưu token dạng chuỗi văn bản thuần túy. File từ vựng (vocabulary/tokenizer) chỉ được huấn luyện độc lập trên tập `train.txt` của từng split protocol cụ thể. |
 
@@ -55,8 +55,9 @@ Mỗi node $u \in V_A$ tương ứng với một thực thể cú pháp của h�
 - **Mã loại cạnh (Edge Type ID)**: `0` (chuỗi: `"AST"`).
 - **Quy ước**:
   - Không có cạnh ngược (`child -> parent`) trong file lưu trữ.
-  - Không có khuyên tự lặp (`self-loops`).
+  - Không có khuyên tự lặp (`self-loops`): Lọc bỏ nếu parser sinh ra cạnh `src == dst` và ghi nhận vào thống kê.
   - Không có cạnh ngang (`sibling edges`).
+  - Khử trùng lặp: Nếu có nhiều cạnh AST cùng chiều giữa cùng cặp `(parent, child)`, chỉ giữ đúng 1 cạnh.
 
 ---
 
@@ -84,9 +85,28 @@ $E_B$ là hợp của 3 tập cạnh có loại riêng biệt: $E_B = E_{\text{A
 ### 3.4 Các thành phần bị loại trừ tường minh (Explicit Exclusions)
 Để giữ Graph B là "semantic graph tối thiểu", tránh bùng nổ kích thước và kiểm soát độ phức tạp:
 1. **Không đưa Call Graph / Inter-procedural edges**: Không nối sang hàm khác trong cùng file hay project; giữ đúng bài toán function-level.
-2. **Không áp dụng Slicing**: Không cắt tỉa graph theo điểm nhạy cảm (sensitive sink/source) vì slicing đòi hỏi phân tích phụ thuộc liên hàm và có thể làm mất ngữ cảnh hàm ban đầu.
+2. **Không áp dụng Slicing**: Không cắt tỉa graph theo điểm nhạy cảm (sensitive sink/source) vì slicing đòi hỏi phân tích phụ thuộc liên hàm và có thể làm mất ngữ cảnh hàm ban đầu; giữ nguyên toàn bộ function.
 3. **Không đưa Dominator Tree / CDG riêng biệt**: Không giữ cạnh `DOMINATE` hoặc `POST_DOMINATE` vì CFG kết hợp AST đã chứa đủ thông tin điều khiển.
 4. **Không đưa toàn bộ CPG Overlays**: Loại bỏ các cạnh meta của Joern như `REF` (trỏ đến biến khai báo), `EVAL_TYPE` (kiểu dữ liệu suy diễn), `CONTAINS` (quan hệ chứa đựng của file/namespace).
+
+### 3.5 Quy tắc xử lý Cạnh không ánh xạ được, Cạnh trùng và Self-loop
+
+Nhằm bảo đảm tính xác định khi hiện thực parser và xây dựng đồ thị Graph B, hệ thống quy định các nguyên tắc xử lý biên bắt buộc:
+
+1. **Xử lý Cạnh không ánh xạ được (Unmappable Edges - Major 2)**:
+   - **Nguyên tắc cốt lõi**: Cả hai đầu mút của cạnh CFG và DDG bắt buộc phải ánh xạ hợp lệ vào miền node của Graph A ($V_A$).
+   - **Ánh xạ node tương ứng (Deterministic Mapping)**: Nếu một đầu mút từ Joern không phải là node AST trực tiếp nhưng thuộc một thực thể cú pháp con/tham số (ví dụ: `METHOD_PARAMETER_IN` hoặc biểu thức con), parser thử ánh xạ đầu mút đó về node AST tương ứng trong $V_A$ theo quy tắc tất định đã định nghĩa và ghi nhận vào log.
+   - **Loại bỏ cạnh không ánh xạ được**: Nếu một đầu mút hoàn toàn không thể ánh xạ về bất kỳ node nào trong $V_A$ (ví dụ: node thoát hàm ngoài AST `METHOD_RETURN`, node meta CPG), parser **bỏ qua cạnh (drop edge)**.
+   - **Thống kê chi tiết**: Các cạnh bị loại phải được thống kê riêng theo từng loại cạnh (`CFG`, `DATA_DEP`) và nguyên nhân loại bỏ trong báo cáo trích xuất.
+   - **Tuyệt đối không tạo node giả (dummy nodes)** chỉ để giữ cạnh.
+   - **Không làm gián đoạn pipeline**: Việc một cạnh không ánh xạ được không được gây lỗi (crash) toàn bộ pipeline trích xuất của function; đồ thị vẫn được tiếp tục xử lý với các cạnh hợp lệ còn lại.
+
+2. **Xử lý Cạnh trùng và Self-loop (Major 3)**:
+   - **Giữ cạnh khác loại giữa cùng cặp node**: Nếu giữa hai node $u$ và $v$ đồng thời tồn tại nhiều quan hệ khác loại (ví dụ: vừa có cạnh AST cha-con, vừa có cạnh CFG luồng điều khiển), cả hai cạnh được giữ nguyên để cấu thành đồ thị đa quan hệ có hướng (directed multigraph).
+   - **Khử trùng lặp cạnh cùng loại và cùng chiều (Dedup same-type directed edges)**: Nếu giữa $u \to v$ có nhiều hơn 1 cạnh cùng loại (ví dụ: có nhiều quan hệ Reaching Def cho các biến khác nhau giữa cùng hai câu lệnh), parser chỉ giữ lại đúng 1 cạnh đại diện.
+   - **Loại bỏ hoàn toàn Self-loop**: Mọi cạnh có $\text{src} == \text{dst}$ (ví dụ: biến tự cập nhật `i = i + 1`, `count++` trong DDG hoặc vòng lặp đơn câu lệnh trong CFG) đều bị lọc bỏ khỏi đồ thị.
+   - **Thống kê cạnh bị loại**: Báo cáo trích xuất phải ghi nhận rõ số cạnh trùng cùng loại bị loại và số self-loop bị loại.
+   - **Lưu ý về phạm vi chuẩn hóa**: Việc khử trùng lặp áp dụng cho **quan hệ đồ thị đã chuẩn hóa** (normalized graph relation); hệ thống không lưu thuộc tính phân biệt tên biến riêng lẻ trên cạnh trong schema hiện tại, do đó không tuyên bố giữ đầy đủ thông tin của từng biến riêng biệt.
 
 ---
 
@@ -97,11 +117,18 @@ Mỗi node $u$ trong Graph A và Graph B chứa các thuộc tính sau trước 
 
 | Thuộc tính | Kiểu dữ liệu | Mô tả | Ví dụ |
 | :--- | :--- | :--- | :--- |
-| `node_id` | `int` | Định danh node 0-indexed liên tục trong hàm: $[0, N-1]$. | `14` |
+| `node_id` / `id` | `int` | Định danh node 0-indexed liên tục trong hàm: $[0, N-1]$. | `14` |
 | `node_type` | `string` | Kiểu cú pháp AST chuẩn hóa. | `"Call"`, `"Identifier"`, `"Literal"` |
 | `code_token` | `string` | Chuỗi mã nguồn gắn với node sau khi chuẩn hóa bảo thủ. | `"malloc"`, `"size"`, `"<NUM>"` |
-| `line_number` | `int` | Số dòng của node trong hàm (1-indexed theo function). | `12` |
-| `rel_line_number` | `float` | Vị trí tương đối của dòng: $\frac{\text{line\_number}}{\text{max\_line\_number}} \in [0.0, 1.0]$. | `0.45` |
+| `line_number` | `int` | Số dòng của node trong hàm (1-indexed theo function). Chỉ lưu ở Tier 1 JSON để debug/truy vết, **không đưa vào tensor PyG**. | `12` |
+| `rel_line_number` | `float` | Vị trí tương đối của dòng: $\frac{\text{line\_number}}{\text{total\_lines}} \in [0.0, 1.0]$. Đưa vào tensor PyG `data.x`. | `0.45` |
+
+#### Quy tắc tính toán vị trí dòng và xử lý node khuyết dòng (Major 4):
+1. **Định nghĩa `line_number`**: Là số dòng 1-indexed trong chuỗi mã nguồn của từng function (`func`).
+2. **Mẫu số chuẩn hóa thống nhất**: $\text{total\_lines} = \max(1, \text{len}(\text{func.splitlines}()))$.
+3. **Quy tắc kế thừa cho node khuyết dòng**: Khi Joern trả về `lineNumber = null` (thường gặp ở node khối hoặc toán tử), node sẽ **kế thừa `line_number` từ node cha AST gần nhất có số dòng**. Nếu toàn bộ nhánh tổ tiên đều không có dòng, dùng giá trị fallback mặc định `line_number = 1`.
+4. **Kiểm tra biên `rel_line_number`**: Đảm bảo $\text{rel\_line\_number} = \frac{\text{line\_number}}{\text{total\_lines}}$ luôn nằm trong đoạn $[0.0, 1.0]$ hợp lệ.
+5. **Ranh giới lưu trữ và chống leakage**: `line_number` chỉ dùng trong Intermediate JSON để phục vụ kiểm tra và debug; chỉ có `rel_line_number` được đưa vào vector đặc trưng `data.x` của PyG tensor theo đúng thiết kế đã chốt.
 
 ### 4.2 Chuẩn hóa bảo thủ (Conservative Normalization)
 Nhằm tránh việc mô hình học thuộc lòng các tên biến hoặc chuỗi văn bản đặc thù của từng project (project shortcuts), áp dụng quy tắc chuẩn hóa bảo thủ:
@@ -188,6 +215,17 @@ Mỗi graph được liên kết trực tiếp với metadata phân chia qua `sa
    - `validation.txt`: 902 samples.
    - `test.txt`: 903 samples.
 
+### 5.5 Phân định ranh giới giữa Pilot (30 function) và Thí nghiệm chính (9.077 function) (Major 1)
+Để bảo đảm tính toàn vẹn của dữ liệu và không gây lỗi khi chạy pilot:
+1. **Tập mẫu Pilot 30 function** (`data/sample_manifests/diversevul_graph_sample.csv`):
+   - **Giữ nguyên vẹn 100%**: Sử dụng nguyên vẹn 30 dòng đã chuẩn bị từ giai đoạn EDA ban đầu; tuyệt đối **không lọc bỏ hoặc chỉnh sửa bất kỳ dòng nào**.
+   - **Xử lý nhãn trong Pilot**: Tập pilot chứa các mẫu đặc thù để kiểm tra năng lực của parser (8 mẫu thiếu CWE, 15 mẫu multi-CWE, 1 mẫu `CWE-667`). Toàn bộ nhãn CWE gốc được lưu giữ dưới dạng chuỗi metadata phục vụ đối chiếu độ bao phủ.
+   - **Ranh giới Task 3.2**: Quá trình pilot ở Task 3.2 chỉ dừng lại ở việc sinh **Tầng 1: Intermediate Graph (JSON)** và lập báo cáo Gate Pilot về khả năng trích xuất đồ thị (tỷ lệ thành công, lỗi, thời gian, RAM, kích thước trần). **Chưa thực hiện ánh xạ nhãn pilot sang class index $0-22$ và chưa tạo tensor PyG `.pt`**.
+2. **Tập mẫu Thí nghiệm chính 9.077 function** (`data/splits/diversevul_experiment_manifest.csv`):
+   - Áp dụng triệt để chính sách nhãn đơn 23 lớp của Task 2.2 (`docs/2_2_cwe_policy.md`).
+   - Được ánh xạ cố định sang hai bộ split không rò rỉ (`project_wise` và `seen_project`) theo Task 2.3 (`docs/2_3_split.md`).
+   - Nhãn số hóa $y \in [0, 22]$ chỉ được mã hóa khi xây dựng PyG Dataset ở Tầng 2 (Tier 2).
+
 ---
 
 ## 6. Định dạng dữ liệu và Cấu trúc Artifacts
@@ -207,7 +245,7 @@ C/C++ Source Code
 ### 6.1 Tầng 1: Định dạng Intermediate Graph (JSON)
 Lưu trữ toàn bộ cấu trúc đồ thị trích xuất được dưới định dạng JSON có schema kiểm tra chặt chẽ.
 
-#### Cấu trúc JSON Schema:
+#### Cấu trúc JSON Schema (Minor 2 - Tên thuộc tính chuẩn hóa):
 ```json
 {
   "sample_id": "row-1",
@@ -218,31 +256,31 @@ Lưu trữ toàn bộ cấu trúc đồ thị trích xuất được dưới đ�
   "nodes": [
     {
       "id": 0,
-      "type": "Method",
-      "token": "process_packet",
-      "line": 1,
-      "rel_line": 0.1
+      "node_type": "Method",
+      "code_token": "process_packet",
+      "line_number": 1,
+      "rel_line_number": 0.1
     },
     {
       "id": 1,
-      "type": "Call",
-      "token": "malloc",
-      "line": 3,
-      "rel_line": 0.3
+      "node_type": "Call",
+      "code_token": "malloc",
+      "line_number": 3,
+      "rel_line_number": 0.3
     },
     {
       "id": 2,
-      "type": "Identifier",
-      "token": "buf",
-      "line": 3,
-      "rel_line": 0.3
+      "node_type": "Identifier",
+      "code_token": "buf",
+      "line_number": 3,
+      "rel_line_number": 0.3
     },
     {
       "id": 3,
-      "type": "Call",
-      "token": "free",
-      "line": 8,
-      "rel_line": 0.8
+      "node_type": "Call",
+      "code_token": "free",
+      "line_number": 8,
+      "rel_line_number": 0.8
     }
   ],
   "edges": [
@@ -306,12 +344,12 @@ Theo kết quả EDA (`docs/1_1_related_work.md`), mã nguồn có median 19 dò
 - **Ngưỡng trần kỹ thuật**:
   - `max_nodes`: **1.000 nodes**.
   - `max_edges`: **3.000 edges**.
-  - `parse_timeout_seconds`: **120 giây**.
+  - `timeout_sec`: **120 giây** (Chuẩn hóa tên khóa timeout trên toàn hệ thống - Minor 1).
 - **Chính sách xử lý đồ thị vượt ngưỡng (`OVERSIZED_GRAPH`)**:
   - Mẫu vượt trần được đánh dấu cờ `status: "OVERSIZED_GRAPH"` trong metadata manifest.
-  - Cấu hình hỗ trợ hai chế độ xử lý trong file YAML:
-    1. `flag_and_log` (Mặc định cho Gate Pilot): Ghi nhận số lượng mẫu vượt trần để đo lường độ lệch (skew) giữa các class CWE.
-    2. `truncate_bfs` (Dự phòng cho GNN batching): Cắt tỉa đồ thị bằng thuật toán BFS bắt đầu từ root AST cho đến khi đạt tối đa 1.000 nodes, đảm bảo đồ thị con vẫn liên thông và bảo toàn vùng quan trọng nhất của hàm.
+  - Phân biệt hành vi rõ ràng giữa hai giai đoạn:
+    1. **Giai đoạn Pilot (Task 3.2)**: Áp dụng `flag_and_log`. Giữ nguyên đồ thị đầy đủ, không loại bỏ mẫu; ghi nhận số lượng mẫu vượt trần để đo lường độ lệch (skew) và đánh giá tính phù hợp của ngưỡng trần.
+    2. **Giai đoạn Huấn luyện (Phase 4)**: Áp dụng `truncate_bfs` (cắt tỉa đồ thị bằng BFS từ root AST cho đến tối đa 1.000 nodes để bảo đảm tính liên thông và vùng quan trọng của hàm) hoặc `drop_with_metric_penalty` (nếu loại bỏ thì bắt buộc tính penalty vào metric đánh giá để tránh làm đẹp nhân tạo Macro-F1).
 
 ### 6.6 Cấu trúc thư mục Output trong Repository
 Cấu trúc cây thư mục đầu ra được tổ chức chặt chẽ trong `data/graphs/`:
@@ -350,9 +388,11 @@ data/graphs/
 - **Joern là công cụ ứng viên cho giai đoạn pilot, chưa phải quyết định cố định cuối cùng.**
 - Nếu pilot cho thấy Joern thất bại nghiêm trọng trên các hàm C/C++ rời rạc của DiverseVul, nhóm nghiên cứu sẽ đánh giá giải pháp thay thế (ví dụ: Tree-sitter cho AST + custom CFG builder hoặc Clang LibTooling).
 
-### 7.2 Manifest Pilot
-Pilot ở Task 3.2 sẽ được thực hiện trên đúng tập **30 function đại diện** đã chuẩn bị tại:
-`data/sample_manifests/diversevul_graph_sample.csv`.
+### 7.2 Manifest Pilot và Ranh giới Task 3.2 (Major 1)
+- Pilot ở Task 3.2 sẽ được thực hiện trên đúng tập **30 function đại diện** đã chuẩn bị tại:
+  `data/sample_manifests/diversevul_graph_sample.csv`.
+- **Nguyên tắc bảo toàn dữ liệu**: Giữ nguyên vẹn toàn bộ 30 dòng, không lọc bỏ mẫu thiếu CWE, multi-CWE hay ngoài 23 lớp. Nhãn CWE gốc được lưu dưới dạng chuỗi metadata phục vụ đối chiếu.
+- **Ranh giới công việc Task 3.2**: Chỉ tạo **Tầng 1: Intermediate JSON** và thống kê khả năng trích xuất của parser Joern. **Chưa ánh xạ nhãn pilot sang class index $0-22$ và chưa tạo file PyG `.pt`**.
 
 ### 7.3 Các điểm kỹ thuật cần kiểm chứng trong Task 3.2
 1. **Phương thức trích xuất và Query Joern**:
@@ -360,6 +400,7 @@ Pilot ở Task 3.2 sẽ được thực hiện trên đúng tập **30 function 
    - Kiểm chứng lệnh query interactive / script Scala của Joern để xuất đúng 3 lớp quan hệ (`cpg.method.ast`, `cpg.method.cfgFirst`, `cpg.method.reachingDef`) trên cùng một tập node định danh.
 2. **Khả năng chia sẻ miền node giữa AST, CFG và DDG**:
    - Xác minh xem các node trong kết quả CFG và PDG của Joern có ánh xạ 1-1 ngược lại các node trong cây AST hay không để đảm bảo $V_B \equiv V_A$.
+   - Kiểm chứng quy tắc xử lý cạnh không ánh xạ được (fallback về AST cha hoặc drop và ghi log), quy tắc dedup cạnh cùng loại và lọc self-loop.
 3. **Các tình huống biên phức tạp của mã nguồn C/C++ trong DiverseVul**:
    - **Hàm rời rạc (Incomplete/Standalone function)**: Hàm thiếu khai báo thư viện `#include`, thiếu định nghĩa `struct`, `typedef`, biến toàn cục. Kiểm tra Joern có parse được cấu trúc AST cơ bản hay bị lỗi dừng hoàn toàn.
    - **Macro tiền xử lý (`#define`, `#ifdef`)**: Hàm chứa macro phức tạp chưa qua preprocessor. Kiểm tra xem Joern có xử lý được hay cần một bước tiền xử lý bọc code (code wrapper).
@@ -369,15 +410,20 @@ Pilot ở Task 3.2 sẽ được thực hiện trên đúng tập **30 function 
    - Thời gian trích xuất trung bình và bộ nhớ đỉnh cho mỗi function.
    - Dung lượng đĩa trung bình của từng file graph JSON.
    - Phân bố số lượng node và số lượng cạnh của Graph A so với Graph B.
+   - Thống kê các cạnh unmappable, cạnh trùng cùng loại và self-loop bị lọc.
 
 ---
 
 ## 8. Tóm tắt các quyết định Schema quan trọng
 
-1. **Graph A**: Baseline AST có hướng (`parent -> child`), không lưu cạnh ngược.
+1. **Graph A**: Baseline AST có hướng (`parent -> child`), không lưu cạnh ngược, lọc bỏ self-loop và dedup cạnh trùng.
 2. **Graph B**: Semantic graph tối thiểu, **tái sử dụng 100% miền node của Graph A** ($V_B \equiv V_A$), bổ sung cạnh CFG (`predecessor -> successor`) và Data Dependence (`def -> use`).
-3. **Loại trừ**: Tuyệt đối không đưa Call Graph, Slicing, Dominator edges, hoặc các layer overlay CPG mở rộng vào graph lõi.
-4. **Node Feature**: `node_type`, `code_token` (chuẩn hóa bảo thủ: tách subtoken identifier, hằng số/chuỗi đại diện), `line_number`, `rel_line_number`. Cấm tuyệt đối project, commit, CVE, CWE.
-5. **Anti-Leakage Vocabulary**: Vocabulary/tokenizer chỉ được fit trên tập train của đúng protocol đang chạy (Project-wise train: 6.983 mẫu; Seen-project train: 7.272 mẫu).
-6. **Nhãn**: Ánh xạ 23 CWE sang class index $[0, 22]$ theo thứ tự bảng chữ cái cố định; giữ nguyên 9.077 function và hai bộ split đã chốt.
-7. **Định dạng dữ liệu**: Kiến trúc 2 tầng (Intermediate JSON $\rightarrow$ Processed PyG `.pt`). Giới hạn trần 1.000 nodes và 3.000 edges. Không âm thầm loại bỏ mẫu lỗi.
+   - Cạnh không ánh xạ được về $V_A$: Thử map về node AST cha tương ứng; nếu không thể thì drop và log thống kê (không tạo node giả, không gây crash pipeline).
+   - Cạnh trùng và self-loop: Giữ cạnh khác loại; khử trùng lặp cạnh cùng loại, cùng chiều; loại bỏ self-loop (`src == dst`) và ghi log thống kê. Khử trùng lặp áp dụng cho quan hệ graph chuẩn hóa.
+3. **Loại trừ**: Tuyệt đối không đưa Call Graph, Slicing, Dominator edges, hoặc các layer overlay CPG mở rộng vào graph lõi. Giữ nguyên hàm, không cắt lát (`apply_slicing: false`).
+4. **Node Feature**: `node_type`, `code_token` (chuẩn hóa bảo thủ: tách subtoken identifier, hằng số/chuỗi đại diện), `line_number` (1-indexed theo chuỗi hàm, chỉ lưu trong JSON để debug), `rel_line_number` ($\frac{\text{line\_number}}{\text{total\_lines}}$ với $\text{total\_lines} = \max(1, \text{len}(\text{func.splitlines}()))$, node khuyết dòng kế thừa từ node cha AST gần nhất hoặc fallback dòng 1; đưa vào tensor PyG). Cấm tuyệt đối project, commit, CVE, CWE trong feature.
+5. **Anti-Leakage Vocabulary**: Vocabulary/tokenizer chỉ được fit trên tập train của đúng protocol đang chạy (Project-wise train: 6.983 mẫu; Seen-project train: 7.272 mẫu), lưu tại `outputs/vocab/`.
+6. **Nhãn và Phân định Pilot**:
+   - Pilot 30 mẫu: Giữ nguyên vẹn 30 dòng metadata, chỉ dừng ở Tier 1 Intermediate JSON, chưa map sang class index $0-22$ và chưa tạo PyG `.pt`.
+   - Thí nghiệm chính 9.077 mẫu: Ánh xạ 23 CWE sang class index $[0, 22]$ theo thứ tự bảng chữ cái cố định; giữ nguyên hai bộ split đã chốt.
+7. **Định dạng dữ liệu**: Kiến trúc 2 tầng (Intermediate JSON với các key tường minh `id, node_type, code_token, line_number, rel_line_number` $\rightarrow$ Processed PyG `.pt`). Giới hạn trần 1.000 nodes, 3.000 edges, timeout chuẩn hóa `timeout_sec: 120`. Pilot áp dụng `flag_and_log`; training áp dụng `truncate_bfs` hoặc `drop_with_metric_penalty`. Không âm thầm loại bỏ mẫu lỗi.

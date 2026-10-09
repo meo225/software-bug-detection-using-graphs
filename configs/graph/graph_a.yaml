@@ -21,10 +21,10 @@ graph:
         description: "Token hoặc đoạn mã đại diện sau khi chuẩn hóa bảo thủ"
       - name: "line_number"
         type: "integer"
-        description: "Số dòng 1-indexed trong phạm vi hàm"
+        description: "Số dòng 1-indexed trong chuỗi mã nguồn function; nếu thiếu kế thừa từ AST cha, fallback = 1 (chỉ lưu trong JSON trung gian để debug)"
       - name: "rel_line_number"
         type: "float"
-        description: "Vị trí tương đối = line_number / max_function_lines (trong khoảng [0.0, 1.0])"
+        description: "Vị trí tương đối = line_number / max(1, len(func.splitlines())) trong khoảng [0.0, 1.0] (được đưa vào tensor PyG)"
     indexing: "zero_indexed_consecutive" # [0, 1, ..., N-1]
 
   # Edge Specification
@@ -35,7 +35,7 @@ graph:
         description: "Quan hệ cú pháp cha-con từ node cha trỏ đến node con (parent -> child)"
     direction: "directed"
     allow_reverse_in_storage: false # Không tự nhân đôi cạnh ngược vào file lưu trữ
-    allow_self_loops: false
+    allow_self_loops: false # Lọc bỏ nếu gặp self-loop src == dst và thống kê số cạnh bị loại
 
   # Cấu hình lưu trữ và trích xuất
   extractor:
