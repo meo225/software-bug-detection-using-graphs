@@ -1,0 +1,113 @@
+# Đặc tả kỹ thuật dùng chung cho Graph Schema (Task 3.1)
+# Áp dụng cho tập 9.077 function, 23 CWE trên DiverseVul
+# Tuân thủ: docs/1_3_1_4_graph.md, docs/2_2_cwe_policy.md, docs/2_3_split.md
+
+version: "1.0"
+dataset:
+  name: "diversevul"
+  manifest_path: "data/splits/diversevul_experiment_manifest.csv"
+  total_samples: 9077
+  total_cwe_classes: 23
+  label_policy: "single_label_multiclass"
+
+# Bảng ánh xạ chuẩn hóa 23 CWE sang class index [0..22]
+# Sắp xếp theo thứ tự bảng chữ cái xác định để đảm bảo tính tái lập tuyệt đối
+cwe_mapping:
+  "CWE-119": 0
+  "CWE-120": 1
+  "CWE-125": 2
+  "CWE-189": 3
+  "CWE-190": 4
+  "CWE-20": 5
+  "CWE-200": 6
+  "CWE-22": 7
+  "CWE-264": 8
+  "CWE-295": 9
+  "CWE-369": 10
+  "CWE-399": 11
+  "CWE-400": 12
+  "CWE-401": 13
+  "CWE-415": 14
+  "CWE-416": 15
+  "CWE-476": 16
+  "CWE-59": 17
+  "CWE-617": 18
+  "CWE-703": 19
+  "CWE-770": 20
+  "CWE-787": 21
+  "CWE-835": 22
+
+# Các split protocols đã chốt (Task 2.3)
+split_protocols:
+  project_wise:
+    dir: "data/splits/diversevul_project_wise"
+    train_count: 6983
+    validation_count: 1047
+    test_count: 1047
+    role: "primary_unseen_project_evaluation"
+  seen_project:
+    dir: "data/splits/diversevul_seen_project"
+    train_count: 7272
+    validation_count: 902
+    test_count: 903
+    role: "baseline_seen_project_evaluation"
+
+# Giới hạn kích thước đồ thị để kiểm soát outlier và tránh OOM
+size_limits:
+  max_nodes: 1000
+  max_edges: 3000
+  timeout_sec: 120 # Chuẩn hóa tên khóa timeout trên toàn hệ thống
+  oversized_handling: "flag_and_log" # [flag_and_log cho pilot, truncate_bfs cho training batching]
+
+# Quy định phạm vi Pilot Task 3.2 vs Thí nghiệm chính (Major 1)
+pilot:
+  manifest_path: "data/sample_manifests/diversevul_graph_sample.csv"
+  total_samples: 30
+  scope: "tier1_intermediate_json_only" # Chỉ đo lường khả năng parser Joern, không tạo PyG .pt
+  label_policy: "preserve_raw_metadata_string" # Giữ nguyên vẹn 30 dòng, không lọc thiếu CWE / multi-CWE / ngoài 23 lớp, không map y [0..22]
+
+# Các trạng thái trích xuất đồ thị (Extraction Status Enums)
+status_enums:
+  - "SUCCESS"
+  - "EMPTY_GRAPH"
+  - "PARSE_ERROR"
+  - "TIMEOUT_ERROR"
+  - "OVERSIZED_GRAPH"
+
+# Chuẩn hóa bảo thủ node features
+normalization:
+  clean_whitespace: true
+  strip_html_escapes: true
+  subtoken_split_identifiers: true
+  string_literal_token: "<STR>"
+  large_number_token: "<NUM>"
+  hex_literal_token: "<HEX>"
+  unknown_token: "<UNK>"
+  max_token_length: 64
+
+# Quy tắc tính toán vị trí dòng và phòng chống leakage (Major 4)
+node_position_policy:
+  line_number_definition: "1-indexed line number in function source string"
+  denominator: "total_lines = max(1, len(func.splitlines()))"
+  rel_line_number_formula: "line_number / total_lines"
+  valid_range: [0.0, 1.0]
+  missing_line_fallback: "inherit_from_nearest_ast_parent_else_1"
+  intermediate_storage: "line_number and rel_line_number stored in JSON"
+  tensor_storage: "rel_line_number only in PyG data.x; line_number is excluded from tensor"
+
+# Quy tắc Vocabulary & Tokenizer Anti-Leakage
+vocabulary_policy:
+  fit_target: "train_split_only"
+  disallow_global_fit: true
+  min_token_frequency: 2
+  vocab_output_dir: "outputs/vocab" # Minor 4: Đường dẫn lưu trữ artifact từ vựng
+  special_tokens:
+    pad: "<PAD>"
+    unk: "<UNK>"
+    mask: "<MASK>"
+
+# Định dạng lưu trữ
+storage:
+  intermediate_format: "json" # Cấu trúc JSON độc lập vocabulary (Tier 1)
+  processed_format: "pt"       # PyTorch Geometric Data object sau khi fit vocab (Tier 2)
+  compression: null           # Hoặc "gzip" nếu cần tối ưu đĩa
