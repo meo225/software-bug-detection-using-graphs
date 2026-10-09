@@ -58,6 +58,7 @@ Mỗi node $u \in V_A$ tương ứng với một thực thể cú pháp của h�
   - Không có khuyên tự lặp (`self-loops`): Lọc bỏ nếu parser sinh ra cạnh `src == dst` và ghi nhận vào thống kê.
   - Không có cạnh ngang (`sibling edges`).
   - Khử trùng lặp: Nếu có nhiều cạnh AST cùng chiều giữa cùng cặp `(parent, child)`, chỉ giữ đúng 1 cạnh.
+- **Đánh số node ổn định**: Gán `node_id` theo depth-first preorder từ root. Sắp thứ tự con theo `AST` edge order tăng dần; nếu thiếu thì dùng line, column, node type, code đã gộp whitespace và Joern ID tăng dần. Joern ID chỉ dùng tie-break khi xây mapping trong cùng CPG, không làm ID output.
 
 ---
 
@@ -95,9 +96,11 @@ Nhằm bảo đảm tính xác định khi hiện thực parser và xây dựng 
 
 1. **Xử lý Cạnh không ánh xạ được (Unmappable Edges - Major 2)**:
    - **Nguyên tắc cốt lõi**: Cả hai đầu mút của cạnh CFG và DDG bắt buộc phải ánh xạ hợp lệ vào miền node của Graph A ($V_A$).
-   - **Ánh xạ node tương ứng (Deterministic Mapping)**: Nếu một đầu mút từ Joern không phải là node AST trực tiếp nhưng thuộc một thực thể cú pháp con/tham số (ví dụ: `METHOD_PARAMETER_IN` hoặc biểu thức con), parser thử ánh xạ đầu mút đó về node AST tương ứng trong $V_A$ theo quy tắc tất định đã định nghĩa và ghi nhận vào log.
+    - **Khóa đối chiếu**: Ưu tiên `joern_id` nếu duy nhất trong cùng CPG. Duplicate ID là lỗi identity và fail-closed, không thử tie-break. ID này chỉ nối các view, không dùng làm `node_id` output. Nếu không có ID khớp, dùng fingerprint chính xác `(lineNumber, columnNumber, code)`: tọa độ phải dương, code không rỗng và chỉ chuẩn hóa bằng cách gộp whitespace; so sánh phân biệt hoa thường. Không dò gần theo riêng dòng, tên node hoặc khoảng cách source.
+    - **Ứng viên trùng fingerprint**: Xếp `ast_depth` giảm dần (node sâu/cụ thể hơn trước), rồi `node_id` tăng dần; chọn ứng viên đầu tiên. `node_id` được gán theo thứ tự AST xác định ở mục 2.3. Ghi lại phương thức mapping để audit.
+    - **AST-parent fallback**: Chỉ bật khi endpoint có chuỗi `AST_PARENT` tường minh, duyệt gần nhất trước xa nhất. Chọn ancestor đầu tiên có `joern_id` duy nhất trong $V_A$. Nếu một ancestor ID mơ hồ, fail-closed và dừng chain; không thử ancestor xa hơn. Không suy ra ancestor từ dòng/code và không fallback nếu thiếu chuỗi.
    - **Loại bỏ cạnh không ánh xạ được**: Nếu một đầu mút hoàn toàn không thể ánh xạ về bất kỳ node nào trong $V_A$ (ví dụ: node thoát hàm ngoài AST `METHOD_RETURN`, node meta CPG), parser **bỏ qua cạnh (drop edge)**.
-   - **Thống kê chi tiết**: Các cạnh bị loại phải được thống kê riêng theo từng loại cạnh (`CFG`, `DATA_DEP`) và nguyên nhân loại bỏ trong báo cáo trích xuất.
+    - **Drop và log**: Nếu không có direct ID, fingerprint hợp lệ hay parent fallback duy nhất, drop toàn cạnh nếu một endpoint không map được. Ghi `edge_type`, `endpoint_side` (`source`/`target`) và `reason` (thiếu identity, không khớp hoặc ID mơ hồ) riêng cho CFG/DATA_DEP.
    - **Tuyệt đối không tạo node giả (dummy nodes)** chỉ để giữ cạnh.
    - **Không làm gián đoạn pipeline**: Việc một cạnh không ánh xạ được không được gây lỗi (crash) toàn bộ pipeline trích xuất của function; đồ thị vẫn được tiếp tục xử lý với các cạnh hợp lệ còn lại.
 
@@ -136,11 +139,14 @@ Nhằm tránh việc mô hình học thuộc lòng các tên biến hoặc chu�
 2. **Identifier (Tên biến, tên hàm nội bộ)**:
    - Tách subtoken theo quy tắc CamelCase và snake_case (ví dụ: `buffer_len` $\rightarrow$ `["buffer", "len"]`, `parseHeader` $\rightarrow$ `["parse", "header"]`).
    - Giữ các subtoken có độ dài $\ge 2$ ký tự, chuyển về chữ thường.
+  - Giữ nguyên token toán tử/dấu câu AST nếu node biểu diễn chính token đó (ví dụ `+`, `->`); không làm rỗng `code_token` chỉ vì token không có chữ cái.
 3. **Literals (Hằng số và chuỗi)**:
-   - Chuỗi ký tự string literal dài $\rightarrow$ thay bằng token hằng `"<STR>"`.
+    - Mọi string và character literal, không phụ thuộc độ dài, $\rightarrow$ thay nội dung bằng token `"<STR>"`; không lưu literal gốc trong node feature.
    - Số nguyên lớn (giá trị $> 100$) hoặc số thực $\rightarrow$ thay bằng token hằng `"<NUM>"`.
    - Hằng số hex (địa chỉ bộ nhớ, bitmask) $\rightarrow$ thay bằng token hằng `"<HEX>"`.
    - Số nguyên nhỏ thông dụng ($0, 1, 2, -1$) được giữ nguyên vì thường mang ý nghĩa logic điều khiển (mã lỗi, chỉ số mảng cơ sở).
+4. **Comment và source**: Comment không phải node/token feature. Raw source được giữ nguyên khi gửi parser, không xóa comment trước parse; nếu parser xuất node comment thì loại node đó khỏi domain/feature. HTML entity chỉ được decode khi chuẩn hóa code token, không ghi ngược vào source.
+5. **Marker metadata trong code token**: CWE/CVE marker, tên trường metadata `cwe`, `cve`, `commit`, `commit_id`, `commit_hash`, `commit_sha`, `commit_ref`, `commit_revision`, `commit_message`, `project`, `project_name`, `group_id`, `split`, và token split `train`/`validation`/`test` được thay bằng `"<META>"`; không xóa node AST. Commit hash chỉ được redact khi token hex dài 7–40 ký tự khớp không phân biệt hoa thường với full sample `commit_id` hoặc prefix của nó. Token hex không có commit metadata được giữ như source token để tránh redact bừa identifier hợp lệ. Đây không bảo đảm nhận diện mọi cách mã hóa/hash tùy biến. Tên project chỉ dùng tạm để đối chiếu, không ghi vào graph. HTML entity chỉ decode trong code token. Subtoken dài hơn 64 ký tự ánh xạ sang `"<UNK>"`. Raw source không bị sửa.
 
 ### 4.3 Các trường bị CẤM TUYỆT ĐỐI trong Node Feature
 Để ngăn chặn hoàn toàn rò rỉ dữ liệu (data leakage) và shortcut learning:
@@ -148,6 +154,7 @@ Nhằm tránh việc mô hình học thuộc lòng các tên biến hoặc chu�
 - **CẤM** đưa `commit_id`, `commit_message`, `cve`, `hash` vào node.
 - **CẤM** đưa nhãn `cwe` hoặc target nhị phân vào node.
 - **CẤM** đưa tên `split` (`train`, `validation`, `test`) hoặc `group_id` vào graph.
+- Allowlist feature của cả hai graph chỉ gồm `node_type`, `code_token`, `rel_line_number`; `line_number` chỉ lưu debug trong Tier 1. Metadata bị cấm không được đưa vào node, edge hoặc graph-level feature. Redaction trong code token không thay thế allowlist này.
 
 ### 4.4 Quy tắc huấn luyện Từ vựng (Vocabulary Anti-Leakage Rules)
 1. **Không fit từ vựng toàn cục**: Tuyệt đối không xây dựng tokenizer / vocabulary / dictionary trên toàn bộ 9.077 mẫu.
@@ -330,13 +337,17 @@ File nhị phân PyTorch Geometric lưu trữ dưới dạng `torch.save(data, p
 ### 6.4 Biểu diễn Graph Rỗng và Graph Không Hợp Lệ
 Một đồ thị có thể không trích xuất được do nhiều nguyên nhân thực tế. Hệ thống quy định rõ các mã trạng thái (`status` enums):
 - `SUCCESS`: Trích xuất thành công, $N > 0$ và $E \ge 0$.
-- `EMPTY_GRAPH`: Trích xuất hoàn tất nhưng số node $N = 0$ (mã nguồn rỗng hoặc chỉ có comment).
+- `EMPTY_FUNCTION_BODY`: Parser thành công, tìm thấy AST function/body, `statement_count == 0` và `comment_count == 0`. Giữ node `Method`/`Block` nếu Joern cung cấp; đây không phải parse error.
+- `COMMENT_ONLY_FUNCTION`: Parser thành công, AST function/body tồn tại, không có statement nhưng có comment. Comment bị loại khỏi feature; giữ node cấu trúc AST nếu có.
+- `BODY_CLASSIFICATION_UNKNOWN`: Parser và body AST tồn tại, `statement_count == 0`, `comment_count` không có, nhưng graph vẫn có node. Không suy diễn thành function rỗng, comment-only hay empty graph.
+- `EMPTY_GRAPH`: Chỉ dùng khi parser, AST và function body hợp lệ nhưng selected graph thật sự có `num_nodes == 0`, sau khi đã kiểm tra các trạng thái body rỗng/comment-only có đủ metadata.
 - `PARSE_ERROR`: Lỗi cú pháp mã nguồn C/C++, parser Joern báo lỗi cú pháp hoặc crash.
+- `AST_EXTRACTION_ERROR`: Parse nguồn thành công nhưng không tìm thấy function AST/body cần thiết hoặc traversal AST thất bại.
 - `TIMEOUT_ERROR`: Quá trình phân tích tĩnh vượt quá ngưỡng thời gian quy định (`120s`).
 - `OVERSIZED_GRAPH`: Đồ thị sinh ra vượt quá trần kích thước quy định.
 
 **Quy tắc xử lý bắt buộc**:
-- **KHÔNG âm thầm drop mẫu lỗi**: Nếu xảy ra lỗi hoặc đồ thị rỗng, file trung gian vẫn được ghi lại với `num_nodes: 0, num_edges: 0, nodes: [], edges: []` kèm trường `"status"` tương ứng và lý do `"error_message"`.
+- **KHÔNG âm thầm drop mẫu**: Ghi artifact và manifest cho mọi status. Parse/AST extraction/timeout errors dùng payload rỗng và `error_message`. `EMPTY_FUNCTION_BODY`/`COMMENT_ONLY_FUNCTION` giữ các node cấu trúc có thật; chỉ dùng payload 0 node khi output thực sự không có node. `EMPTY_GRAPH` cũng phải ghi `error_message`/reason giải thích vì sao selection cho ra 0 node.
 - Trạng thái của từng mẫu được ghi đầy đủ vào file `manifest.csv` của thư mục graph để phục vụ việc kiểm tra Cổng (Gate check) và báo cáo coverage.
 
 ### 6.5 Giới hạn kích thước đồ thị (Graph Size Limits) và Cơ chế xử lý

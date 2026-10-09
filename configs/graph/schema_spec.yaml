@@ -69,21 +69,65 @@ pilot:
 # Các trạng thái trích xuất đồ thị (Extraction Status Enums)
 status_enums:
   - "SUCCESS"
+  - "EMPTY_FUNCTION_BODY"
+  - "COMMENT_ONLY_FUNCTION"
+  - "BODY_CLASSIFICATION_UNKNOWN"
   - "EMPTY_GRAPH"
   - "PARSE_ERROR"
+  - "AST_EXTRACTION_ERROR"
   - "TIMEOUT_ERROR"
   - "OVERSIZED_GRAPH"
+
+status_classification:
+  precedence: ["TIMEOUT_ERROR", "PARSE_ERROR", "AST_EXTRACTION_ERROR", "OVERSIZED_GRAPH", "EMPTY_FUNCTION_BODY", "COMMENT_ONLY_FUNCTION", "BODY_CLASSIFICATION_UNKNOWN", "EMPTY_GRAPH", "SUCCESS"]
+  rules:
+    EMPTY_FUNCTION_BODY: "parse_succeeded and function_ast_available and function_body_available and statement_count == 0 and comment_count == 0"
+    COMMENT_ONLY_FUNCTION: "parse_succeeded and function_ast_available and function_body_available and statement_count == 0 and comment_count > 0"
+    BODY_CLASSIFICATION_UNKNOWN: "parse_succeeded and function_ast_available and function_body_available and statement_count == 0 and comment_count is unavailable and selected_graph_node_count > 0"
+    EMPTY_GRAPH: "parse_succeeded and function_ast_available and function_body_available and selected_graph_node_count == 0 and neither empty-body nor comment-only conditions matched"
+    PARSE_ERROR: "Joern reports source syntax parse failure"
+    AST_EXTRACTION_ERROR: "parse_succeeded and (function_ast_missing or function_body_missing or ast_traversal_failed)"
+  empty_body_nodes: "Preserve any Method/Block AST nodes; do not force zero-node payloads"
+  empty_graph_reason: "Record why no selected graph nodes remain; do not classify missing AST as EMPTY_GRAPH"
+  failure_payload: "PARSE_ERROR, AST_EXTRACTION_ERROR, TIMEOUT_ERROR use empty nodes/edges and error_message"
 
 # Chuẩn hóa bảo thủ node features
 normalization:
   clean_whitespace: true
   strip_html_escapes: true
   subtoken_split_identifiers: true
-  string_literal_token: "<STR>"
+  identifier_split: "snake_case_and_camel_case"
+  min_identifier_subtoken_length: 2
+  preserve_identifier_case: false
+  punctuation_policy: "preserve_exact_token"
+  comments:
+    include_as_nodes: false
+    include_in_code_tokens: false
+    modify_source_before_parse: false
+  all_string_and_char_literals: "<STR>"
   large_number_token: "<NUM>"
   hex_literal_token: "<HEX>"
+  metadata_marker_token: "<META>"
+  redact_patterns:
+    cwe_cve_identifiers: "(?i)^(CWE|CVE)[_-]?\\d+([_-]\\d+)*$"
+    commit_hash:
+      strategy: "match_sample_commit_id_metadata"
+      candidate_length: [7, 40]
+      matching: "case_insensitive_prefix_of_sample_commit_id"
+      without_commit_metadata: "preserve_source_token"
+    project_name: "exact identifier or identifier subtoken matching current sample project metadata"
+    split_marker: ["train", "validation", "test"]
+    metadata_field_names: ["cwe", "cve", "commit", "commit_id", "commit_hash", "commit_sha", "commit_ref", "commit_revision", "commit_message", "project", "project_name", "group_id", "split"]
+  project_metadata_scope: "use for matching only; never store in graph features"
   unknown_token: "<UNK>"
   max_token_length: 64
+  overlength_token_policy: "map_to_UNK_if_any_subtoken_exceeds_limit"
+
+feature_policy:
+  allowed_node_features: ["node_type", "code_token", "rel_line_number"]
+  metadata_fields_forbidden: ["project", "commit", "commit_id", "commit_message", "cve", "cwe", "split", "group_id", "hash"]
+  line_number_storage: "intermediate_debug_only"
+  raw_source_modified: false
 
 # Quy tắc tính toán vị trí dòng và phòng chống leakage (Major 4)
 node_position_policy:
@@ -100,6 +144,7 @@ vocabulary_policy:
   fit_target: "train_split_only"
   disallow_global_fit: true
   min_token_frequency: 2
+  oov_token: "<UNK>"
   vocab_output_dir: "outputs/vocab" # Minor 4: Đường dẫn lưu trữ artifact từ vựng
   special_tokens:
     pad: "<PAD>"

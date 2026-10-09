@@ -26,6 +26,9 @@ graph:
         type: "float"
         description: "Vị trí tương đối = line_number / max(1, len(func.splitlines())) trong khoảng [0.0, 1.0] (được đưa vào tensor PyG)"
     indexing: "zero_indexed_consecutive" # [0, 1, ..., N-1]
+    node_ordering:
+      traversal: "depth_first_preorder"
+      child_order: ["ast_edge_order_asc", "line_number_asc", "column_number_asc", "node_type_asc", "normalized_code_asc", "joern_id_asc"]
 
   # Edge Specification
   edges:
@@ -36,6 +39,11 @@ graph:
     direction: "directed"
     allow_reverse_in_storage: false # Không tự nhân đôi cạnh ngược vào file lưu trữ
     allow_self_loops: false # Lọc bỏ nếu gặp self-loop src == dst và thống kê số cạnh bị loại
+    deduplication_policy:
+      key: ["src", "dst"]
+      directed: true
+      drop_self_loops: true
+      record_drop_statistics: true
 
   # Cấu hình lưu trữ và trích xuất
   extractor:

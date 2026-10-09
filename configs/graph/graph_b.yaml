@@ -27,6 +27,9 @@ graph:
         type: "float"
         description: "Vị trí tương đối = line_number / max(1, len(func.splitlines())) trong khoảng [0.0, 1.0] (được đưa vào tensor PyG)"
     indexing: "zero_indexed_consecutive" # [0, 1, ..., N-1]
+    node_ordering:
+      traversal: "depth_first_preorder"
+      child_order: ["ast_edge_order_asc", "line_number_asc", "column_number_asc", "node_type_asc", "normalized_code_asc", "joern_id_asc"]
 
   # Edge Specification
   edges:
@@ -49,9 +52,24 @@ graph:
 
     # Quy tắc ánh xạ đầu mút cạnh vào miền node Graph A (Major 2)
     mapping_policy:
+      direct_key: "joern_id"
+      direct_key_scope: "unique_within_cpg"
+      duplicate_direct_id_handling: "fail_closed"
+      source_key: ["line_number", "column_number", "normalized_code"]
+      source_code_normalization: "collapse_whitespace_only_case_sensitive"
+      require_positive_coordinates: true
+      candidate_ranking: ["ast_depth_desc", "node_id_asc"]
+      ambiguity_handling: "apply_candidate_ranking"
+      ast_parent_fallback:
+        enabled: true
+        source_relation: "AST_PARENT"
+        ancestor_order: "nearest_first"
+        require_explicit_ancestor_chain: true
+        select: "first_ancestor_with_unique_joern_id_in_v_a"
+        ambiguous_ancestor_handling: "fail_closed_and_stop_chain"
+        missing_chain: "do_not_fallback"
       require_both_endpoints_in_v_a: true
       unmappable_handling: "drop_and_log" # Bỏ cạnh không ánh xạ được, ghi nhận riêng theo loại cạnh và nguyên nhân
-      allow_ast_parent_fallback: true     # Ánh xạ về node AST tương ứng nếu có quy tắc xác định
       disallow_dummy_nodes: true          # Tuyệt đối không tạo node giả để giữ cạnh
       fail_pipeline_on_unmappable: false  # Không làm crash pipeline khi có cạnh không map được
 
