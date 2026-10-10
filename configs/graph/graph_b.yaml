@@ -1,0 +1,101 @@
+# Cấu hình Graph B — Semantic Graph tối thiểu (Task 3.1)
+# Biểu diễn AST + CFG + Data Dependence trong phạm vi hàm (intra-procedural)
+# Tuân thủ: docs/1_3_1_4_graph.md, docs/2_2_cwe_policy.md, docs/2_3_split.md
+
+graph:
+  name: "graph_b"
+  display_name: "Graph B (AST + CFG + Data Dependence)"
+  representation_type: "ast_cfg_ddg"
+  scope: "intra_procedural_function"
+  description: "Đồ thị đa quan hệ có hướng kết hợp cấu trúc cú pháp (AST), luồng điều khiển (CFG) và phụ thuộc dữ liệu (DDG)."
+
+  # Node Specification (Tái sử dụng 100% miền node của Graph A)
+  nodes:
+    domain: "function_ast_nodes"
+    reuse_graph_a_domain: true # V_B đồng nhất với V_A
+    features:
+      - name: "node_type"
+        type: "categorical_string"
+        description: "Kiểu cú pháp AST (Method, Block, Call, Identifier, Literal, ControlStructure...)"
+      - name: "code_token"
+        type: "text_token"
+        description: "Token hoặc đoạn mã đại diện sau khi chuẩn hóa bảo thủ"
+      - name: "line_number"
+        type: "integer"
+        description: "Số dòng 1-indexed trong chuỗi mã nguồn function; nếu thiếu kế thừa từ AST cha, fallback = 1 (chỉ lưu trong JSON trung gian để debug)"
+      - name: "rel_line_number"
+        type: "float"
+        description: "Vị trí tương đối = line_number / max(1, len(func.splitlines())) trong khoảng [0.0, 1.0] (được đưa vào tensor PyG)"
+    indexing: "zero_indexed_consecutive" # [0, 1, ..., N-1]
+    node_ordering:
+      traversal: "depth_first_preorder"
+      child_order: ["ast_edge_order_asc", "line_number_asc", "column_number_asc", "node_type_asc", "normalized_code_asc", "joern_id_asc"]
+
+  # Edge Specification
+  edges:
+    types:
+      - id: 0
+        name: "AST"
+        code: "AST_CHILD"
+        description: "Quan hệ cú pháp cha-con (parent -> child), kế thừa từ Graph A"
+      - id: 1
+        name: "CFG"
+        code: "CFG_FLOW"
+        description: "Quan hệ luồng điều khiển giữa các bước thực thi (predecessor -> successor)"
+      - id: 2
+        name: "DATA_DEP"
+        code: "DDG_REACHING_DEF"
+        description: "Quan hệ phụ thuộc dữ liệu định nghĩa-sử dụng biến (def_node -> use_node)"
+    direction: "directed_multigraph"
+    allow_reverse_in_storage: false # Không tự nhân đôi cạnh ngược vào file lưu trữ
+    allow_self_loops: false         # Loại bỏ self-loop khi src == dst và thống kê số lượng
+
+    # Quy tắc ánh xạ đầu mút cạnh vào miền node Graph A (Major 2)
+    mapping_policy:
+      direct_key: "joern_id"
+      direct_key_scope: "unique_within_cpg"
+      duplicate_direct_id_handling: "fail_closed"
+      source_key: ["line_number", "column_number", "normalized_code"]
+      source_code_normalization: "collapse_whitespace_only_case_sensitive"
+      require_positive_coordinates: true
+      candidate_ranking: ["ast_depth_desc", "node_id_asc"]
+      ambiguity_handling: "apply_candidate_ranking"
+      ast_parent_fallback:
+        enabled: true
+        source_relation: "AST_PARENT"
+        ancestor_order: "nearest_first"
+        require_explicit_ancestor_chain: true
+        select: "first_ancestor_with_unique_joern_id_in_v_a"
+        ambiguous_ancestor_handling: "fail_closed_and_stop_chain"
+        missing_chain: "do_not_fallback"
+      require_both_endpoints_in_v_a: true
+      unmappable_handling: "drop_and_log" # Bỏ cạnh không ánh xạ được, ghi nhận riêng theo loại cạnh và nguyên nhân
+      disallow_dummy_nodes: true          # Tuyệt đối không tạo node giả để giữ cạnh
+      fail_pipeline_on_unmappable: false  # Không làm crash pipeline khi có cạnh không map được
+
+    # Quy tắc xử lý cạnh trùng và self-loop (Major 3)
+    deduplication_policy:
+      keep_cross_type_edges: true         # Giữ các cạnh khác loại giữa cùng cặp node
+      dedup_same_type_edges: true         # Khử trùng lặp cạnh cùng loại và cùng chiều
+      drop_self_loops: true               # Loại self-loop khi src == dst
+      record_drop_statistics: true        # Thống kê số cạnh trùng và self-loop bị loại
+      normalized_relation_note: "Khử trùng lặp áp dụng cho quan hệ graph chuẩn hóa; không lưu thuộc tính biến riêng trên cạnh"
+
+  # Phạm vi bị loại trừ rõ ràng (Explicit Exclusions)
+  exclusions:
+    inter_procedural: true   # Loại bỏ call graph liên hàm
+    apply_slicing: false     # Không áp dụng slicing (giữ nguyên toàn bộ function, không cắt lát)
+    dominator_tree: true     # Không đưa DOMINATE / POST_DOMINATE
+    full_cpg_overlays: true  # Không đưa REF, EVAL_TYPE, CONTAINS
+
+  # Cấu hình lưu trữ và trích xuất
+  extractor:
+    tool: "joern"
+    status: "pilot_candidate"
+    export_format: "json" # json hoặc dot trong giai đoạn pilot
+    timeout_sec: 120
+
+  paths:
+    raw_dir: "data/graphs/graph_b/raw"
+    processed_dir: "data/graphs/graph_b/processed"
+    manifest_file: "data/graphs/graph_b/manifest.csv"

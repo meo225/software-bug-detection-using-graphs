@@ -1,0 +1,158 @@
+# Đặc tả kỹ thuật dùng chung cho Graph Schema (Task 3.1)
+# Áp dụng cho tập 9.077 function, 23 CWE trên DiverseVul
+# Tuân thủ: docs/1_3_1_4_graph.md, docs/2_2_cwe_policy.md, docs/2_3_split.md
+
+version: "1.0"
+dataset:
+  name: "diversevul"
+  manifest_path: "data/splits/diversevul_experiment_manifest.csv"
+  total_samples: 9077
+  total_cwe_classes: 23
+  label_policy: "single_label_multiclass"
+
+# Bảng ánh xạ chuẩn hóa 23 CWE sang class index [0..22]
+# Sắp xếp theo thứ tự bảng chữ cái xác định để đảm bảo tính tái lập tuyệt đối
+cwe_mapping:
+  "CWE-119": 0
+  "CWE-120": 1
+  "CWE-125": 2
+  "CWE-189": 3
+  "CWE-190": 4
+  "CWE-20": 5
+  "CWE-200": 6
+  "CWE-22": 7
+  "CWE-264": 8
+  "CWE-295": 9
+  "CWE-369": 10
+  "CWE-399": 11
+  "CWE-400": 12
+  "CWE-401": 13
+  "CWE-415": 14
+  "CWE-416": 15
+  "CWE-476": 16
+  "CWE-59": 17
+  "CWE-617": 18
+  "CWE-703": 19
+  "CWE-770": 20
+  "CWE-787": 21
+  "CWE-835": 22
+
+# Các split protocols đã chốt (Task 2.3)
+split_protocols:
+  project_wise:
+    dir: "data/splits/diversevul_project_wise"
+    train_count: 6983
+    validation_count: 1047
+    test_count: 1047
+    role: "primary_unseen_project_evaluation"
+  seen_project:
+    dir: "data/splits/diversevul_seen_project"
+    train_count: 7272
+    validation_count: 902
+    test_count: 903
+    role: "baseline_seen_project_evaluation"
+
+# Giới hạn kích thước đồ thị để kiểm soát outlier và tránh OOM
+size_limits:
+  max_nodes: 1000
+  max_edges: 3000
+  timeout_sec: 120 # Chuẩn hóa tên khóa timeout trên toàn hệ thống
+  oversized_handling: "flag_and_log" # [flag_and_log cho pilot, truncate_bfs cho training batching]
+
+# Quy định phạm vi Pilot Task 3.2 vs Thí nghiệm chính (Major 1)
+pilot:
+  manifest_path: "data/sample_manifests/diversevul_graph_sample.csv"
+  total_samples: 30
+  scope: "tier1_intermediate_json_only" # Chỉ đo lường khả năng parser Joern, không tạo PyG .pt
+  label_policy: "preserve_raw_metadata_string" # Giữ nguyên vẹn 30 dòng, không lọc thiếu CWE / multi-CWE / ngoài 23 lớp, không map y [0..22]
+
+# Các trạng thái trích xuất đồ thị (Extraction Status Enums)
+status_enums:
+  - "SUCCESS"
+  - "EMPTY_FUNCTION_BODY"
+  - "COMMENT_ONLY_FUNCTION"
+  - "BODY_CLASSIFICATION_UNKNOWN"
+  - "EMPTY_GRAPH"
+  - "PARSE_ERROR"
+  - "AST_EXTRACTION_ERROR"
+  - "TIMEOUT_ERROR"
+  - "OVERSIZED_GRAPH"
+
+status_classification:
+  precedence: ["TIMEOUT_ERROR", "PARSE_ERROR", "AST_EXTRACTION_ERROR", "OVERSIZED_GRAPH", "EMPTY_FUNCTION_BODY", "COMMENT_ONLY_FUNCTION", "BODY_CLASSIFICATION_UNKNOWN", "EMPTY_GRAPH", "SUCCESS"]
+  rules:
+    EMPTY_FUNCTION_BODY: "parse_succeeded and function_ast_available and function_body_available and statement_count == 0 and comment_count == 0"
+    COMMENT_ONLY_FUNCTION: "parse_succeeded and function_ast_available and function_body_available and statement_count == 0 and comment_count > 0"
+    BODY_CLASSIFICATION_UNKNOWN: "parse_succeeded and function_ast_available and function_body_available and statement_count == 0 and comment_count is unavailable and selected_graph_node_count > 0"
+    EMPTY_GRAPH: "parse_succeeded and function_ast_available and function_body_available and selected_graph_node_count == 0 and neither empty-body nor comment-only conditions matched"
+    PARSE_ERROR: "Joern reports source syntax parse failure"
+    AST_EXTRACTION_ERROR: "parse_succeeded and (function_ast_missing or function_body_missing or ast_traversal_failed)"
+  empty_body_nodes: "Preserve any Method/Block AST nodes; do not force zero-node payloads"
+  empty_graph_reason: "Record why no selected graph nodes remain; do not classify missing AST as EMPTY_GRAPH"
+  failure_payload: "PARSE_ERROR, AST_EXTRACTION_ERROR, TIMEOUT_ERROR use empty nodes/edges and error_message"
+
+# Chuẩn hóa bảo thủ node features
+normalization:
+  clean_whitespace: true
+  strip_html_escapes: true
+  subtoken_split_identifiers: true
+  identifier_split: "snake_case_and_camel_case"
+  min_identifier_subtoken_length: 2
+  preserve_identifier_case: false
+  punctuation_policy: "preserve_exact_token"
+  comments:
+    include_as_nodes: false
+    include_in_code_tokens: false
+    modify_source_before_parse: false
+  all_string_and_char_literals: "<STR>"
+  large_number_token: "<NUM>"
+  hex_literal_token: "<HEX>"
+  metadata_marker_token: "<META>"
+  redact_patterns:
+    cwe_cve_identifiers: "(?i)^(CWE|CVE)[_-]?\\d+([_-]\\d+)*$"
+    commit_hash:
+      strategy: "match_sample_commit_id_metadata"
+      candidate_length: [7, 40]
+      matching: "case_insensitive_prefix_of_sample_commit_id"
+      without_commit_metadata: "preserve_source_token"
+    project_name: "exact identifier or identifier subtoken matching current sample project metadata"
+    split_marker: ["train", "validation", "test"]
+    metadata_field_names: ["cwe", "cve", "commit", "commit_id", "commit_hash", "commit_sha", "commit_ref", "commit_revision", "commit_message", "project", "project_name", "group_id", "split"]
+  project_metadata_scope: "use for matching only; never store in graph features"
+  unknown_token: "<UNK>"
+  max_token_length: 64
+  overlength_token_policy: "map_to_UNK_if_any_subtoken_exceeds_limit"
+
+feature_policy:
+  allowed_node_features: ["node_type", "code_token", "rel_line_number"]
+  metadata_fields_forbidden: ["project", "commit", "commit_id", "commit_message", "cve", "cwe", "split", "group_id", "hash"]
+  line_number_storage: "intermediate_debug_only"
+  raw_source_modified: false
+
+# Quy tắc tính toán vị trí dòng và phòng chống leakage (Major 4)
+node_position_policy:
+  line_number_definition: "1-indexed line number in function source string"
+  denominator: "total_lines = max(1, len(func.splitlines()))"
+  rel_line_number_formula: "line_number / total_lines"
+  valid_range: [0.0, 1.0]
+  missing_line_fallback: "inherit_from_nearest_ast_parent_else_1"
+  intermediate_storage: "line_number and rel_line_number stored in JSON"
+  tensor_storage: "rel_line_number only in PyG data.x; line_number is excluded from tensor"
+
+# Quy tắc Vocabulary & Tokenizer Anti-Leakage
+vocabulary_policy:
+  fit_target: "train_split_only"
+  disallow_global_fit: true
+  min_token_frequency: 2
+  oov_token: "<UNK>"
+  vocab_output_dir: "outputs/vocab" # Minor 4: Đường dẫn lưu trữ artifact từ vựng
+  special_tokens:
+    pad: "<PAD>"
+    unk: "<UNK>"
+    mask: "<MASK>"
+
+# Định dạng lưu trữ
+storage:
+  intermediate_format: "json" # Cấu trúc JSON độc lập vocabulary (Tier 1)
+  processed_format: "pt"       # PyTorch Geometric Data object sau khi fit vocab (Tier 2)
+  compression: null           # Hoặc "gzip" nếu cần tối ưu đĩa
