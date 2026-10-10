@@ -8,9 +8,9 @@ Tài liệu này chốt đặc tả kỹ thuật chi tiết cho hai biểu diễ
 2. **Graph B (Semantic Graph tối thiểu: AST + CFG + Data Dependence)**: Đồ thị đa quan hệ bổ sung luồng điều khiển và phụ thuộc dữ liệu trên cùng miền node với Graph A.
 
 Mục tiêu cốt lõi:
-- Đảm bảo tính nhất quán tuyệt đối với tập thí nghiệm **9.077 function, 23 CWE** và hai protocol split (**Project-wise** và **Seen-project**) đã chốt ở Task 2.2 và 2.3.
-- Cung cấp đặc tả đủ cụ thể về node, edge, feature, label mapping, kích thước trần, và định dạng lưu trữ để Task 3.2 (Pilot) và Phase 3 trích xuất dữ liệu không phải tự đưa ra bất kỳ quyết định tùy biến nào.
-- Ngăn ngừa hoàn toàn rò rỉ dữ liệu (data leakage) ở tầng đồ thị và feature.
+- Giữ nhất quán với tập thí nghiệm **9.077 function, 23 CWE** và hai protocol split (**Project-wise** và **Seen-project**) đã chốt ở Task 2.2 và 2.3.
+- Quy định node, edge, feature, label mapping, giới hạn kích thước và định dạng lưu trữ làm cơ sở cho các bước triển khai tiếp theo.
+- Giảm nguy cơ rò rỉ dữ liệu (data leakage) qua graph và feature bằng allowlist metadata, normalization và vocabulary chỉ fit trên train. Các quy tắc này là chính sách thiết kế, không phải bằng chứng rằng leakage đã được loại bỏ trong runtime.
 
 ---
 
@@ -58,7 +58,7 @@ Mỗi node $u \in V_A$ tương ứng với một thực thể cú pháp của h�
   - Không có khuyên tự lặp (`self-loops`): Lọc bỏ nếu parser sinh ra cạnh `src == dst` và ghi nhận vào thống kê.
   - Không có cạnh ngang (`sibling edges`).
   - Khử trùng lặp: Nếu có nhiều cạnh AST cùng chiều giữa cùng cặp `(parent, child)`, chỉ giữ đúng 1 cạnh.
-- **Đánh số node ổn định**: Gán `node_id` theo depth-first preorder từ root. Sắp thứ tự con theo `AST` edge order tăng dần; nếu thiếu thì dùng line, column, node type, code đã gộp whitespace và Joern ID tăng dần. Joern ID chỉ dùng tie-break khi xây mapping trong cùng CPG, không làm ID output.
+- **Đánh số node**: Gán `node_id` theo depth-first preorder từ root. Với mỗi parent, sắp xếp children theo thứ tự ưu tiên tăng dần: AST edge order, line, column, node type, code sau khi gộp whitespace, rồi Joern ID. Nếu một giá trị không có thì xét tiêu chí kế tiếp. Joern ID chỉ dùng trong cùng CPG, không dùng làm ID output. Nếu mọi tiêu chí đều thiếu hoặc bằng nhau, Task 3.1 chưa quy định tie-break cuối; cần xác nhận bằng export thực tế ở Task 3.2 trước khi khẳng định thứ tự node luôn tái lập.
 
 ---
 
@@ -90,26 +90,23 @@ $E_B$ là hợp của 3 tập cạnh có loại riêng biệt: $E_B = E_{\text{A
 3. **Không đưa Dominator Tree / CDG riêng biệt**: Không giữ cạnh `DOMINATE` hoặc `POST_DOMINATE` vì CFG kết hợp AST đã chứa đủ thông tin điều khiển.
 4. **Không đưa toàn bộ CPG Overlays**: Loại bỏ các cạnh meta của Joern như `REF` (trỏ đến biến khai báo), `EVAL_TYPE` (kiểu dữ liệu suy diễn), `CONTAINS` (quan hệ chứa đựng của file/namespace).
 
-### 3.5 Quy tắc xử lý Cạnh không ánh xạ được, Cạnh trùng và Self-loop
+### 3.5 Quy tắc ánh xạ và chuẩn hóa cạnh
 
-Nhằm bảo đảm tính xác định khi hiện thực parser và xây dựng đồ thị Graph B, hệ thống quy định các nguyên tắc xử lý biên bắt buộc:
+#### Ánh xạ endpoint Graph B
 
-1. **Xử lý Cạnh không ánh xạ được (Unmappable Edges - Major 2)**:
-   - **Nguyên tắc cốt lõi**: Cả hai đầu mút của cạnh CFG và DDG bắt buộc phải ánh xạ hợp lệ vào miền node của Graph A ($V_A$).
-    - **Khóa đối chiếu**: Ưu tiên `joern_id` nếu duy nhất trong cùng CPG. Duplicate ID là lỗi identity và fail-closed, không thử tie-break. ID này chỉ nối các view, không dùng làm `node_id` output. Nếu không có ID khớp, dùng fingerprint chính xác `(lineNumber, columnNumber, code)`: tọa độ phải dương, code không rỗng và chỉ chuẩn hóa bằng cách gộp whitespace; so sánh phân biệt hoa thường. Không dò gần theo riêng dòng, tên node hoặc khoảng cách source.
-    - **Ứng viên trùng fingerprint**: Xếp `ast_depth` giảm dần (node sâu/cụ thể hơn trước), rồi `node_id` tăng dần; chọn ứng viên đầu tiên. `node_id` được gán theo thứ tự AST xác định ở mục 2.3. Ghi lại phương thức mapping để audit.
-    - **AST-parent fallback**: Chỉ bật khi endpoint có chuỗi `AST_PARENT` tường minh, duyệt gần nhất trước xa nhất. Chọn ancestor đầu tiên có `joern_id` duy nhất trong $V_A$. Nếu một ancestor ID mơ hồ, fail-closed và dừng chain; không thử ancestor xa hơn. Không suy ra ancestor từ dòng/code và không fallback nếu thiếu chuỗi.
-   - **Loại bỏ cạnh không ánh xạ được**: Nếu một đầu mút hoàn toàn không thể ánh xạ về bất kỳ node nào trong $V_A$ (ví dụ: node thoát hàm ngoài AST `METHOD_RETURN`, node meta CPG), parser **bỏ qua cạnh (drop edge)**.
-    - **Drop và log**: Nếu không có direct ID, fingerprint hợp lệ hay parent fallback duy nhất, drop toàn cạnh nếu một endpoint không map được. Ghi `edge_type`, `endpoint_side` (`source`/`target`) và `reason` (thiếu identity, không khớp hoặc ID mơ hồ) riêng cho CFG/DATA_DEP.
-   - **Tuyệt đối không tạo node giả (dummy nodes)** chỉ để giữ cạnh.
-   - **Không làm gián đoạn pipeline**: Việc một cạnh không ánh xạ được không được gây lỗi (crash) toàn bộ pipeline trích xuất của function; đồ thị vẫn được tiếp tục xử lý với các cạnh hợp lệ còn lại.
+- **Điều kiện**: Cả hai endpoint của cạnh CFG và DATA_DEP phải ánh xạ vào miền node $V_A$. Mapping chỉ nối endpoint với node đã có; không tạo node.
+- **Khóa trực tiếp**: Nếu `joern_id` khớp duy nhất trong CPG, dùng ID đó để ánh xạ endpoint. Nếu ID không khớp node nào, có thể chuyển sang fingerprint. Nếu ID tồn tại nhưng khớp nhiều node, ghi nhận lỗi identity và fail-closed ngay: dừng mapping endpoint này; không thử fingerprint, tie-break hay AST-parent fallback. Joern ID chỉ nối các view, không dùng làm `node_id` output.
+- **Fingerprint**: Chỉ khi không có direct ID khớp, mới so khớp chính xác `(lineNumber, columnNumber, code)`. Tọa độ phải dương, code không rỗng; chỉ gộp whitespace và giữ phân biệt hoa thường. Không dò gần theo riêng line, node type hoặc khoảng cách source.
+- **Fingerprint trùng**: Xếp ứng viên theo `ast_depth` giảm dần, rồi `node_id` tăng dần; chọn ứng viên đầu tiên. `node_id` lấy theo thứ tự AST ở mục 2.3. Ghi lại phương thức mapping để audit.
+- **AST-parent fallback**: Chỉ dùng khi có chuỗi `AST_PARENT` tường minh; duyệt gần nhất trước xa nhất và chọn ancestor đầu tiên có `joern_id` duy nhất trong $V_A$. Nếu gặp ancestor ID mơ hồ thì fail-closed và dừng chain; không thử ancestor xa hơn. Không suy ra parent từ line/code.
+- **Unmapped edge**: Nếu direct ID mơ hồ, fingerprint không khớp hoặc mơ hồ, hay fallback không tìm thấy ancestor hợp lệ, drop toàn cạnh nếu một endpoint không map được. Không tạo dummy/synthetic node. Ghi `edge_type`, `endpoint_side` (`source`/`target`) và `reason` riêng cho CFG/DATA_DEP; trường hợp direct ID mơ hồ được ghi là lỗi identity.
+- **Tiếp tục xử lý**: Theo policy, một cạnh unmapped không làm dừng xử lý các cạnh hợp lệ khác của function. Đây là yêu cầu thiết kế; hành vi ghi log và tiếp tục cần được xác minh khi tích hợp ở Task 3.2.
 
-2. **Xử lý Cạnh trùng và Self-loop (Major 3)**:
-   - **Giữ cạnh khác loại giữa cùng cặp node**: Nếu giữa hai node $u$ và $v$ đồng thời tồn tại nhiều quan hệ khác loại (ví dụ: vừa có cạnh AST cha-con, vừa có cạnh CFG luồng điều khiển), cả hai cạnh được giữ nguyên để cấu thành đồ thị đa quan hệ có hướng (directed multigraph).
-   - **Khử trùng lặp cạnh cùng loại và cùng chiều (Dedup same-type directed edges)**: Nếu giữa $u \to v$ có nhiều hơn 1 cạnh cùng loại (ví dụ: có nhiều quan hệ Reaching Def cho các biến khác nhau giữa cùng hai câu lệnh), parser chỉ giữ lại đúng 1 cạnh đại diện.
-   - **Loại bỏ hoàn toàn Self-loop**: Mọi cạnh có $\text{src} == \text{dst}$ (ví dụ: biến tự cập nhật `i = i + 1`, `count++` trong DDG hoặc vòng lặp đơn câu lệnh trong CFG) đều bị lọc bỏ khỏi đồ thị.
-   - **Thống kê cạnh bị loại**: Báo cáo trích xuất phải ghi nhận rõ số cạnh trùng cùng loại bị loại và số self-loop bị loại.
-   - **Lưu ý về phạm vi chuẩn hóa**: Việc khử trùng lặp áp dụng cho **quan hệ đồ thị đã chuẩn hóa** (normalized graph relation); hệ thống không lưu thuộc tính phân biệt tên biến riêng lẻ trên cạnh trong schema hiện tại, do đó không tuyên bố giữ đầy đủ thông tin của từng biến riêng biệt.
+#### Dedup và self-loop
+
+- Giữ cạnh khác loại giữa cùng cặp node để tạo directed multigraph.
+- Với cùng `edge_type`, `src` và `dst`, chỉ giữ một cạnh; loại self-loop (`src == dst`). Ghi thống kê số cạnh trùng và self-loop bị loại.
+- Dedup áp dụng trên quan hệ graph đã chuẩn hóa. Schema không giữ tên biến riêng trên cạnh, nên không biểu diễn riêng các quan hệ def-use khác nhau nếu chúng cùng ánh xạ về một cặp node/type.
 
 ---
 
@@ -120,7 +117,7 @@ Mỗi node $u$ trong Graph A và Graph B chứa các thuộc tính sau trước 
 
 | Thuộc tính | Kiểu dữ liệu | Mô tả | Ví dụ |
 | :--- | :--- | :--- | :--- |
-| `node_id` / `id` | `int` | Định danh node 0-indexed liên tục trong hàm: $[0, N-1]$. | `14` |
+| `id` | `int` | ID node cục bộ, liên tục từ `0` đến `N-1`. Tài liệu dùng `node_id` khi nói về ý nghĩa; key trong JSON là `id`. | `14` |
 | `node_type` | `string` | Kiểu cú pháp AST chuẩn hóa. | `"Call"`, `"Identifier"`, `"Literal"` |
 | `code_token` | `string` | Chuỗi mã nguồn gắn với node sau khi chuẩn hóa bảo thủ. | `"malloc"`, `"size"`, `"<NUM>"` |
 | `line_number` | `int` | Số dòng của node trong hàm (1-indexed theo function). Chỉ lưu ở Tier 1 JSON để debug/truy vết, **không đưa vào tensor PyG**. | `12` |
@@ -139,9 +136,9 @@ Nhằm tránh việc mô hình học thuộc lòng các tên biến hoặc chu�
 2. **Identifier (Tên biến, tên hàm nội bộ)**:
    - Tách subtoken theo quy tắc CamelCase và snake_case (ví dụ: `buffer_len` $\rightarrow$ `["buffer", "len"]`, `parseHeader` $\rightarrow$ `["parse", "header"]`).
    - Giữ các subtoken có độ dài $\ge 2$ ký tự, chuyển về chữ thường.
-  - Giữ nguyên token toán tử/dấu câu AST nếu node biểu diễn chính token đó (ví dụ `+`, `->`); không làm rỗng `code_token` chỉ vì token không có chữ cái.
+   - Giữ nguyên token toán tử/dấu câu AST nếu node biểu diễn chính token đó (ví dụ `+`, `->`); không làm rỗng `code_token` chỉ vì token không có chữ cái.
 3. **Literals (Hằng số và chuỗi)**:
-    - Mọi string và character literal, không phụ thuộc độ dài, $\rightarrow$ thay nội dung bằng token `"<STR>"`; không lưu literal gốc trong node feature.
+   - Mọi string và character literal, không phụ thuộc độ dài, $\rightarrow$ thay nội dung bằng token `"<STR>"`; không lưu literal gốc trong node feature.
    - Số nguyên lớn (giá trị $> 100$) hoặc số thực $\rightarrow$ thay bằng token hằng `"<NUM>"`.
    - Hằng số hex (địa chỉ bộ nhớ, bitmask) $\rightarrow$ thay bằng token hằng `"<HEX>"`.
    - Số nguyên nhỏ thông dụng ($0, 1, 2, -1$) được giữ nguyên vì thường mang ý nghĩa logic điều khiển (mã lỗi, chỉ số mảng cơ sở).
@@ -149,7 +146,7 @@ Nhằm tránh việc mô hình học thuộc lòng các tên biến hoặc chu�
 5. **Marker metadata trong code token**: CWE/CVE marker, tên trường metadata `cwe`, `cve`, `commit`, `commit_id`, `commit_hash`, `commit_sha`, `commit_ref`, `commit_revision`, `commit_message`, `project`, `project_name`, `group_id`, `split`, và token split `train`/`validation`/`test` được thay bằng `"<META>"`; không xóa node AST. Commit hash chỉ được redact khi token hex dài 7–40 ký tự khớp không phân biệt hoa thường với full sample `commit_id` hoặc prefix của nó. Token hex không có commit metadata được giữ như source token để tránh redact bừa identifier hợp lệ. Đây không bảo đảm nhận diện mọi cách mã hóa/hash tùy biến. Tên project chỉ dùng tạm để đối chiếu, không ghi vào graph. HTML entity chỉ decode trong code token. Subtoken dài hơn 64 ký tự ánh xạ sang `"<UNK>"`. Raw source không bị sửa.
 
 ### 4.3 Các trường bị CẤM TUYỆT ĐỐI trong Node Feature
-Để ngăn chặn hoàn toàn rò rỉ dữ liệu (data leakage) và shortcut learning:
+Để hạn chế rò rỉ dữ liệu (data leakage) và shortcut learning:
 - **CẤM** đưa tên `project` vào bất kỳ trường nào của node.
 - **CẤM** đưa `commit_id`, `commit_message`, `cve`, `hash` vào node.
 - **CẤM** đưa nhãn `cwe` hoặc target nhị phân vào node.
@@ -252,7 +249,10 @@ C/C++ Source Code
 ### 6.1 Tầng 1: Định dạng Intermediate Graph (JSON)
 Lưu trữ toàn bộ cấu trúc đồ thị trích xuất được dưới định dạng JSON có schema kiểm tra chặt chẽ.
 
-#### Cấu trúc JSON Schema (Minor 2 - Tên thuộc tính chuẩn hóa):
+#### Ví dụ JSON minh họa
+
+Ví dụ dưới đây minh họa tên trường và cách tham chiếu edge; đây không phải output Joern đã được kiểm chứng. `id` là node ID cục bộ; `type` là edge type ID theo bảng ở mục 3.3. Các giá trị `rel_line_number` giả định `total_lines = 10`.
+
 ```json
 {
   "sample_id": "row-1",
@@ -341,10 +341,12 @@ Một đồ thị có thể không trích xuất được do nhiều nguyên nh�
 - `COMMENT_ONLY_FUNCTION`: Parser thành công, AST function/body tồn tại, không có statement nhưng có comment. Comment bị loại khỏi feature; giữ node cấu trúc AST nếu có.
 - `BODY_CLASSIFICATION_UNKNOWN`: Parser và body AST tồn tại, `statement_count == 0`, `comment_count` không có, nhưng graph vẫn có node. Không suy diễn thành function rỗng, comment-only hay empty graph.
 - `EMPTY_GRAPH`: Chỉ dùng khi parser, AST và function body hợp lệ nhưng selected graph thật sự có `num_nodes == 0`, sau khi đã kiểm tra các trạng thái body rỗng/comment-only có đủ metadata.
-- `PARSE_ERROR`: Lỗi cú pháp mã nguồn C/C++, parser Joern báo lỗi cú pháp hoặc crash.
+- `PARSE_ERROR`: Joern báo lỗi cú pháp khi parse mã nguồn C/C++.
 - `AST_EXTRACTION_ERROR`: Parse nguồn thành công nhưng không tìm thấy function AST/body cần thiết hoặc traversal AST thất bại.
 - `TIMEOUT_ERROR`: Quá trình phân tích tĩnh vượt quá ngưỡng thời gian quy định (`120s`).
 - `OVERSIZED_GRAPH`: Đồ thị sinh ra vượt quá trần kích thước quy định.
+
+Task 3.1 chưa định nghĩa trạng thái hoặc payload riêng cho process crash hay lỗi tiến trình Joern không xác định được giai đoạn. Không tự động gộp các trường hợp này vào `PARSE_ERROR`; cần ghi nhận giai đoạn và nguyên nhân thực tế rồi xác nhận cách phân loại trong Task 3.2. Không bổ sung enum mới trong Task 3.1.
 
 **Quy tắc xử lý bắt buộc**:
 - **KHÔNG âm thầm drop mẫu**: Ghi artifact và manifest cho mọi status. Parse/AST extraction/timeout errors dùng payload rỗng và `error_message`. `EMPTY_FUNCTION_BODY`/`COMMENT_ONLY_FUNCTION` giữ các node cấu trúc có thật; chỉ dùng payload 0 node khi output thực sự không có node. `EMPTY_GRAPH` cũng phải ghi `error_message`/reason giải thích vì sao selection cho ra 0 node.
@@ -359,8 +361,8 @@ Theo kết quả EDA (`docs/1_1_related_work.md`), mã nguồn có median 19 dò
 - **Chính sách xử lý đồ thị vượt ngưỡng (`OVERSIZED_GRAPH`)**:
   - Mẫu vượt trần được đánh dấu cờ `status: "OVERSIZED_GRAPH"` trong metadata manifest.
   - Phân biệt hành vi rõ ràng giữa hai giai đoạn:
-    1. **Giai đoạn Pilot (Task 3.2)**: Áp dụng `flag_and_log`. Giữ nguyên đồ thị đầy đủ, không loại bỏ mẫu; ghi nhận số lượng mẫu vượt trần để đo lường độ lệch (skew) và đánh giá tính phù hợp của ngưỡng trần.
-    2. **Giai đoạn Huấn luyện (Phase 4)**: Áp dụng `truncate_bfs` (cắt tỉa đồ thị bằng BFS từ root AST cho đến tối đa 1.000 nodes để bảo đảm tính liên thông và vùng quan trọng của hàm) hoặc `drop_with_metric_penalty` (nếu loại bỏ thì bắt buộc tính penalty vào metric đánh giá để tránh làm đẹp nhân tạo Macro-F1).
+    1. **Pilot (Task 3.2)**: `flag_and_log` nghĩa là ghi trạng thái và thống kê vượt trần, không cắt ngắn hay loại mẫu ở tầng intermediate. Artifact đầy đủ được giữ để đo quy mô thực tế.
+    2. **Huấn luyện (Phase 4)**: Tài liệu nêu hai phương án có thể xem xét: `truncate_bfs` từ root AST đến tối đa 1.000 node, hoặc `drop_with_metric_penalty`. Task 3.1 chưa chọn phương án cuối; việc chọn và kiểm chứng thuộc thiết kế Phase 4.
 
 ### 6.6 Cấu trúc thư mục Output trong Repository
 Cấu trúc cây thư mục đầu ra được tổ chức chặt chẽ trong `data/graphs/`:
@@ -403,6 +405,7 @@ data/graphs/
 - Pilot ở Task 3.2 sẽ được thực hiện trên đúng tập **30 function đại diện** đã chuẩn bị tại:
   `data/sample_manifests/diversevul_graph_sample.csv`.
 - **Nguyên tắc bảo toàn dữ liệu**: Giữ nguyên vẹn toàn bộ 30 dòng, không lọc bỏ mẫu thiếu CWE, multi-CWE hay ngoài 23 lớp. Nhãn CWE gốc được lưu dưới dạng chuỗi metadata phục vụ đối chiếu.
+- Tài liệu chưa chốt trường/file output cụ thể chứa chuỗi CWE gốc cho từng mẫu pilot. Cần xác nhận cách lưu và nối metadata bằng `sample_id` ở Task 3.2; không đưa nhãn vào node feature.
 - **Ranh giới công việc Task 3.2**: Chỉ tạo **Tầng 1: Intermediate JSON** và thống kê khả năng trích xuất của parser Joern. **Chưa ánh xạ nhãn pilot sang class index $0-22$ và chưa tạo file PyG `.pt`**.
 
 ### 7.3 Các điểm kỹ thuật cần kiểm chứng trong Task 3.2
