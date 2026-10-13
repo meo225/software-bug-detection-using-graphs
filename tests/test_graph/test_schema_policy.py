@@ -22,21 +22,21 @@ ROOT = Path(__file__).resolve().parents[2]
 GRAPH_CONFIG = ROOT / "configs" / "graph"
 
 
+def _load_yaml(path: Path) -> dict:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
 class GraphSchemaConfigTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.graph_a = yaml.safe_load((GRAPH_CONFIG / "graph_a.yaml").read_text())[
-            "graph"
-        ]
-        cls.graph_b = yaml.safe_load((GRAPH_CONFIG / "graph_b.yaml").read_text())[
-            "graph"
-        ]
-        cls.cpg = yaml.safe_load((GRAPH_CONFIG / "cpg.yaml").read_text())
-        cls.spec = yaml.safe_load((GRAPH_CONFIG / "schema_spec.yaml").read_text())
+        cls.graph_a = _load_yaml(GRAPH_CONFIG / "graph_a.yaml")["graph"]
+        cls.graph_b = _load_yaml(GRAPH_CONFIG / "graph_b.yaml")["graph"]
+        cls.cpg = _load_yaml(GRAPH_CONFIG / "cpg.yaml")
+        cls.spec = _load_yaml(GRAPH_CONFIG / "schema_spec.yaml")
 
     def test_every_graph_yaml_parses_and_candidate_points_to_schemas(self) -> None:
         for config_path in GRAPH_CONFIG.glob("*.yaml"):
-            self.assertIsInstance(yaml.safe_load(config_path.read_text()), dict)
+            self.assertIsInstance(_load_yaml(config_path), dict)
         self.assertEqual(self.cpg["graph"]["concrete_schemas"]["graph_a"], "configs/graph/graph_a.yaml")
         self.assertEqual(self.cpg["graph"]["concrete_schemas"]["graph_b"], "configs/graph/graph_b.yaml")
 
@@ -85,6 +85,24 @@ class GraphSchemaConfigTests(unittest.TestCase):
         limits = self.spec["size_limits"]
         self.assertEqual((limits["max_nodes"], limits["max_edges"], limits["timeout_sec"]), (1000, 3000, 120))
         self.assertEqual(limits["oversized_handling"], "flag_and_log")
+        self.assertEqual(
+            self.spec["graph_record"]["required_metadata"],
+            ["sample_id", "cwe", "project_wise_split", "seen_project_split"],
+        )
+        self.assertIsNone(self.spec["graph_record"]["pilot_split_value"])
+        self.assertEqual(
+            self.graph_b["exclusions"],
+            {
+                "call_graph": True,
+                "slicing": True,
+                "dominator_edges": True,
+                "cpg_overlays": True,
+            },
+        )
+        self.assertEqual(
+            self.spec["vocabulary_policy"]["min_token_frequency_applies_at"],
+            "vocabulary_fit",
+        )
         self.assertEqual(self.spec["storage"]["intermediate_format"], "json")
         self.assertEqual(self.spec["storage"]["processed_format"], "pt")
         forbidden = set(self.spec["feature_policy"]["metadata_fields_forbidden"])

@@ -57,7 +57,7 @@ size_limits:
   max_nodes: 1000
   max_edges: 3000
   timeout_sec: 120 # Chuẩn hóa tên khóa timeout trên toàn hệ thống
-  oversized_handling: "flag_and_log" # [flag_and_log cho pilot, truncate_bfs cho training batching]
+  oversized_handling: "flag_and_log" # Pilot và lần trích 9.077 function chỉ ghi nhận. Chưa chọn cách xử lý lúc train.
 
 # Quy định phạm vi Pilot Task 3.2 vs Thí nghiệm chính (Major 1)
 pilot:
@@ -65,6 +65,13 @@ pilot:
   total_samples: 30
   scope: "tier1_intermediate_json_only" # Chỉ đo lường khả năng parser Joern, không tạo PyG .pt
   label_policy: "preserve_raw_metadata_string" # Giữ nguyên vẹn 30 dòng, không lọc thiếu CWE / multi-CWE / ngoài 23 lớp, không map y [0..22]
+  split_fields: null # Pilot không thuộc hai split thí nghiệm
+
+graph_record:
+  required_metadata: ["sample_id", "cwe", "project_wise_split", "seen_project_split"]
+  cwe_storage: "graph_level_string"
+  experiment_split_source: "data/splits/diversevul_experiment_manifest.csv"
+  pilot_split_value: null
 
 # Các trạng thái trích xuất đồ thị (Extraction Status Enums)
 status_enums:
@@ -144,6 +151,7 @@ vocabulary_policy:
   fit_target: "train_split_only"
   disallow_global_fit: true
   min_token_frequency: 2
+  min_token_frequency_applies_at: "vocabulary_fit" # Không dùng để xóa token lúc trích graph
   oov_token: "<UNK>"
   vocab_output_dir: "outputs/vocab" # Minor 4: Đường dẫn lưu trữ artifact từ vựng
   special_tokens:

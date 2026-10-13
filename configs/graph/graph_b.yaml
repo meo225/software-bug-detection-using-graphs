@@ -81,12 +81,12 @@ graph:
       record_drop_statistics: true        # Thống kê số cạnh trùng và self-loop bị loại
       normalized_relation_note: "Khử trùng lặp áp dụng cho quan hệ graph chuẩn hóa; không lưu thuộc tính biến riêng trên cạnh"
 
-  # Phạm vi bị loại trừ rõ ràng (Explicit Exclusions)
+  # Phạm vi bị loại trừ. Mọi cờ true nghĩa là loại thành phần đó khỏi Graph B.
   exclusions:
-    inter_procedural: true   # Loại bỏ call graph liên hàm
-    apply_slicing: false     # Không áp dụng slicing (giữ nguyên toàn bộ function, không cắt lát)
-    dominator_tree: true     # Không đưa DOMINATE / POST_DOMINATE
-    full_cpg_overlays: true  # Không đưa REF, EVAL_TYPE, CONTAINS
+    call_graph: true
+    slicing: true
+    dominator_edges: true
+    cpg_overlays: true
 
   # Cấu hình lưu trữ và trích xuất
   extractor:
