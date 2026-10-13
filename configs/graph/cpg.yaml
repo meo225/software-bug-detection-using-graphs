@@ -1,4 +1,8 @@
-# CPG là representation ứng viên, chưa phải lựa chọn đã xác nhận.
+# CPG là representation ứng viên bao quát, chưa phải cấu hình cố định cho mọi model.
+# Theo Task 3.1, hai schema cụ thể được chốt cho thí nghiệm lõi là:
+# - Graph A (AST): configs/graph/graph_a.yaml
+# - Graph B (AST + CFG + DDG): configs/graph/graph_b.yaml
+# Đặc tả kỹ thuật chung và chính sách nhãn: configs/graph/schema_spec.yaml
 graph:
   name: cpg
   status: candidate
@@ -11,7 +15,11 @@ graph:
     - control_dependency
     - pdg
     - cpg
-  node_features: null
-  edge_features: null
+  concrete_schemas:
+    graph_a: configs/graph/graph_a.yaml
+    graph_b: configs/graph/graph_b.yaml
+    spec: configs/graph/schema_spec.yaml
   output_dir: data/graphs
-  sample_manifest: null
+  sample_manifest: data/sample_manifests/diversevul_graph_sample.csv # Dành riêng cho Pilot Task 3.2 (30 mẫu, trích xuất Tier 1 Intermediate JSON)
+  experiment_manifest: data/splits/diversevul_experiment_manifest.csv # Dành cho thí nghiệm chính (9.077 mẫu, 23 CWE)
+  pilot_scope: "tier1_intermediate_json_only" # Chưa tạo tensor PyG .pt và chưa ánh xạ nhãn y [0..22]
