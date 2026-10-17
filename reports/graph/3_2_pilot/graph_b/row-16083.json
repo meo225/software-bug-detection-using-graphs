@@ -1,0 +1,92 @@
+{
+  "sample_id": "row-16083",
+  "cwe": "CWE-125|CWE-824",
+  "project_wise_split": null,
+  "seen_project_split": null,
+  "graph_type": "graph_b",
+  "status": "SUCCESS",
+  "ddg_status": "EDGES_PRESENT",
+  "num_nodes": 5,
+  "num_edges": 8,
+  "nodes": [
+    {
+      "id": 0,
+      "node_type": "Method",
+      "code_token": "void compute ( op kernel context * const context )",
+      "line_number": 1,
+      "rel_line_number": 0.004273504273504274
+    },
+    {
+      "id": 1,
+      "node_type": "MethodParameterIn",
+      "code_token": "op kernel context * const context",
+      "line_number": 1,
+      "rel_line_number": 0.004273504273504274
+    },
+    {
+      "id": 2,
+      "node_type": "Block",
+      "code_token": "< empty >",
+      "line_number": 1,
+      "rel_line_number": 0.004273504273504274
+    },
+    {
+      "id": 3,
+      "node_type": "MethodReturn",
+      "code_token": "ret",
+      "line_number": 1,
+      "rel_line_number": 0.004273504273504274
+    },
+    {
+      "id": 4,
+      "node_type": "MethodParameterOut",
+      "code_token": "op kernel context * const context",
+      "line_number": 1,
+      "rel_line_number": 0.004273504273504274
+    }
+  ],
+  "edges": [
+    {
+      "src": 0,
+      "dst": 1,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 1,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 3,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 3,
+      "type": 1
+    },
+    {
+      "src": 0,
+      "dst": 4,
+      "type": 0
+    },
+    {
+      "src": 1,
+      "dst": 3,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 4,
+      "type": 2
+    }
+  ],
+  "source_reference": "dataset row sample_id=row-16083",
+  "record_kind": "extracted_graph"
+}

@@ -1,0 +1,576 @@
+{
+  "sample_id": "row-12672",
+  "cwe": "",
+  "project_wise_split": null,
+  "seen_project_split": null,
+  "graph_type": "graph_a",
+  "status": "SUCCESS",
+  "ddg_status": "NOT_COMPUTED",
+  "num_nodes": 47,
+  "num_edges": 46,
+  "nodes": [
+    {
+      "id": 0,
+      "node_type": "Method",
+      "code_token": "void link resolver :: resolve handle call ( call info & result , klass handle resolved klass , symbol * method name , symbol * method signature , klass handle current klass , traps ) { assert ( resolved klass ( ) == system dictionary :: method handle klass ( ) , <STR> ) ; assert ( method handles :: is signature polymorphic name ( method name ) , <STR> ) ; method handle resolved method ; handle resolved appendix ; handle resolved method type ; lookup polymorphic method ( resolved method , resolved klass , method name , method signature , current klass , & resolved appendix , & resolved method type , check ) ; result . set handle ( resolved method , resolved appendix , resolved method type , check ) ; }",
+      "line_number": 1,
+      "rel_line_number": 0.06666666666666667
+    },
+    {
+      "id": 1,
+      "node_type": "MethodParameterIn",
+      "code_token": "this",
+      "line_number": 1,
+      "rel_line_number": 0.06666666666666667
+    },
+    {
+      "id": 2,
+      "node_type": "MethodParameterIn",
+      "code_token": "call info & result",
+      "line_number": 1,
+      "rel_line_number": 0.06666666666666667
+    },
+    {
+      "id": 3,
+      "node_type": "MethodParameterIn",
+      "code_token": "klass handle resolved klass",
+      "line_number": 1,
+      "rel_line_number": 0.06666666666666667
+    },
+    {
+      "id": 4,
+      "node_type": "MethodParameterIn",
+      "code_token": "symbol * method name",
+      "line_number": 2,
+      "rel_line_number": 0.13333333333333333
+    },
+    {
+      "id": 5,
+      "node_type": "MethodParameterIn",
+      "code_token": "symbol * method signature",
+      "line_number": 2,
+      "rel_line_number": 0.13333333333333333
+    },
+    {
+      "id": 6,
+      "node_type": "MethodParameterIn",
+      "code_token": "klass handle current klass",
+      "line_number": 3,
+      "rel_line_number": 0.2
+    },
+    {
+      "id": 7,
+      "node_type": "MethodParameterIn",
+      "code_token": "traps",
+      "line_number": 4,
+      "rel_line_number": 0.26666666666666666
+    },
+    {
+      "id": 8,
+      "node_type": "Block",
+      "code_token": "{ assert ( resolved klass ( ) == system dictionary :: method handle klass ( ) , <STR> ) ; assert ( method handles :: is signature polymorphic name ( method name ) , <STR> ) ; method handle resolved method ; handle resolved appendix ; handle resolved method type ; lookup polymorphic method ( resolved method , resolved klass , method name , method signature , current klass , & resolved appendix , & resolved method type , check ) ; result . set handle ( resolved method , resolved appendix , resolved method type , check ) ; }",
+      "line_number": 4,
+      "rel_line_number": 0.26666666666666666
+    },
+    {
+      "id": 9,
+      "node_type": "Call",
+      "code_token": "assert ( resolved klass ( ) == system dictionary :: method handle klass ( ) , <STR> )",
+      "line_number": 6,
+      "rel_line_number": 0.4
+    },
+    {
+      "id": 10,
+      "node_type": "Call",
+      "code_token": "resolved klass ( ) == system dictionary :: method handle klass ( )",
+      "line_number": 6,
+      "rel_line_number": 0.4
+    },
+    {
+      "id": 11,
+      "node_type": "Call",
+      "code_token": "resolved klass ( )",
+      "line_number": 6,
+      "rel_line_number": 0.4
+    },
+    {
+      "id": 12,
+      "node_type": "Call",
+      "code_token": "system dictionary :: method handle klass ( )",
+      "line_number": 6,
+      "rel_line_number": 0.4
+    },
+    {
+      "id": 13,
+      "node_type": "Literal",
+      "code_token": "<STR>",
+      "line_number": 6,
+      "rel_line_number": 0.4
+    },
+    {
+      "id": 14,
+      "node_type": "Call",
+      "code_token": "assert ( method handles :: is signature polymorphic name ( method name ) , <STR> )",
+      "line_number": 7,
+      "rel_line_number": 0.4666666666666667
+    },
+    {
+      "id": 15,
+      "node_type": "Call",
+      "code_token": "method handles :: is signature polymorphic name ( method name )",
+      "line_number": 7,
+      "rel_line_number": 0.4666666666666667
+    },
+    {
+      "id": 16,
+      "node_type": "Identifier",
+      "code_token": "method name",
+      "line_number": 7,
+      "rel_line_number": 0.4666666666666667
+    },
+    {
+      "id": 17,
+      "node_type": "Literal",
+      "code_token": "<STR>",
+      "line_number": 7,
+      "rel_line_number": 0.4666666666666667
+    },
+    {
+      "id": 18,
+      "node_type": "Local",
+      "code_token": "method handle resolved method",
+      "line_number": 8,
+      "rel_line_number": 0.5333333333333333
+    },
+    {
+      "id": 19,
+      "node_type": "Local",
+      "code_token": "handle resolved appendix",
+      "line_number": 9,
+      "rel_line_number": 0.6
+    },
+    {
+      "id": 20,
+      "node_type": "Local",
+      "code_token": "handle resolved method type",
+      "line_number": 10,
+      "rel_line_number": 0.6666666666666666
+    },
+    {
+      "id": 21,
+      "node_type": "Call",
+      "code_token": "lookup polymorphic method ( resolved method , resolved klass , method name , method signature , current klass , & resolved appendix , & resolved method type , check )",
+      "line_number": 11,
+      "rel_line_number": 0.7333333333333333
+    },
+    {
+      "id": 22,
+      "node_type": "Identifier",
+      "code_token": "resolved method",
+      "line_number": 11,
+      "rel_line_number": 0.7333333333333333
+    },
+    {
+      "id": 23,
+      "node_type": "Identifier",
+      "code_token": "resolved klass",
+      "line_number": 11,
+      "rel_line_number": 0.7333333333333333
+    },
+    {
+      "id": 24,
+      "node_type": "Identifier",
+      "code_token": "method name",
+      "line_number": 12,
+      "rel_line_number": 0.8
+    },
+    {
+      "id": 25,
+      "node_type": "Identifier",
+      "code_token": "method signature",
+      "line_number": 12,
+      "rel_line_number": 0.8
+    },
+    {
+      "id": 26,
+      "node_type": "Identifier",
+      "code_token": "current klass",
+      "line_number": 13,
+      "rel_line_number": 0.8666666666666667
+    },
+    {
+      "id": 27,
+      "node_type": "Call",
+      "code_token": "& resolved appendix",
+      "line_number": 13,
+      "rel_line_number": 0.8666666666666667
+    },
+    {
+      "id": 28,
+      "node_type": "Identifier",
+      "code_token": "resolved appendix",
+      "line_number": 13,
+      "rel_line_number": 0.8666666666666667
+    },
+    {
+      "id": 29,
+      "node_type": "Call",
+      "code_token": "& resolved method type",
+      "line_number": 13,
+      "rel_line_number": 0.8666666666666667
+    },
+    {
+      "id": 30,
+      "node_type": "Identifier",
+      "code_token": "resolved method type",
+      "line_number": 13,
+      "rel_line_number": 0.8666666666666667
+    },
+    {
+      "id": 31,
+      "node_type": "Identifier",
+      "code_token": "< unknown > check",
+      "line_number": 13,
+      "rel_line_number": 0.8666666666666667
+    },
+    {
+      "id": 32,
+      "node_type": "Call",
+      "code_token": "result . set handle ( resolved method , resolved appendix , resolved method type , check )",
+      "line_number": 14,
+      "rel_line_number": 0.9333333333333333
+    },
+    {
+      "id": 33,
+      "node_type": "Identifier",
+      "code_token": "result",
+      "line_number": 14,
+      "rel_line_number": 0.9333333333333333
+    },
+    {
+      "id": 34,
+      "node_type": "Identifier",
+      "code_token": "resolved method",
+      "line_number": 14,
+      "rel_line_number": 0.9333333333333333
+    },
+    {
+      "id": 35,
+      "node_type": "Identifier",
+      "code_token": "resolved appendix",
+      "line_number": 14,
+      "rel_line_number": 0.9333333333333333
+    },
+    {
+      "id": 36,
+      "node_type": "Identifier",
+      "code_token": "resolved method type",
+      "line_number": 14,
+      "rel_line_number": 0.9333333333333333
+    },
+    {
+      "id": 37,
+      "node_type": "Identifier",
+      "code_token": "< unknown > check",
+      "line_number": 14,
+      "rel_line_number": 0.9333333333333333
+    },
+    {
+      "id": 38,
+      "node_type": "Local",
+      "code_token": "< unknown > check",
+      "line_number": 13,
+      "rel_line_number": 0.8666666666666667
+    },
+    {
+      "id": 39,
+      "node_type": "MethodReturn",
+      "code_token": "ret",
+      "line_number": 1,
+      "rel_line_number": 0.06666666666666667
+    },
+    {
+      "id": 40,
+      "node_type": "MethodParameterOut",
+      "code_token": "this",
+      "line_number": 1,
+      "rel_line_number": 0.06666666666666667
+    },
+    {
+      "id": 41,
+      "node_type": "MethodParameterOut",
+      "code_token": "call info & result",
+      "line_number": 1,
+      "rel_line_number": 0.06666666666666667
+    },
+    {
+      "id": 42,
+      "node_type": "MethodParameterOut",
+      "code_token": "klass handle resolved klass",
+      "line_number": 1,
+      "rel_line_number": 0.06666666666666667
+    },
+    {
+      "id": 43,
+      "node_type": "MethodParameterOut",
+      "code_token": "symbol * method name",
+      "line_number": 2,
+      "rel_line_number": 0.13333333333333333
+    },
+    {
+      "id": 44,
+      "node_type": "MethodParameterOut",
+      "code_token": "symbol * method signature",
+      "line_number": 2,
+      "rel_line_number": 0.13333333333333333
+    },
+    {
+      "id": 45,
+      "node_type": "MethodParameterOut",
+      "code_token": "klass handle current klass",
+      "line_number": 3,
+      "rel_line_number": 0.2
+    },
+    {
+      "id": 46,
+      "node_type": "MethodParameterOut",
+      "code_token": "traps",
+      "line_number": 4,
+      "rel_line_number": 0.26666666666666666
+    }
+  ],
+  "edges": [
+    {
+      "src": 0,
+      "dst": 1,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 3,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 4,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 5,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 6,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 7,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 8,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 39,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 40,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 41,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 42,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 43,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 44,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 45,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 46,
+      "type": 0
+    },
+    {
+      "src": 8,
+      "dst": 9,
+      "type": 0
+    },
+    {
+      "src": 8,
+      "dst": 14,
+      "type": 0
+    },
+    {
+      "src": 8,
+      "dst": 18,
+      "type": 0
+    },
+    {
+      "src": 8,
+      "dst": 19,
+      "type": 0
+    },
+    {
+      "src": 8,
+      "dst": 20,
+      "type": 0
+    },
+    {
+      "src": 8,
+      "dst": 21,
+      "type": 0
+    },
+    {
+      "src": 8,
+      "dst": 32,
+      "type": 0
+    },
+    {
+      "src": 8,
+      "dst": 38,
+      "type": 0
+    },
+    {
+      "src": 9,
+      "dst": 10,
+      "type": 0
+    },
+    {
+      "src": 9,
+      "dst": 13,
+      "type": 0
+    },
+    {
+      "src": 10,
+      "dst": 11,
+      "type": 0
+    },
+    {
+      "src": 10,
+      "dst": 12,
+      "type": 0
+    },
+    {
+      "src": 14,
+      "dst": 15,
+      "type": 0
+    },
+    {
+      "src": 14,
+      "dst": 17,
+      "type": 0
+    },
+    {
+      "src": 15,
+      "dst": 16,
+      "type": 0
+    },
+    {
+      "src": 21,
+      "dst": 22,
+      "type": 0
+    },
+    {
+      "src": 21,
+      "dst": 23,
+      "type": 0
+    },
+    {
+      "src": 21,
+      "dst": 24,
+      "type": 0
+    },
+    {
+      "src": 21,
+      "dst": 25,
+      "type": 0
+    },
+    {
+      "src": 21,
+      "dst": 26,
+      "type": 0
+    },
+    {
+      "src": 21,
+      "dst": 27,
+      "type": 0
+    },
+    {
+      "src": 21,
+      "dst": 29,
+      "type": 0
+    },
+    {
+      "src": 21,
+      "dst": 31,
+      "type": 0
+    },
+    {
+      "src": 27,
+      "dst": 28,
+      "type": 0
+    },
+    {
+      "src": 29,
+      "dst": 30,
+      "type": 0
+    },
+    {
+      "src": 32,
+      "dst": 33,
+      "type": 0
+    },
+    {
+      "src": 32,
+      "dst": 34,
+      "type": 0
+    },
+    {
+      "src": 32,
+      "dst": 35,
+      "type": 0
+    },
+    {
+      "src": 32,
+      "dst": 36,
+      "type": 0
+    },
+    {
+      "src": 32,
+      "dst": 37,
+      "type": 0
+    }
+  ],
+  "source_reference": "dataset row sample_id=row-12672",
+  "record_kind": "extracted_graph"
+}

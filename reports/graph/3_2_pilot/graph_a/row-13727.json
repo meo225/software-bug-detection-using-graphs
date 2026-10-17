@@ -1,0 +1,72 @@
+{
+  "sample_id": "row-13727",
+  "cwe": "CWE-125",
+  "project_wise_split": null,
+  "seen_project_split": null,
+  "graph_type": "graph_a",
+  "status": "SUCCESS",
+  "ddg_status": "NOT_COMPUTED",
+  "num_nodes": 5,
+  "num_edges": 4,
+  "nodes": [
+    {
+      "id": 0,
+      "node_type": "Method",
+      "code_token": "void read data available ( size len ) noexcept",
+      "line_number": 1,
+      "rel_line_number": 0.07142857142857142
+    },
+    {
+      "id": 1,
+      "node_type": "MethodParameterIn",
+      "code_token": "size len",
+      "line_number": 1,
+      "rel_line_number": 0.07142857142857142
+    },
+    {
+      "id": 2,
+      "node_type": "Block",
+      "code_token": "< empty >",
+      "line_number": 1,
+      "rel_line_number": 0.07142857142857142
+    },
+    {
+      "id": 3,
+      "node_type": "MethodReturn",
+      "code_token": "ret",
+      "line_number": 1,
+      "rel_line_number": 0.07142857142857142
+    },
+    {
+      "id": 4,
+      "node_type": "MethodParameterOut",
+      "code_token": "size len",
+      "line_number": 1,
+      "rel_line_number": 0.07142857142857142
+    }
+  ],
+  "edges": [
+    {
+      "src": 0,
+      "dst": 1,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 3,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 4,
+      "type": 0
+    }
+  ],
+  "source_reference": "dataset row sample_id=row-13727",
+  "record_kind": "extracted_graph"
+}

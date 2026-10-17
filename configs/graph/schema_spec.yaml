@@ -58,6 +58,9 @@ size_limits:
   max_edges: 3000
   timeout_sec: 120 # Chuẩn hóa tên khóa timeout trên toàn hệ thống
   oversized_handling: "flag_and_log" # Pilot và lần trích 9.077 function chỉ ghi nhận. Chưa chọn cách xử lý lúc train.
+  threshold_semantics: "warning_only"
+  hard_validation: "structural_invariants_only"
+  preserve_full_graph: true
 
 # Quy định phạm vi Pilot Task 3.2 vs Thí nghiệm chính (Major 1)
 pilot:
@@ -69,9 +72,31 @@ pilot:
 
 graph_record:
   required_metadata: ["sample_id", "cwe", "project_wise_split", "seen_project_split"]
+  nullable_metadata: ["cwe", "project_wise_split", "seen_project_split"]
   cwe_storage: "graph_level_string"
   experiment_split_source: "data/splits/diversevul_experiment_manifest.csv"
   pilot_split_value: null
+  ddg_status_field: "ddg_status"
+  ddg_status_enums:
+    - "NOT_COMPUTED"
+    - "EDGES_PRESENT"
+    - "INCOMPLETE"
+  ddg_status_rules:
+    NOT_COMPUTED: "Dataflow was not attempted for this record or no dataflow result was confirmed."
+    EDGES_PRESENT: "Dataflow was attempted, the pass returned with the dataflowOss overlay present, the exact method has start and definition-count log evidence, no method-specific skip was logged, and at least one valid mapped DDG edge exists. Presence of DDG edges does not prove the whole method was fully analyzed."
+    INCOMPLETE: "Dataflow was attempted but completion for the exact method cannot be verified, the method was skipped, an error left its result incomplete, or no valid mapped DDG edge exists. Never interpret this status as 'no data dependence'."
+  ddg_completion_evidence:
+    joern_version_reviewed: "4.0.654"
+    required_logging_level: "INFO"
+    pass_completion: "run.ossdataflow returned and the dataflowOss overlay is present after this attempt"
+    method_start_log: "Calculating reaching definitions for: <method_full_name> in ..."
+    method_definition_count_log: "Number of definitions for <method_full_name>: <count>"
+    method_skip_log: "<method_full_name> has more than <limit> definitions"
+    per_method_completion_log: false # Joern 4.0.654 ReachingDefPass emits no per-method completion log; no status may claim a method was fully analyzed
+    overlay_alone_is_sufficient: false
+    missing_method_log_status: "INCOMPLETE"
+    no_valid_edges_status: "INCOMPLETE" # Zero observed DDG edges is never evidence of 'no data dependence'
+    valid_ddg_edge: "A mapped, non-self-loop DDG edge whose endpoints are in the selected AST node domain"
 
 # Các trạng thái trích xuất đồ thị (Extraction Status Enums)
 status_enums:
@@ -96,7 +121,7 @@ status_classification:
     AST_EXTRACTION_ERROR: "parse_succeeded and (function_ast_missing or function_body_missing or ast_traversal_failed)"
   empty_body_nodes: "Preserve any Method/Block AST nodes; do not force zero-node payloads"
   empty_graph_reason: "Record why no selected graph nodes remain; do not classify missing AST as EMPTY_GRAPH"
-  failure_payload: "PARSE_ERROR, AST_EXTRACTION_ERROR, TIMEOUT_ERROR use empty nodes/edges and error_message"
+  failure_payload: "PARSE_ERROR, AST_EXTRACTION_ERROR, TIMEOUT_ERROR use empty nodes/edges, error_message, and ddg_status=NOT_COMPUTED"
 
 # Chuẩn hóa bảo thủ node features
 normalization:
