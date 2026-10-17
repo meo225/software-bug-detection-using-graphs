@@ -89,6 +89,28 @@ class GraphSchemaConfigTests(unittest.TestCase):
             self.spec["graph_record"]["required_metadata"],
             ["sample_id", "cwe", "project_wise_split", "seen_project_split"],
         )
+        self.assertEqual(
+            self.spec["graph_record"]["nullable_metadata"],
+            ["cwe", "project_wise_split", "seen_project_split"],
+        )
+        self.assertTrue(limits["preserve_full_graph"])
+        self.assertEqual(limits["threshold_semantics"], "warning_only")
+        self.assertEqual(
+            self.spec["graph_record"]["ddg_status_enums"],
+            ["NOT_COMPUTED", "EDGES_PRESENT", "INCOMPLETE"],
+        )
+        ddg_rules = self.spec["graph_record"]["ddg_status_rules"]
+        self.assertIn("not attempted", ddg_rules["NOT_COMPUTED"])
+        self.assertIn("valid mapped DDG edge", ddg_rules["EDGES_PRESENT"])
+        self.assertIn("does not prove the whole method was fully analyzed", ddg_rules["EDGES_PRESENT"])
+        self.assertIn("cannot be verified", ddg_rules["INCOMPLETE"])
+        self.assertIn("no valid mapped DDG edge", ddg_rules["INCOMPLETE"])
+        ddg_evidence = self.spec["graph_record"]["ddg_completion_evidence"]
+        self.assertEqual(ddg_evidence["joern_version_reviewed"], "4.0.654")
+        self.assertFalse(ddg_evidence["per_method_completion_log"])
+        self.assertFalse(ddg_evidence["overlay_alone_is_sufficient"])
+        self.assertEqual(ddg_evidence["missing_method_log_status"], "INCOMPLETE")
+        self.assertEqual(ddg_evidence["no_valid_edges_status"], "INCOMPLETE")
         self.assertIsNone(self.spec["graph_record"]["pilot_split_value"])
         self.assertEqual(
             self.graph_b["exclusions"],
