@@ -1,0 +1,16 @@
+{
+  "sample_id": "row-1601",
+  "cwe": "",
+  "project_wise_split": null,
+  "seen_project_split": null,
+  "graph_type": "graph_b",
+  "status": "AST_EXTRACTION_ERROR",
+  "ddg_status": "NOT_COMPUTED",
+  "num_nodes": 0,
+  "num_edges": 0,
+  "nodes": [],
+  "edges": [],
+  "error_message": "Command failed (exit 1); see local-only evidence task-3.2/row-1601/latest-extraction/stages.jsonl.",
+  "source_reference": "dataset row sample_id=row-1601",
+  "record_kind": "failure_record"
+}

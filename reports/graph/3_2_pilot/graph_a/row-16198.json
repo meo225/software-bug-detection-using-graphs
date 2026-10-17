@@ -1,0 +1,16 @@
+{
+  "sample_id": "row-16198",
+  "cwe": "CWE-787",
+  "project_wise_split": null,
+  "seen_project_split": null,
+  "graph_type": "graph_a",
+  "status": "UNSUPPORTED_SOURCE_REPRESENTATION",
+  "ddg_status": "NOT_COMPUTED",
+  "num_nodes": 0,
+  "num_edges": 0,
+  "nodes": [],
+  "edges": [],
+  "error_message": "Original source is a switch fragment without a unique explicit function definition; extraction was not attempted under the exact-function contract.",
+  "source_reference": "dataset row sample_id=row-16198",
+  "record_kind": "unsupported_source_record"
+}

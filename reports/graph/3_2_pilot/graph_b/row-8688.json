@@ -1,0 +1,229 @@
+{
+  "sample_id": "row-8688",
+  "cwe": "CWE-400|CWE-703",
+  "project_wise_split": null,
+  "seen_project_split": null,
+  "graph_type": "graph_b",
+  "status": "SUCCESS",
+  "ddg_status": "EDGES_PRESENT",
+  "num_nodes": 11,
+  "num_edges": 27,
+  "nodes": [
+    {
+      "id": 0,
+      "node_type": "Method",
+      "code_token": "void header map impl :: remove prefix ( const lower case string & prefix ) { headers . remove if ( [ & ] ( const header entry impl & entry ) { bool to remove = absl :: starts with ( entry . key ( ) . get string view ( ) , prefix . get ( ) ) ; if ( to remove ) { entry cb cb = const singleton < static lookup table > :: get ( ) . find ( entry . key ( ) . get string view ( ) ) ; if ( cb ) { static lookup response ref lookup response = cb ( * this ) ; if ( ref lookup response . entry ) { * ref lookup response . entry = nullptr ; } } } return to remove ; } ) ; }",
+      "line_number": 1,
+      "rel_line_number": 0.058823529411764705
+    },
+    {
+      "id": 1,
+      "node_type": "MethodParameterIn",
+      "code_token": "this",
+      "line_number": 1,
+      "rel_line_number": 0.058823529411764705
+    },
+    {
+      "id": 2,
+      "node_type": "MethodParameterIn",
+      "code_token": "const lower case string & prefix",
+      "line_number": 1,
+      "rel_line_number": 0.058823529411764705
+    },
+    {
+      "id": 3,
+      "node_type": "Block",
+      "code_token": "{ headers . remove if ( [ & ] ( const header entry impl & entry ) { bool to remove = absl :: starts with ( entry . key ( ) . get string view ( ) , prefix . get ( ) ) ; if ( to remove ) { entry cb cb = const singleton < static lookup table > :: get ( ) . find ( entry . key ( ) . get string view ( ) ) ; if ( cb ) { static lookup response ref lookup response = cb ( * this ) ; if ( ref lookup response . entry ) { * ref lookup response . entry = nullptr ; } } } return to remove ; } ) ; }",
+      "line_number": 1,
+      "rel_line_number": 0.058823529411764705
+    },
+    {
+      "id": 4,
+      "node_type": "Call",
+      "code_token": "headers . remove if ( [ & ] ( const header entry impl & entry ) { bool to remove = absl :: starts with ( entry . key ( ) . get string view ( ) , prefix . get ( ) ) ; if ( to remove ) { entry cb cb = const singleton < static lookup table > :: get ( ) . find ( entry . key ( ) . get string view ( ) ) ; if ( cb ) { static lookup response ref lookup response = cb ( * this ) ; if ( ref lookup response . entry ) { * ref lookup response . entry = nullptr ; } } } return to remove ; } )",
+      "line_number": 2,
+      "rel_line_number": 0.11764705882352941
+    },
+    {
+      "id": 5,
+      "node_type": "Identifier",
+      "code_token": "< unknown > headers",
+      "line_number": 2,
+      "rel_line_number": 0.11764705882352941
+    },
+    {
+      "id": 6,
+      "node_type": "MethodRef",
+      "code_token": "source . cpp : < global > . header map impl . remove prefix . < lambda > 0 : bool ( header entry impl & )",
+      "line_number": 2,
+      "rel_line_number": 0.11764705882352941
+    },
+    {
+      "id": 7,
+      "node_type": "Local",
+      "code_token": "< unknown > headers",
+      "line_number": 2,
+      "rel_line_number": 0.11764705882352941
+    },
+    {
+      "id": 8,
+      "node_type": "MethodReturn",
+      "code_token": "ret",
+      "line_number": 1,
+      "rel_line_number": 0.058823529411764705
+    },
+    {
+      "id": 9,
+      "node_type": "MethodParameterOut",
+      "code_token": "this",
+      "line_number": 1,
+      "rel_line_number": 0.058823529411764705
+    },
+    {
+      "id": 10,
+      "node_type": "MethodParameterOut",
+      "code_token": "const lower case string & prefix",
+      "line_number": 1,
+      "rel_line_number": 0.058823529411764705
+    }
+  ],
+  "edges": [
+    {
+      "src": 0,
+      "dst": 1,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 1,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 3,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 5,
+      "type": 1
+    },
+    {
+      "src": 0,
+      "dst": 5,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 6,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 8,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 9,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 10,
+      "type": 0
+    },
+    {
+      "src": 1,
+      "dst": 8,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 9,
+      "type": 2
+    },
+    {
+      "src": 2,
+      "dst": 8,
+      "type": 2
+    },
+    {
+      "src": 2,
+      "dst": 10,
+      "type": 2
+    },
+    {
+      "src": 3,
+      "dst": 4,
+      "type": 0
+    },
+    {
+      "src": 3,
+      "dst": 7,
+      "type": 0
+    },
+    {
+      "src": 4,
+      "dst": 5,
+      "type": 0
+    },
+    {
+      "src": 4,
+      "dst": 6,
+      "type": 0
+    },
+    {
+      "src": 4,
+      "dst": 8,
+      "type": 1
+    },
+    {
+      "src": 4,
+      "dst": 8,
+      "type": 2
+    },
+    {
+      "src": 5,
+      "dst": 4,
+      "type": 2
+    },
+    {
+      "src": 5,
+      "dst": 6,
+      "type": 1
+    },
+    {
+      "src": 5,
+      "dst": 8,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 4,
+      "type": 1
+    },
+    {
+      "src": 6,
+      "dst": 4,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 5,
+      "type": 2
+    }
+  ],
+  "source_reference": "dataset row sample_id=row-8688",
+  "record_kind": "extracted_graph"
+}
