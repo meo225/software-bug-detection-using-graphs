@@ -1,8 +1,8 @@
-"""Batch extraction pipeline for Task 3.3 (9,077 DiverseVul functions).
+"""pipeline trich xuat do thi cho tap du lieu diversevul task 3.3
 
-Supports multiprocessing, batch slicing (e.g. 3 batches of ~3,000 samples),
-automatic checkpointing and resuming, fail-closed per-sample exception handling,
-and generation of Tier-1 JSON artifacts for Graph A and Graph B.
+thuc hien trich xuat hai bieu dien do thi cho 9077 ham
+graph a la do thi cay cu phap truu tuong ast
+graph b la do thi ngu nghia ket hop ast luong dieu khien cfg va phu thuoc du lieu data_dep
 """
 
 from __future__ import annotations
@@ -42,9 +42,9 @@ DEFAULT_OUTPUT_DIR = ROOT / "data" / "graphs" / "subset_9077"
 
 TOTAL_SAMPLES = 9077
 BATCH_DEFINITIONS = {
-    1: (0, 3000),       # Batch 1: 3000 samples [0, 3000)
-    2: (3000, 6000),    # Batch 2: 3000 samples [3000, 6000)
-    3: (6000, 9077),    # Batch 3: 3077 samples [6000, 9077)
+    1: (0, 3000),
+    2: (3000, 6000),
+    3: (6000, 9077),
 }
 
 
@@ -117,10 +117,9 @@ def process_single_sample(
 
     started = time.perf_counter()
 
-    # 1. Resolve function name
     source_code = record.get("func", "")
     if not isinstance(source_code, str) or not source_code.strip():
-        msg = "Source code is empty or missing in dataset record"
+        msg = "ma nguon rong hoac thieu truong func"
         write_fallback_failure_json(final_a_path, sample_id, cwe, p_split, s_split, "graph_a", "AST_EXTRACTION_ERROR", msg)
         write_fallback_failure_json(final_b_path, sample_id, cwe, p_split, s_split, "graph_b", "AST_EXTRACTION_ERROR", msg)
         return SampleExtractionOutcome(
@@ -135,7 +134,7 @@ def process_single_sample(
         function_name = resolve_function_name(source_code)
     except Exception as err:
         status = "UNSUPPORTED_SOURCE_REPRESENTATION" if "fragment" in str(err) else "METHOD_RESOLUTION_ERROR"
-        msg = f"Function resolution failed: {err}"
+        msg = f"loi xac dinh ten ham: {err}"
         write_fallback_failure_json(final_a_path, sample_id, cwe, p_split, s_split, "graph_a", status, msg)
         write_fallback_failure_json(final_b_path, sample_id, cwe, p_split, s_split, "graph_b", status, msg)
         return SampleExtractionOutcome(
@@ -146,7 +145,6 @@ def process_single_sample(
             parse_seconds=None, extraction_seconds=None, total_seconds=time.perf_counter() - started
         )
 
-    # 2. Execute extraction using JoernExtractor into an isolated temporary folder
     with tempfile.TemporaryDirectory(prefix=f"subset-{sample_id}-") as temp_dir_str:
         temp_dir = Path(temp_dir_str)
         source_file = temp_dir / "source.c"
@@ -166,7 +164,6 @@ def process_single_sample(
                 commit_id=row.get("commit"),
             )
             report = res.report
-            # Read back generated JSONs to verify and copy to destination
             data_a = json.loads(res.graph_a_path.read_text(encoding="utf-8"))
             data_b = json.loads(res.graph_b_path.read_text(encoding="utf-8"))
 
@@ -195,7 +192,6 @@ def process_single_sample(
         except JoernExecutionError as err:
             err_msg = str(err)
             stage_status = "PARSE_ERROR" if err.stage == "parse" else "AST_EXTRACTION_ERROR"
-            # Extractor writes failure JSONs in temp_dir
             temp_a = temp_dir / f"{sample_id}.graph_a.json"
             temp_b = temp_dir / f"{sample_id}.graph_b.json"
             if temp_a.is_file() and temp_b.is_file():
@@ -213,7 +209,7 @@ def process_single_sample(
                 parse_seconds=None, extraction_seconds=None, total_seconds=time.perf_counter() - started
             )
         except Exception as err:
-            err_msg = f"Unexpected failure: {err}"
+            err_msg = f"loi khong xac dinh: {err}"
             write_fallback_failure_json(final_a_path, sample_id, cwe, p_split, s_split, "graph_a", "AST_EXTRACTION_ERROR", err_msg)
             write_fallback_failure_json(final_b_path, sample_id, cwe, p_split, s_split, "graph_b", "AST_EXTRACTION_ERROR", err_msg)
             return SampleExtractionOutcome(
@@ -226,21 +222,21 @@ def process_single_sample(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Extract Graph A/B for DiverseVul Task 3.3 subset.")
-    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="Experiment manifest (9,077 samples)")
-    parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET, help="Raw DiverseVul JSONL dataset")
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Base output directory")
-    parser.add_argument("--schema-config", type=Path, default=DEFAULT_SCHEMA, help="Schema configuration YAML")
-    parser.add_argument("--batch", type=int, choices=[1, 2, 3], help="Preset batch number (1, 2, or 3)")
-    parser.add_argument("--start-idx", type=int, help="Explicit start index in manifest (0-based inclusive)")
-    parser.add_argument("--end-idx", type=int, help="Explicit end index in manifest (0-based exclusive)")
-    parser.add_argument("--workers", type=int, default=4, help="Number of parallel worker processes (default: 4)")
-    parser.add_argument("--joern", default="joern", help="Joern executable command/path")
-    parser.add_argument("--joern-parse", default="joern-parse", help="Joern-parse executable command/path")
-    parser.add_argument("--java-home", help="Path to JDK 21")
-    parser.add_argument("--wsl-distro", default="Ubuntu", help="WSL distribution name on Windows")
-    parser.add_argument("--timeout", type=int, default=120, help="Timeout in seconds per stage")
-    parser.add_argument("--no-resume", action="store_true", help="Do not skip existing outputs")
+    parser = argparse.ArgumentParser(description="trich xuat graph a va graph b cho tap mau diversevul")
+    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="tep manifest mau")
+    parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET, help="tep du lieu goc diversevul")
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="thu muc xuat ket qua")
+    parser.add_argument("--schema-config", type=Path, default=DEFAULT_SCHEMA, help="tep cau hinh schema")
+    parser.add_argument("--batch", type=int, choices=[1, 2, 3], help="chi so phan doan 1 hoac 2 hoac 3")
+    parser.add_argument("--start-idx", type=int, help="chi so bat dau")
+    parser.add_argument("--end-idx", type=int, help="chi so ket thuc")
+    parser.add_argument("--workers", type=int, default=4, help="so luong tien trinh thuc thi")
+    parser.add_argument("--joern", default="joern", help="lenh thuc thi joern")
+    parser.add_argument("--joern-parse", default="joern-parse", help="lenh thuc thi joern-parse")
+    parser.add_argument("--java-home", help="duong dan thu muc jdk 21")
+    parser.add_argument("--wsl-distro", default="Ubuntu", help="ten ban phan phoi wsl")
+    parser.add_argument("--timeout", type=int, default=120, help="thoi gian gioi han tinh bang giay")
+    parser.add_argument("--no-resume", action="store_true", help="khong bo qua cac mau da hoan tat")
     return parser.parse_args()
 
 
@@ -248,18 +244,16 @@ def main() -> int:
     args = parse_args()
 
     if not args.manifest.is_file():
-        LOGGER.error("Manifest not found: %s", args.manifest)
+        LOGGER.error("khong tim thay manifest tai: %s", args.manifest)
         return 1
     if not args.dataset.is_file():
-        LOGGER.error("Dataset not found: %s", args.dataset)
+        LOGGER.error("khong tim thay dataset tai: %s", args.dataset)
         return 1
 
-    # Load all rows from experiment manifest
     with open(args.manifest, "r", encoding="utf-8") as f:
         all_rows = list(csv.DictReader(f))
     total_in_manifest = len(all_rows)
 
-    # Determine slice range
     if args.batch is not None:
         start_idx, end_idx = BATCH_DEFINITIONS[args.batch]
         batch_name = f"batch_{args.batch}"
@@ -274,11 +268,10 @@ def main() -> int:
 
     selected_rows = all_rows[start_idx:end_idx]
     LOGGER.info(
-        "Task 3.3 batch execution [%s]: processing %d samples (index %d to %d) of %d total",
+        "khoi chay phan doan %s voi %d mau tu chi so %d den %d tong so %d",
         batch_name, len(selected_rows), start_idx, end_idx, total_in_manifest
     )
 
-    # Setup output paths
     graph_a_dir = args.output_dir / "graph_a"
     graph_b_dir = args.output_dir / "graph_b"
     graph_a_dir.mkdir(parents=True, exist_ok=True)
@@ -286,7 +279,6 @@ def main() -> int:
 
     manifest_output_path = args.output_dir / f"manifest_{batch_name}.csv"
 
-    # Setup JoernConfig
     schema = load_config(args.schema_config) if args.schema_config.is_file() else {}
     limits = schema.get("size_limits", {})
     config = JoernConfig(
@@ -299,7 +291,6 @@ def main() -> int:
         max_edges=int(limits.get("max_edges", 3000)),
     )
 
-    # Filter out already completed samples if resume is active
     rows_to_process: list[dict[str, str]] = []
     already_done_outcomes: list[SampleExtractionOutcome] = []
 
@@ -334,15 +325,14 @@ def main() -> int:
                 )
                 continue
             except Exception:
-                pass  # Re-process if file is corrupted
+                pass
         rows_to_process.append(row)
 
     LOGGER.info(
-        "Resumed: %d samples already completed, %d remaining to extract.",
+        "da hoan tat truoc do: %d mau - con lai: %d mau",
         len(already_done_outcomes), len(rows_to_process)
     )
 
-    # Initialize manifest CSV with existing done items
     fieldnames = list(asdict(SampleExtractionOutcome(
         sample_id="", index=0, cwe="", project="", project_wise_split="", seen_project_split="",
         status="", error_message="", num_nodes=0, num_edges_a=0, num_edges_b=0,
@@ -357,23 +347,20 @@ def main() -> int:
     manifest_file.flush()
 
     if not rows_to_process:
-        LOGGER.info("All samples in this batch are already completed!")
+        LOGGER.info("toan bo mau trong phan doan nay da hoan tat")
         manifest_file.close()
         return 0
 
-    # Load needed records from diversevul.jsonl in one sequential scan
     needed_indices = {parse_sample_id(r["sample_id"]) for r in rows_to_process}
-    LOGGER.info("Scanning dataset %s to load %d records...", args.dataset, len(needed_indices))
+    LOGGER.info("dang tai %d ban ghi tu %s", len(needed_indices), args.dataset)
     t0 = time.perf_counter()
     records_by_index = load_records_at_indices(args.dataset, needed_indices)
-    LOGGER.info("Loaded %d dataset records in %.2fs", len(records_by_index), time.perf_counter() - t0)
+    LOGGER.info("thoi gian tai ban ghi: %.2f giay", time.perf_counter() - t0)
 
-    # Run extraction using parallel workers
-    total_to_run = len(rows_to_process)
     completed_count = len(already_done_outcomes)
     success_count = sum(1 for o in already_done_outcomes if o.status in ("SUCCESS", "OVERSIZED_GRAPH"))
 
-    LOGGER.info("Starting extraction with %d workers...", args.workers)
+    LOGGER.info("bat dau tien trinh thuc thi voi %d tien trinh", args.workers)
     t_start = time.perf_counter()
 
     if args.workers <= 1:
@@ -388,9 +375,10 @@ def main() -> int:
             manifest_writer.writerow(asdict(outcome))
             manifest_file.flush()
             print(
-                f"[{completed_count}/{len(selected_rows)}] {sample_id} ({row.get('project')}): "
-                f"{outcome.status} | Nodes: {outcome.num_nodes} | Edges: {outcome.num_edges_b} | "
-                f"Time: {outcome.total_seconds:.1f}s"
+                f"tien do: {completed_count}/{len(selected_rows)} - mau: {sample_id} - "
+                f"du an: {row.get('project')} - trang thai: {outcome.status} - "
+                f"so nut: {outcome.num_nodes} - so canh: {outcome.num_edges_b} - "
+                f"thoi gian: {outcome.total_seconds:.1f}s"
             )
     else:
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
@@ -411,7 +399,7 @@ def main() -> int:
                 try:
                     outcome = future.result()
                 except Exception as exc:
-                    LOGGER.error("Worker failed for %s: %s", s_id, exc)
+                    LOGGER.error("loi tien trinh tai mau %s: %s", s_id, exc)
                     outcome = SampleExtractionOutcome(
                         sample_id=s_id, index=parse_sample_id(s_id), cwe="", project="",
                         project_wise_split="", seen_project_split="",
@@ -429,16 +417,16 @@ def main() -> int:
                 avg_time = elapsed / max(1, completed_count - len(already_done_outcomes))
                 remaining = (len(selected_rows) - completed_count) * avg_time
                 print(
-                    f"[{completed_count}/{len(selected_rows)}] {outcome.sample_id} ({outcome.project}): "
-                    f"{outcome.status} | Nodes: {outcome.num_nodes} | Edges: {outcome.num_edges_b} | "
-                    f"Time: {outcome.total_seconds:.1f}s (Est. remaining: {remaining / 3600:.1f}h)"
+                    f"tien do: {completed_count}/{len(selected_rows)} - mau: {outcome.sample_id} - "
+                    f"du an: {outcome.project} - trang thai: {outcome.status} - "
+                    f"so nut: {outcome.num_nodes} - so canh: {outcome.num_edges_b} - "
+                    f"thoi gian: {outcome.total_seconds:.1f}s - du kien con lai: {remaining / 3600:.1f}h"
                 )
 
     manifest_file.close()
     LOGGER.info(
-        "Finished batch %s: %d/%d completed successfully (%.1f%%). Manifest saved to %s",
-        batch_name, success_count, len(selected_rows),
-        (success_count / max(1, len(selected_rows))) * 100, manifest_output_path
+        "hoan tat phan doan %s: %d tren %d mau dat yeu cau",
+        batch_name, success_count, len(selected_rows)
     )
     return 0
 

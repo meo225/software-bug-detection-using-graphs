@@ -123,6 +123,6 @@ def test_merge_and_report_mock(tmp_path: Path, monkeypatch):
     assert (output_dir / "graph_b" / "manifest.csv").is_file()
 
     report_content = report_file.read_text(encoding="utf-8")
-    assert "Task 3.3" in report_content
+    assert "task 3.3" in report_content
     assert "CWE-787" in report_content
     assert "CWE-119" in report_content
