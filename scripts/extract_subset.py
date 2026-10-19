@@ -1,8 +1,8 @@
-"""pipeline trich xuat do thi cho tap du lieu diversevul task 3.3
+"""Quy trình trích xuất đồ thị cho tập dữ liệu DiverseVul Task 3.3
 
-thuc hien trich xuat hai bieu dien do thi cho 9077 ham
-graph a la do thi cay cu phap truu tuong ast
-graph b la do thi ngu nghia ket hop ast luong dieu khien cfg va phu thuoc du lieu data_dep
+Thực hiện trích xuất hai biểu diễn đồ thị cho 9.077 hàm:
+- Graph A: đồ thị cây cú pháp trừu tượng AST
+- Graph B: đồ thị ngữ nghĩa kết hợp AST, luồng điều khiển CFG và phụ thuộc dữ liệu DATA_DEP
 """
 
 from __future__ import annotations
@@ -119,7 +119,7 @@ def process_single_sample(
 
     source_code = record.get("func", "")
     if not isinstance(source_code, str) or not source_code.strip():
-        msg = "ma nguon rong hoac thieu truong func"
+        msg = "Mã nguồn rỗng hoặc thiếu trường func trong bản ghi"
         write_fallback_failure_json(final_a_path, sample_id, cwe, p_split, s_split, "graph_a", "AST_EXTRACTION_ERROR", msg)
         write_fallback_failure_json(final_b_path, sample_id, cwe, p_split, s_split, "graph_b", "AST_EXTRACTION_ERROR", msg)
         return SampleExtractionOutcome(
@@ -134,7 +134,7 @@ def process_single_sample(
         function_name = resolve_function_name(source_code)
     except Exception as err:
         status = "UNSUPPORTED_SOURCE_REPRESENTATION" if "fragment" in str(err) else "METHOD_RESOLUTION_ERROR"
-        msg = f"loi xac dinh ten ham: {err}"
+        msg = f"Lỗi xác định tên hàm: {err}"
         write_fallback_failure_json(final_a_path, sample_id, cwe, p_split, s_split, "graph_a", status, msg)
         write_fallback_failure_json(final_b_path, sample_id, cwe, p_split, s_split, "graph_b", status, msg)
         return SampleExtractionOutcome(
@@ -209,7 +209,7 @@ def process_single_sample(
                 parse_seconds=None, extraction_seconds=None, total_seconds=time.perf_counter() - started
             )
         except Exception as err:
-            err_msg = f"loi khong xac dinh: {err}"
+            err_msg = f"Lỗi không xác định: {err}"
             write_fallback_failure_json(final_a_path, sample_id, cwe, p_split, s_split, "graph_a", "AST_EXTRACTION_ERROR", err_msg)
             write_fallback_failure_json(final_b_path, sample_id, cwe, p_split, s_split, "graph_b", "AST_EXTRACTION_ERROR", err_msg)
             return SampleExtractionOutcome(
@@ -222,21 +222,21 @@ def process_single_sample(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="trich xuat graph a va graph b cho tap mau diversevul")
-    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="tep manifest mau")
-    parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET, help="tep du lieu goc diversevul")
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="thu muc xuat ket qua")
-    parser.add_argument("--schema-config", type=Path, default=DEFAULT_SCHEMA, help="tep cau hinh schema")
-    parser.add_argument("--batch", type=int, choices=[1, 2, 3], help="chi so phan doan 1 hoac 2 hoac 3")
-    parser.add_argument("--start-idx", type=int, help="chi so bat dau")
-    parser.add_argument("--end-idx", type=int, help="chi so ket thuc")
-    parser.add_argument("--workers", type=int, default=4, help="so luong tien trinh thuc thi")
-    parser.add_argument("--joern", default="joern", help="lenh thuc thi joern")
-    parser.add_argument("--joern-parse", default="joern-parse", help="lenh thuc thi joern-parse")
-    parser.add_argument("--java-home", help="duong dan thu muc jdk 21")
-    parser.add_argument("--wsl-distro", default="Ubuntu", help="ten ban phan phoi wsl")
-    parser.add_argument("--timeout", type=int, default=120, help="thoi gian gioi han tinh bang giay")
-    parser.add_argument("--no-resume", action="store_true", help="khong bo qua cac mau da hoan tat")
+    parser = argparse.ArgumentParser(description="Trích xuất Graph A và Graph B cho tập DiverseVul")
+    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="Tệp manifest mẫu")
+    parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET, help="Tệp dữ liệu gốc DiverseVul")
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Thư mục xuất kết quả")
+    parser.add_argument("--schema-config", type=Path, default=DEFAULT_SCHEMA, help="Tệp cấu hình schema")
+    parser.add_argument("--batch", type=int, choices=[1, 2, 3], help="Chỉ số phân đoạn 1 hoặc 2 hoặc 3")
+    parser.add_argument("--start-idx", type=int, help="Chỉ số bắt đầu")
+    parser.add_argument("--end-idx", type=int, help="Chỉ số kết thúc")
+    parser.add_argument("--workers", type=int, default=4, help="Số lượng tiến trình thực thi")
+    parser.add_argument("--joern", default="joern", help="Lệnh thực thi Joern")
+    parser.add_argument("--joern-parse", default="joern-parse", help="Lệnh thực thi joern-parse")
+    parser.add_argument("--java-home", help="Đường dẫn thư mục JDK 21")
+    parser.add_argument("--wsl-distro", default="Ubuntu", help="Tên bản phân phối WSL")
+    parser.add_argument("--timeout", type=int, default=120, help="Thời gian giới hạn tính bằng giây")
+    parser.add_argument("--no-resume", action="store_true", help="Không bỏ qua các mẫu đã hoàn tất")
     return parser.parse_args()
 
 
@@ -244,10 +244,10 @@ def main() -> int:
     args = parse_args()
 
     if not args.manifest.is_file():
-        LOGGER.error("khong tim thay manifest tai: %s", args.manifest)
+        LOGGER.error("Không tìm thấy manifest tại: %s", args.manifest)
         return 1
     if not args.dataset.is_file():
-        LOGGER.error("khong tim thay dataset tai: %s", args.dataset)
+        LOGGER.error("Không tìm thấy dataset tại: %s", args.dataset)
         return 1
 
     with open(args.manifest, "r", encoding="utf-8") as f:
@@ -268,7 +268,7 @@ def main() -> int:
 
     selected_rows = all_rows[start_idx:end_idx]
     LOGGER.info(
-        "khoi chay phan doan %s voi %d mau tu chi so %d den %d tong so %d",
+        "Khởi chạy phân đoạn %s với %d mẫu từ chỉ số %d đến %d trên tổng số %d",
         batch_name, len(selected_rows), start_idx, end_idx, total_in_manifest
     )
 
@@ -329,7 +329,7 @@ def main() -> int:
         rows_to_process.append(row)
 
     LOGGER.info(
-        "da hoan tat truoc do: %d mau - con lai: %d mau",
+        "Đã hoàn tất trước đó: %d mẫu - Còn lại: %d mẫu",
         len(already_done_outcomes), len(rows_to_process)
     )
 
@@ -347,20 +347,20 @@ def main() -> int:
     manifest_file.flush()
 
     if not rows_to_process:
-        LOGGER.info("toan bo mau trong phan doan nay da hoan tat")
+        LOGGER.info("Toàn bộ mẫu trong phân đoạn đã hoàn tất")
         manifest_file.close()
         return 0
 
     needed_indices = {parse_sample_id(r["sample_id"]) for r in rows_to_process}
-    LOGGER.info("dang tai %d ban ghi tu %s", len(needed_indices), args.dataset)
+    LOGGER.info("Đang nạp %d bản ghi từ %s", len(needed_indices), args.dataset)
     t0 = time.perf_counter()
     records_by_index = load_records_at_indices(args.dataset, needed_indices)
-    LOGGER.info("thoi gian tai ban ghi: %.2f giay", time.perf_counter() - t0)
+    LOGGER.info("Thời gian nạp bản ghi: %.2f giây", time.perf_counter() - t0)
 
     completed_count = len(already_done_outcomes)
     success_count = sum(1 for o in already_done_outcomes if o.status in ("SUCCESS", "OVERSIZED_GRAPH"))
 
-    LOGGER.info("bat dau tien trinh thuc thi voi %d tien trinh", args.workers)
+    LOGGER.info("Bắt đầu thực thi với %d tiến trình", args.workers)
     t_start = time.perf_counter()
 
     if args.workers <= 1:
@@ -375,10 +375,10 @@ def main() -> int:
             manifest_writer.writerow(asdict(outcome))
             manifest_file.flush()
             print(
-                f"tien do: {completed_count}/{len(selected_rows)} - mau: {sample_id} - "
-                f"du an: {row.get('project')} - trang thai: {outcome.status} - "
-                f"so nut: {outcome.num_nodes} - so canh: {outcome.num_edges_b} - "
-                f"thoi gian: {outcome.total_seconds:.1f}s"
+                f"Tiến độ: {completed_count}/{len(selected_rows)} - Mẫu: {sample_id} - "
+                f"Dự án: {row.get('project')} - Trạng thái: {outcome.status} - "
+                f"Số node: {outcome.num_nodes} - Số cạnh: {outcome.num_edges_b} - "
+                f"Thời gian: {outcome.total_seconds:.1f}s"
             )
     else:
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
@@ -399,7 +399,7 @@ def main() -> int:
                 try:
                     outcome = future.result()
                 except Exception as exc:
-                    LOGGER.error("loi tien trinh tai mau %s: %s", s_id, exc)
+                    LOGGER.error("Lỗi tiến trình tại mẫu %s: %s", s_id, exc)
                     outcome = SampleExtractionOutcome(
                         sample_id=s_id, index=parse_sample_id(s_id), cwe="", project="",
                         project_wise_split="", seen_project_split="",
@@ -417,15 +417,15 @@ def main() -> int:
                 avg_time = elapsed / max(1, completed_count - len(already_done_outcomes))
                 remaining = (len(selected_rows) - completed_count) * avg_time
                 print(
-                    f"tien do: {completed_count}/{len(selected_rows)} - mau: {outcome.sample_id} - "
-                    f"du an: {outcome.project} - trang thai: {outcome.status} - "
-                    f"so nut: {outcome.num_nodes} - so canh: {outcome.num_edges_b} - "
-                    f"thoi gian: {outcome.total_seconds:.1f}s - du kien con lai: {remaining / 3600:.1f}h"
+                    f"Tiến độ: {completed_count}/{len(selected_rows)} - Mẫu: {outcome.sample_id} - "
+                    f"Dự án: {outcome.project} - Trạng thái: {outcome.status} - "
+                    f"Số node: {outcome.num_nodes} - Số cạnh: {outcome.num_edges_b} - "
+                    f"Thời gian: {outcome.total_seconds:.1f}s - Dự kiến còn lại: {remaining / 3600:.1f}h"
                 )
 
     manifest_file.close()
     LOGGER.info(
-        "hoan tat phan doan %s: %d tren %d mau dat yeu cau",
+        "Hoàn tất phân đoạn %s: %d trên %d mẫu đạt yêu cầu",
         batch_name, success_count, len(selected_rows)
     )
     return 0
