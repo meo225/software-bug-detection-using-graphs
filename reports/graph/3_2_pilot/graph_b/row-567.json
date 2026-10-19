@@ -1,0 +1,1195 @@
+{
+  "sample_id": "row-567",
+  "cwe": "",
+  "project_wise_split": null,
+  "seen_project_split": null,
+  "graph_type": "graph_b",
+  "status": "SUCCESS",
+  "ddg_status": "EDGES_PRESENT",
+  "num_nodes": 49,
+  "num_edges": 167,
+  "nodes": [
+    {
+      "id": 0,
+      "node_type": "Method",
+      "code_token": "hb buffer replace glyph ( hb buffer buffer , hb int glyph index ) { if ( ! buffer -> separate out ) { buffer -> out string [ buffer -> out pos ] . gindex = glyph index ; buffer -> in pos ++ ; buffer -> out pos ++ ; buffer -> out length = buffer -> out pos ; } else { return hb buffer add output glyph ( buffer , glyph index , <HEX> , <HEX> ) ; } return hb err ok ; }",
+      "line_number": 1,
+      "rel_line_number": 0.05555555555555555
+    },
+    {
+      "id": 1,
+      "node_type": "MethodParameterIn",
+      "code_token": "hb buffer buffer",
+      "line_number": 1,
+      "rel_line_number": 0.05555555555555555
+    },
+    {
+      "id": 2,
+      "node_type": "MethodParameterIn",
+      "code_token": "hb int glyph index",
+      "line_number": 2,
+      "rel_line_number": 0.1111111111111111
+    },
+    {
+      "id": 3,
+      "node_type": "Block",
+      "code_token": "{ if ( ! buffer -> separate out ) { buffer -> out string [ buffer -> out pos ] . gindex = glyph index ; buffer -> in pos ++ ; buffer -> out pos ++ ; buffer -> out length = buffer -> out pos ; } else { return hb buffer add output glyph ( buffer , glyph index , <HEX> , <HEX> ) ; } return hb err ok ; }",
+      "line_number": 3,
+      "rel_line_number": 0.16666666666666666
+    },
+    {
+      "id": 4,
+      "node_type": "ControlStructure",
+      "code_token": "if ( ! buffer -> separate out ) { buffer -> out string [ buffer -> out pos ] . gindex = glyph index ; buffer -> in pos ++ ; buffer -> out pos ++ ; buffer -> out length = buffer -> out pos ; } else { return hb buffer add output glyph ( buffer , glyph index , <HEX> , <HEX> ) ; }",
+      "line_number": 4,
+      "rel_line_number": 0.2222222222222222
+    },
+    {
+      "id": 5,
+      "node_type": "Call",
+      "code_token": "! buffer -> separate out",
+      "line_number": 4,
+      "rel_line_number": 0.2222222222222222
+    },
+    {
+      "id": 6,
+      "node_type": "Call",
+      "code_token": "buffer -> separate out",
+      "line_number": 4,
+      "rel_line_number": 0.2222222222222222
+    },
+    {
+      "id": 7,
+      "node_type": "Identifier",
+      "code_token": "buffer",
+      "line_number": 4,
+      "rel_line_number": 0.2222222222222222
+    },
+    {
+      "id": 8,
+      "node_type": "FieldIdentifier",
+      "code_token": "separate out",
+      "line_number": 4,
+      "rel_line_number": 0.2222222222222222
+    },
+    {
+      "id": 9,
+      "node_type": "Block",
+      "code_token": "{ buffer -> out string [ buffer -> out pos ] . gindex = glyph index ; buffer -> in pos ++ ; buffer -> out pos ++ ; buffer -> out length = buffer -> out pos ; }",
+      "line_number": 5,
+      "rel_line_number": 0.2777777777777778
+    },
+    {
+      "id": 10,
+      "node_type": "Call",
+      "code_token": "buffer -> out string [ buffer -> out pos ] . gindex = glyph index",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 11,
+      "node_type": "Call",
+      "code_token": "buffer -> out string [ buffer -> out pos ] . gindex",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 12,
+      "node_type": "Call",
+      "code_token": "buffer -> out string [ buffer -> out pos ]",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 13,
+      "node_type": "Call",
+      "code_token": "buffer -> out string",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 14,
+      "node_type": "Identifier",
+      "code_token": "buffer",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 15,
+      "node_type": "FieldIdentifier",
+      "code_token": "out string",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 16,
+      "node_type": "Call",
+      "code_token": "buffer -> out pos",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 17,
+      "node_type": "Identifier",
+      "code_token": "buffer",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 18,
+      "node_type": "FieldIdentifier",
+      "code_token": "out pos",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 19,
+      "node_type": "FieldIdentifier",
+      "code_token": "gindex",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 20,
+      "node_type": "Identifier",
+      "code_token": "glyph index",
+      "line_number": 6,
+      "rel_line_number": 0.3333333333333333
+    },
+    {
+      "id": 21,
+      "node_type": "Call",
+      "code_token": "buffer -> in pos ++",
+      "line_number": 8,
+      "rel_line_number": 0.4444444444444444
+    },
+    {
+      "id": 22,
+      "node_type": "Call",
+      "code_token": "buffer -> in pos",
+      "line_number": 8,
+      "rel_line_number": 0.4444444444444444
+    },
+    {
+      "id": 23,
+      "node_type": "Identifier",
+      "code_token": "buffer",
+      "line_number": 8,
+      "rel_line_number": 0.4444444444444444
+    },
+    {
+      "id": 24,
+      "node_type": "FieldIdentifier",
+      "code_token": "in pos",
+      "line_number": 8,
+      "rel_line_number": 0.4444444444444444
+    },
+    {
+      "id": 25,
+      "node_type": "Call",
+      "code_token": "buffer -> out pos ++",
+      "line_number": 9,
+      "rel_line_number": 0.5
+    },
+    {
+      "id": 26,
+      "node_type": "Call",
+      "code_token": "buffer -> out pos",
+      "line_number": 9,
+      "rel_line_number": 0.5
+    },
+    {
+      "id": 27,
+      "node_type": "Identifier",
+      "code_token": "buffer",
+      "line_number": 9,
+      "rel_line_number": 0.5
+    },
+    {
+      "id": 28,
+      "node_type": "FieldIdentifier",
+      "code_token": "out pos",
+      "line_number": 9,
+      "rel_line_number": 0.5
+    },
+    {
+      "id": 29,
+      "node_type": "Call",
+      "code_token": "buffer -> out length = buffer -> out pos",
+      "line_number": 10,
+      "rel_line_number": 0.5555555555555556
+    },
+    {
+      "id": 30,
+      "node_type": "Call",
+      "code_token": "buffer -> out length",
+      "line_number": 10,
+      "rel_line_number": 0.5555555555555556
+    },
+    {
+      "id": 31,
+      "node_type": "Identifier",
+      "code_token": "buffer",
+      "line_number": 10,
+      "rel_line_number": 0.5555555555555556
+    },
+    {
+      "id": 32,
+      "node_type": "FieldIdentifier",
+      "code_token": "out length",
+      "line_number": 10,
+      "rel_line_number": 0.5555555555555556
+    },
+    {
+      "id": 33,
+      "node_type": "Call",
+      "code_token": "buffer -> out pos",
+      "line_number": 10,
+      "rel_line_number": 0.5555555555555556
+    },
+    {
+      "id": 34,
+      "node_type": "Identifier",
+      "code_token": "buffer",
+      "line_number": 10,
+      "rel_line_number": 0.5555555555555556
+    },
+    {
+      "id": 35,
+      "node_type": "FieldIdentifier",
+      "code_token": "out pos",
+      "line_number": 10,
+      "rel_line_number": 0.5555555555555556
+    },
+    {
+      "id": 36,
+      "node_type": "Block",
+      "code_token": "{ return hb buffer add output glyph ( buffer , glyph index , <HEX> , <HEX> ) ; }",
+      "line_number": 13,
+      "rel_line_number": 0.7222222222222222
+    },
+    {
+      "id": 37,
+      "node_type": "Return",
+      "code_token": "return hb buffer add output glyph ( buffer , glyph index , <HEX> , <HEX> ) ;",
+      "line_number": 14,
+      "rel_line_number": 0.7777777777777778
+    },
+    {
+      "id": 38,
+      "node_type": "Call",
+      "code_token": "hb buffer add output glyph ( buffer , glyph index , <HEX> , <HEX> )",
+      "line_number": 14,
+      "rel_line_number": 0.7777777777777778
+    },
+    {
+      "id": 39,
+      "node_type": "Identifier",
+      "code_token": "buffer",
+      "line_number": 14,
+      "rel_line_number": 0.7777777777777778
+    },
+    {
+      "id": 40,
+      "node_type": "Identifier",
+      "code_token": "glyph index",
+      "line_number": 14,
+      "rel_line_number": 0.7777777777777778
+    },
+    {
+      "id": 41,
+      "node_type": "Literal",
+      "code_token": "<HEX>",
+      "line_number": 14,
+      "rel_line_number": 0.7777777777777778
+    },
+    {
+      "id": 42,
+      "node_type": "Literal",
+      "code_token": "<HEX>",
+      "line_number": 14,
+      "rel_line_number": 0.7777777777777778
+    },
+    {
+      "id": 43,
+      "node_type": "Return",
+      "code_token": "return hb err ok ;",
+      "line_number": 17,
+      "rel_line_number": 0.9444444444444444
+    },
+    {
+      "id": 44,
+      "node_type": "Identifier",
+      "code_token": "< unknown > hb err ok",
+      "line_number": 17,
+      "rel_line_number": 0.9444444444444444
+    },
+    {
+      "id": 45,
+      "node_type": "Local",
+      "code_token": "< unknown > hb err ok",
+      "line_number": 17,
+      "rel_line_number": 0.9444444444444444
+    },
+    {
+      "id": 46,
+      "node_type": "MethodReturn",
+      "code_token": "ret",
+      "line_number": 1,
+      "rel_line_number": 0.05555555555555555
+    },
+    {
+      "id": 47,
+      "node_type": "MethodParameterOut",
+      "code_token": "hb buffer buffer",
+      "line_number": 1,
+      "rel_line_number": 0.05555555555555555
+    },
+    {
+      "id": 48,
+      "node_type": "MethodParameterOut",
+      "code_token": "hb int glyph index",
+      "line_number": 2,
+      "rel_line_number": 0.1111111111111111
+    }
+  ],
+  "edges": [
+    {
+      "src": 0,
+      "dst": 1,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 1,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 3,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 7,
+      "type": 1
+    },
+    {
+      "src": 0,
+      "dst": 7,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 14,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 17,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 20,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 23,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 27,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 31,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 34,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 39,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 40,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 41,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 42,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 43,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 44,
+      "type": 2
+    },
+    {
+      "src": 0,
+      "dst": 46,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 47,
+      "type": 0
+    },
+    {
+      "src": 0,
+      "dst": 48,
+      "type": 0
+    },
+    {
+      "src": 1,
+      "dst": 6,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 7,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 12,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 13,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 14,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 16,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 17,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 22,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 23,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 26,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 27,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 31,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 33,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 34,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 39,
+      "type": 2
+    },
+    {
+      "src": 1,
+      "dst": 47,
+      "type": 2
+    },
+    {
+      "src": 2,
+      "dst": 20,
+      "type": 2
+    },
+    {
+      "src": 2,
+      "dst": 40,
+      "type": 2
+    },
+    {
+      "src": 2,
+      "dst": 48,
+      "type": 2
+    },
+    {
+      "src": 3,
+      "dst": 4,
+      "type": 0
+    },
+    {
+      "src": 3,
+      "dst": 43,
+      "type": 0
+    },
+    {
+      "src": 3,
+      "dst": 45,
+      "type": 0
+    },
+    {
+      "src": 4,
+      "dst": 5,
+      "type": 0
+    },
+    {
+      "src": 4,
+      "dst": 9,
+      "type": 0
+    },
+    {
+      "src": 4,
+      "dst": 36,
+      "type": 0
+    },
+    {
+      "src": 5,
+      "dst": 6,
+      "type": 0
+    },
+    {
+      "src": 5,
+      "dst": 14,
+      "type": 1
+    },
+    {
+      "src": 5,
+      "dst": 39,
+      "type": 1
+    },
+    {
+      "src": 5,
+      "dst": 46,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 5,
+      "type": 1
+    },
+    {
+      "src": 6,
+      "dst": 5,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 7,
+      "type": 0
+    },
+    {
+      "src": 6,
+      "dst": 8,
+      "type": 0
+    },
+    {
+      "src": 6,
+      "dst": 14,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 17,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 23,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 27,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 31,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 34,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 39,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 46,
+      "type": 2
+    },
+    {
+      "src": 6,
+      "dst": 47,
+      "type": 2
+    },
+    {
+      "src": 7,
+      "dst": 8,
+      "type": 1
+    },
+    {
+      "src": 8,
+      "dst": 6,
+      "type": 1
+    },
+    {
+      "src": 9,
+      "dst": 10,
+      "type": 0
+    },
+    {
+      "src": 9,
+      "dst": 21,
+      "type": 0
+    },
+    {
+      "src": 9,
+      "dst": 25,
+      "type": 0
+    },
+    {
+      "src": 9,
+      "dst": 29,
+      "type": 0
+    },
+    {
+      "src": 10,
+      "dst": 11,
+      "type": 0
+    },
+    {
+      "src": 10,
+      "dst": 20,
+      "type": 0
+    },
+    {
+      "src": 10,
+      "dst": 23,
+      "type": 1
+    },
+    {
+      "src": 11,
+      "dst": 10,
+      "type": 2
+    },
+    {
+      "src": 11,
+      "dst": 12,
+      "type": 0
+    },
+    {
+      "src": 11,
+      "dst": 19,
+      "type": 0
+    },
+    {
+      "src": 11,
+      "dst": 20,
+      "type": 1
+    },
+    {
+      "src": 12,
+      "dst": 13,
+      "type": 0
+    },
+    {
+      "src": 12,
+      "dst": 16,
+      "type": 0
+    },
+    {
+      "src": 12,
+      "dst": 19,
+      "type": 1
+    },
+    {
+      "src": 13,
+      "dst": 14,
+      "type": 0
+    },
+    {
+      "src": 13,
+      "dst": 15,
+      "type": 0
+    },
+    {
+      "src": 13,
+      "dst": 17,
+      "type": 1
+    },
+    {
+      "src": 14,
+      "dst": 15,
+      "type": 1
+    },
+    {
+      "src": 15,
+      "dst": 13,
+      "type": 1
+    },
+    {
+      "src": 16,
+      "dst": 12,
+      "type": 1
+    },
+    {
+      "src": 16,
+      "dst": 17,
+      "type": 0
+    },
+    {
+      "src": 16,
+      "dst": 18,
+      "type": 0
+    },
+    {
+      "src": 17,
+      "dst": 18,
+      "type": 1
+    },
+    {
+      "src": 18,
+      "dst": 16,
+      "type": 1
+    },
+    {
+      "src": 19,
+      "dst": 11,
+      "type": 1
+    },
+    {
+      "src": 20,
+      "dst": 10,
+      "type": 1
+    },
+    {
+      "src": 20,
+      "dst": 10,
+      "type": 2
+    },
+    {
+      "src": 20,
+      "dst": 11,
+      "type": 2
+    },
+    {
+      "src": 21,
+      "dst": 22,
+      "type": 0
+    },
+    {
+      "src": 21,
+      "dst": 27,
+      "type": 1
+    },
+    {
+      "src": 22,
+      "dst": 21,
+      "type": 1
+    },
+    {
+      "src": 22,
+      "dst": 21,
+      "type": 2
+    },
+    {
+      "src": 22,
+      "dst": 23,
+      "type": 0
+    },
+    {
+      "src": 22,
+      "dst": 24,
+      "type": 0
+    },
+    {
+      "src": 22,
+      "dst": 27,
+      "type": 2
+    },
+    {
+      "src": 22,
+      "dst": 31,
+      "type": 2
+    },
+    {
+      "src": 22,
+      "dst": 34,
+      "type": 2
+    },
+    {
+      "src": 23,
+      "dst": 24,
+      "type": 1
+    },
+    {
+      "src": 24,
+      "dst": 22,
+      "type": 1
+    },
+    {
+      "src": 25,
+      "dst": 26,
+      "type": 0
+    },
+    {
+      "src": 25,
+      "dst": 31,
+      "type": 1
+    },
+    {
+      "src": 26,
+      "dst": 25,
+      "type": 1
+    },
+    {
+      "src": 26,
+      "dst": 25,
+      "type": 2
+    },
+    {
+      "src": 26,
+      "dst": 27,
+      "type": 0
+    },
+    {
+      "src": 26,
+      "dst": 28,
+      "type": 0
+    },
+    {
+      "src": 26,
+      "dst": 31,
+      "type": 2
+    },
+    {
+      "src": 26,
+      "dst": 33,
+      "type": 2
+    },
+    {
+      "src": 26,
+      "dst": 34,
+      "type": 2
+    },
+    {
+      "src": 27,
+      "dst": 28,
+      "type": 1
+    },
+    {
+      "src": 28,
+      "dst": 26,
+      "type": 1
+    },
+    {
+      "src": 29,
+      "dst": 30,
+      "type": 0
+    },
+    {
+      "src": 29,
+      "dst": 33,
+      "type": 0
+    },
+    {
+      "src": 29,
+      "dst": 44,
+      "type": 1
+    },
+    {
+      "src": 30,
+      "dst": 29,
+      "type": 2
+    },
+    {
+      "src": 30,
+      "dst": 31,
+      "type": 0
+    },
+    {
+      "src": 30,
+      "dst": 32,
+      "type": 0
+    },
+    {
+      "src": 30,
+      "dst": 34,
+      "type": 1
+    },
+    {
+      "src": 31,
+      "dst": 32,
+      "type": 1
+    },
+    {
+      "src": 32,
+      "dst": 30,
+      "type": 1
+    },
+    {
+      "src": 33,
+      "dst": 29,
+      "type": 1
+    },
+    {
+      "src": 33,
+      "dst": 29,
+      "type": 2
+    },
+    {
+      "src": 33,
+      "dst": 30,
+      "type": 2
+    },
+    {
+      "src": 33,
+      "dst": 34,
+      "type": 0
+    },
+    {
+      "src": 33,
+      "dst": 35,
+      "type": 0
+    },
+    {
+      "src": 34,
+      "dst": 35,
+      "type": 1
+    },
+    {
+      "src": 35,
+      "dst": 33,
+      "type": 1
+    },
+    {
+      "src": 36,
+      "dst": 37,
+      "type": 0
+    },
+    {
+      "src": 37,
+      "dst": 38,
+      "type": 0
+    },
+    {
+      "src": 37,
+      "dst": 46,
+      "type": 1
+    },
+    {
+      "src": 37,
+      "dst": 46,
+      "type": 2
+    },
+    {
+      "src": 38,
+      "dst": 37,
+      "type": 1
+    },
+    {
+      "src": 38,
+      "dst": 37,
+      "type": 2
+    },
+    {
+      "src": 38,
+      "dst": 39,
+      "type": 0
+    },
+    {
+      "src": 38,
+      "dst": 40,
+      "type": 0
+    },
+    {
+      "src": 38,
+      "dst": 41,
+      "type": 0
+    },
+    {
+      "src": 38,
+      "dst": 42,
+      "type": 0
+    },
+    {
+      "src": 38,
+      "dst": 46,
+      "type": 2
+    },
+    {
+      "src": 39,
+      "dst": 38,
+      "type": 2
+    },
+    {
+      "src": 39,
+      "dst": 40,
+      "type": 1
+    },
+    {
+      "src": 39,
+      "dst": 40,
+      "type": 2
+    },
+    {
+      "src": 39,
+      "dst": 46,
+      "type": 2
+    },
+    {
+      "src": 39,
+      "dst": 47,
+      "type": 2
+    },
+    {
+      "src": 40,
+      "dst": 38,
+      "type": 2
+    },
+    {
+      "src": 40,
+      "dst": 39,
+      "type": 2
+    },
+    {
+      "src": 40,
+      "dst": 41,
+      "type": 1
+    },
+    {
+      "src": 40,
+      "dst": 46,
+      "type": 2
+    },
+    {
+      "src": 40,
+      "dst": 48,
+      "type": 2
+    },
+    {
+      "src": 41,
+      "dst": 38,
+      "type": 2
+    },
+    {
+      "src": 41,
+      "dst": 39,
+      "type": 2
+    },
+    {
+      "src": 41,
+      "dst": 40,
+      "type": 2
+    },
+    {
+      "src": 41,
+      "dst": 42,
+      "type": 1
+    },
+    {
+      "src": 42,
+      "dst": 38,
+      "type": 1
+    },
+    {
+      "src": 42,
+      "dst": 38,
+      "type": 2
+    },
+    {
+      "src": 42,
+      "dst": 39,
+      "type": 2
+    },
+    {
+      "src": 42,
+      "dst": 40,
+      "type": 2
+    },
+    {
+      "src": 43,
+      "dst": 44,
+      "type": 0
+    },
+    {
+      "src": 43,
+      "dst": 46,
+      "type": 1
+    },
+    {
+      "src": 43,
+      "dst": 46,
+      "type": 2
+    },
+    {
+      "src": 44,
+      "dst": 43,
+      "type": 1
+    },
+    {
+      "src": 44,
+      "dst": 43,
+      "type": 2
+    }
+  ],
+  "source_reference": "dataset row sample_id=row-567",
+  "record_kind": "extracted_graph"
+}
