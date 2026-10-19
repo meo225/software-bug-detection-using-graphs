@@ -70,3 +70,7 @@ joern-cli/
 # IDE local
 .idea/
 .vscode/
+
+# Excel files
+*.xlsx
+
