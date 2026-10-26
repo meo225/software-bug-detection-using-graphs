@@ -15,7 +15,7 @@ import shutil
 import sys
 import tempfile
 import time
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -41,11 +41,26 @@ DEFAULT_SCHEMA = ROOT / "configs" / "graph" / "schema_spec.yaml"
 DEFAULT_OUTPUT_DIR = ROOT / "data" / "graphs" / "subset_9077"
 
 TOTAL_SAMPLES = 9077
-BATCH_DEFINITIONS = {
-    1: (0, 3000),
-    2: (3000, 6000),
-    3: (6000, 9077),
-}
+SESSION_COUNT = 5
+
+
+def build_batch_definitions(total: int, count: int) -> dict[int, tuple[int, int]]:
+    """Chia đều ``total`` mẫu thành ``count`` phân đoạn liên tiếp, không chồng lấp.
+
+    Mỗi phân đoạn có khoảng 1.815 mẫu để một phiên Kaggle CPU (giới hạn 12 giờ,
+    tốc độ đo được khoảng 200-220 mẫu mỗi giờ với 4 tiến trình) hoàn tất có dư biên.
+    """
+    base, extra = divmod(total, count)
+    definitions: dict[int, tuple[int, int]] = {}
+    start = 0
+    for index in range(1, count + 1):
+        end = start + base + (1 if index <= extra else 0)
+        definitions[index] = (start, end)
+        start = end
+    return definitions
+
+
+BATCH_DEFINITIONS = build_batch_definitions(TOTAL_SAMPLES, SESSION_COUNT)
 
 
 @dataclass
@@ -221,13 +236,64 @@ def process_single_sample(
             )
 
 
+def seed_from_previous(
+    roots: list[Path],
+    graph_a_dir: Path,
+    graph_b_dir: Path,
+    wanted_ids: set[str],
+) -> int:
+    """Chép kết quả đã có từ các lần chạy trước vào thư mục đầu ra hiện tại.
+
+    Chỉ chép mẫu thuộc ``wanted_ids`` có đủ cả Graph A và Graph B và cả hai tệp
+    đều đọc được (bỏ qua tệp ghi dở khi phiên bị hủy). Thư mục nguồn được tìm đệ
+    quy theo cặp ``graph_a`` và ``graph_b``. Cơ chế resume sẵn có sẽ bỏ qua các mẫu này.
+    """
+    copied = 0
+    dest_a_resolved = graph_a_dir.resolve()
+    for root in roots:
+        if not root.is_dir():
+            LOGGER.warning("Bỏ qua thư mục resume không tồn tại: %s", root)
+            continue
+        for src_a_dir in root.rglob("graph_a"):
+            src_b_dir = src_a_dir.parent / "graph_b"
+            if not src_a_dir.is_dir() or not src_b_dir.is_dir():
+                continue
+            if src_a_dir.resolve() == dest_a_resolved:
+                continue
+            for src_a in src_a_dir.glob("*.json"):
+                sample_id = src_a.stem
+                if sample_id not in wanted_ids:
+                    continue
+                src_b = src_b_dir / src_a.name
+                dest_a = graph_a_dir / src_a.name
+                dest_b = graph_b_dir / src_a.name
+                if dest_a.is_file() and dest_b.is_file():
+                    continue
+                if not src_b.is_file():
+                    continue
+                try:
+                    json.loads(src_a.read_text(encoding="utf-8"))
+                    json.loads(src_b.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    continue
+                shutil.copyfile(src_a, dest_a)
+                shutil.copyfile(src_b, dest_b)
+                copied += 1
+    return copied
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Trích xuất Graph A và Graph B cho tập DiverseVul")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="Tệp manifest mẫu")
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET, help="Tệp dữ liệu gốc DiverseVul")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Thư mục xuất kết quả")
     parser.add_argument("--schema-config", type=Path, default=DEFAULT_SCHEMA, help="Tệp cấu hình schema")
-    parser.add_argument("--batch", type=int, choices=[1, 2, 3], help="Chỉ số phân đoạn 1 hoặc 2 hoặc 3")
+    parser.add_argument(
+        "--batch",
+        type=int,
+        choices=sorted(BATCH_DEFINITIONS),
+        help=f"Chỉ số phân đoạn từ 1 đến {SESSION_COUNT}",
+    )
     parser.add_argument("--start-idx", type=int, help="Chỉ số bắt đầu")
     parser.add_argument("--end-idx", type=int, help="Chỉ số kết thúc")
     parser.add_argument("--workers", type=int, default=4, help="Số lượng tiến trình thực thi")
@@ -237,6 +303,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--wsl-distro", default="Ubuntu", help="Tên bản phân phối WSL")
     parser.add_argument("--timeout", type=int, default=120, help="Thời gian giới hạn tính bằng giây")
     parser.add_argument("--no-resume", action="store_true", help="Không bỏ qua các mẫu đã hoàn tất")
+    parser.add_argument(
+        "--resume-from",
+        type=Path,
+        nargs="*",
+        default=[],
+        help="Thư mục kết quả của các lần chạy trước (tìm đệ quy graph_a/graph_b) để bỏ qua mẫu đã xong",
+    )
+    parser.add_argument(
+        "--max-runtime-hours",
+        type=float,
+        default=0.0,
+        help="Ngừng nhận mẫu mới sau số giờ này rồi thoát bình thường (0 là không giới hạn)",
+    )
     return parser.parse_args()
 
 
@@ -290,6 +369,12 @@ def main() -> int:
         max_nodes=int(limits.get("max_nodes", 1000)),
         max_edges=int(limits.get("max_edges", 3000)),
     )
+
+    if args.resume_from and not args.no_resume:
+        seeded = seed_from_previous(
+            args.resume_from, graph_a_dir, graph_b_dir, {r["sample_id"] for r in selected_rows}
+        )
+        LOGGER.info("Đã nạp %d mẫu từ kết quả trước đó", seeded)
 
     rows_to_process: list[dict[str, str]] = []
     already_done_outcomes: list[SampleExtractionOutcome] = []
@@ -363,8 +448,13 @@ def main() -> int:
     LOGGER.info("Bắt đầu thực thi với %d tiến trình", args.workers)
     t_start = time.perf_counter()
 
+    deadline = t_start + args.max_runtime_hours * 3600 if args.max_runtime_hours > 0 else None
+
     if args.workers <= 1:
         for idx, row in enumerate(rows_to_process, 1):
+            if deadline is not None and time.perf_counter() > deadline:
+                LOGGER.warning("Đạt giới hạn thời gian chạy, dừng nhận mẫu mới")
+                break
             sample_id = row["sample_id"]
             d_index = parse_sample_id(sample_id)
             record = records_by_index[d_index]
@@ -381,49 +471,94 @@ def main() -> int:
                 f"Thời gian: {outcome.total_seconds:.1f}s"
             )
     else:
+        pending_rows = iter(rows_to_process)
+        in_flight: dict[Any, str] = {}
+        queue_limit = args.workers * 2
+        stop_requested = False
+        eta_warned = False
+
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
-            futures = {
-                executor.submit(
-                    process_single_sample,
-                    row,
-                    records_by_index[parse_sample_id(row["sample_id"])],
-                    graph_a_dir,
-                    graph_b_dir,
-                    config,
-                ): row["sample_id"]
-                for row in rows_to_process
-            }
 
-            for future in as_completed(futures):
-                s_id = futures[future]
-                try:
-                    outcome = future.result()
-                except Exception as exc:
-                    LOGGER.error("Lỗi tiến trình tại mẫu %s: %s", s_id, exc)
-                    outcome = SampleExtractionOutcome(
-                        sample_id=s_id, index=parse_sample_id(s_id), cwe="", project="",
-                        project_wise_split="", seen_project_split="",
-                        status="WORKER_ERROR", error_message=str(exc),
-                        num_nodes=0, num_edges_a=0, num_edges_b=0, ast_edges=0, cfg_edges=0, ddg_edges=0,
-                        parse_seconds=None, extraction_seconds=None, total_seconds=0.0
+            def top_up() -> None:
+                # Chỉ giữ một cửa sổ nhỏ mẫu đang chờ để có thể dừng sớm theo thời gian.
+                while not stop_requested and len(in_flight) < queue_limit:
+                    next_row = next(pending_rows, None)
+                    if next_row is None:
+                        return
+                    future = executor.submit(
+                        process_single_sample,
+                        next_row,
+                        records_by_index[parse_sample_id(next_row["sample_id"])],
+                        graph_a_dir,
+                        graph_b_dir,
+                        config,
                     )
-                completed_count += 1
-                if outcome.status in ("SUCCESS", "OVERSIZED_GRAPH"):
-                    success_count += 1
-                manifest_writer.writerow(asdict(outcome))
-                manifest_file.flush()
+                    in_flight[future] = next_row["sample_id"]
 
-                elapsed = time.perf_counter() - t_start
-                avg_time = elapsed / max(1, completed_count - len(already_done_outcomes))
-                remaining = (len(selected_rows) - completed_count) * avg_time
-                print(
-                    f"Tiến độ: {completed_count}/{len(selected_rows)} - Mẫu: {outcome.sample_id} - "
-                    f"Dự án: {outcome.project} - Trạng thái: {outcome.status} - "
-                    f"Số node: {outcome.num_nodes} - Số cạnh: {outcome.num_edges_b} - "
-                    f"Thời gian: {outcome.total_seconds:.1f}s - Dự kiến còn lại: {remaining / 3600:.1f}h"
-                )
+            top_up()
+            while in_flight:
+                done, _ = wait(list(in_flight), return_when=FIRST_COMPLETED)
+                for future in done:
+                    s_id = in_flight.pop(future)
+                    try:
+                        outcome = future.result()
+                    except Exception as exc:
+                        LOGGER.error("Lỗi tiến trình tại mẫu %s: %s", s_id, exc)
+                        outcome = SampleExtractionOutcome(
+                            sample_id=s_id, index=parse_sample_id(s_id), cwe="", project="",
+                            project_wise_split="", seen_project_split="",
+                            status="WORKER_ERROR", error_message=str(exc),
+                            num_nodes=0, num_edges_a=0, num_edges_b=0, ast_edges=0, cfg_edges=0, ddg_edges=0,
+                            parse_seconds=None, extraction_seconds=None, total_seconds=0.0
+                        )
+                    completed_count += 1
+                    if outcome.status in ("SUCCESS", "OVERSIZED_GRAPH"):
+                        success_count += 1
+                    manifest_writer.writerow(asdict(outcome))
+                    manifest_file.flush()
+
+                    elapsed = time.perf_counter() - t_start
+                    processed_now = completed_count - len(already_done_outcomes)
+                    avg_time = elapsed / max(1, processed_now)
+                    remaining = (len(selected_rows) - completed_count) * avg_time
+                    print(
+                        f"Tiến độ: {completed_count}/{len(selected_rows)} - Mẫu: {outcome.sample_id} - "
+                        f"Dự án: {outcome.project} - Trạng thái: {outcome.status} - "
+                        f"Số node: {outcome.num_nodes} - Số cạnh: {outcome.num_edges_b} - "
+                        f"Thời gian: {outcome.total_seconds:.1f}s - Dự kiến còn lại: {remaining / 3600:.1f}h"
+                    )
+
+                    if (
+                        deadline is not None
+                        and not eta_warned
+                        and processed_now >= 100
+                        and avg_time * len(rows_to_process) > args.max_runtime_hours * 3600
+                    ):
+                        eta_warned = True
+                        LOGGER.warning(
+                            "Tốc độ hiện tại cần khoảng %.1f giờ cho %d mẫu, vượt giới hạn %.1f giờ; "
+                            "phân đoạn sẽ dừng sớm và cần chạy bù phần còn lại",
+                            avg_time * len(rows_to_process) / 3600,
+                            len(rows_to_process),
+                            args.max_runtime_hours,
+                        )
+
+                if deadline is not None and not stop_requested and time.perf_counter() > deadline:
+                    stop_requested = True
+                    LOGGER.warning(
+                        "Đạt giới hạn %.1f giờ, chờ %d mẫu đang chạy rồi dừng nhận mẫu mới",
+                        args.max_runtime_hours, len(in_flight),
+                    )
+                top_up()
 
     manifest_file.close()
+    unprocessed = len(selected_rows) - completed_count
+    if unprocessed > 0:
+        LOGGER.warning(
+            "Dừng sớm phân đoạn %s: còn %d mẫu chưa xử lý, chạy lại cùng lệnh với "
+            "--resume-from trỏ tới thư mục kết quả này để hoàn tất",
+            batch_name, unprocessed,
+        )
     LOGGER.info(
         "Hoàn tất phân đoạn %s: %d trên %d mẫu đạt yêu cầu",
         batch_name, success_count, len(selected_rows)

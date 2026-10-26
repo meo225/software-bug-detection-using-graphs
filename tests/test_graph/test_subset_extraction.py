@@ -1,24 +1,39 @@
 import csv
 import json
 from pathlib import Path
-from scripts.extract_subset import BATCH_DEFINITIONS, TOTAL_SAMPLES, write_fallback_failure_json, SampleExtractionOutcome
+import multiprocessing
+import time
+
+import pytest
+
+import scripts.extract_subset as extract_subset
+from scripts.extract_subset import (
+    BATCH_DEFINITIONS,
+    SESSION_COUNT,
+    TOTAL_SAMPLES,
+    SampleExtractionOutcome,
+    seed_from_previous,
+    write_fallback_failure_json,
+)
 from scripts.merge_and_report_3_3 import main as merge_main
 
 
 def test_batch_definitions_coverage():
-    """Verify that the 3 batches strictly partition 0 to 9,077 with no overlaps or gaps."""
+    """Verify that the sessions strictly partition 0 to 9,077 with no overlaps or gaps."""
     assert TOTAL_SAMPLES == 9077
-    b1_start, b1_end = BATCH_DEFINITIONS[1]
-    b2_start, b2_end = BATCH_DEFINITIONS[2]
-    b3_start, b3_end = BATCH_DEFINITIONS[3]
+    assert sorted(BATCH_DEFINITIONS) == list(range(1, SESSION_COUNT + 1))
 
-    assert b1_start == 0
-    assert b1_end == b2_start == 3000
-    assert b2_end == b3_start == 6000
-    assert b3_end == TOTAL_SAMPLES == 9077
+    expected_start = 0
+    for index in sorted(BATCH_DEFINITIONS):
+        start, end = BATCH_DEFINITIONS[index]
+        assert start == expected_start
+        assert end > start
+        expected_start = end
+    assert expected_start == TOTAL_SAMPLES
 
-    total_covered = (b1_end - b1_start) + (b2_end - b2_start) + (b3_end - b3_start)
-    assert total_covered == TOTAL_SAMPLES
+    sizes = [end - start for start, end in BATCH_DEFINITIONS.values()]
+    assert max(sizes) - min(sizes) <= 1
+    assert max(sizes) <= 2000
 
 
 def test_write_fallback_failure_json(tmp_path: Path):
@@ -126,3 +141,179 @@ def test_merge_and_report_mock(tmp_path: Path, monkeypatch):
     assert "Task 3.3" in report_content
     assert "CWE-787" in report_content
     assert "CWE-119" in report_content
+
+
+MANIFEST_FIELDS = [
+    "sample_id", "cwe", "project", "commit", "cve", "group_id", "project_wise_split", "seen_project_split"
+]
+PROCESSED_IDS: list[str] = []
+
+
+def _write_graph_pair(root: Path, sample_id: str, *, corrupt_b: bool = False) -> None:
+    for kind in ("graph_a", "graph_b"):
+        directory = root / kind
+        directory.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "sample_id": sample_id, "status": "SUCCESS", "num_nodes": 1,
+            "num_edges": 0, "nodes": [], "edges": [],
+        }
+        text = json.dumps(payload)
+        if corrupt_b and kind == "graph_b":
+            text = text[:10]
+        (directory / f"{sample_id}.json").write_text(text, encoding="utf-8")
+
+
+def fake_process_single_sample(row, record, graph_a_dir, graph_b_dir, config):
+    sample_id = row["sample_id"]
+    PROCESSED_IDS.append(sample_id)
+    time.sleep(0.05)
+    for directory in (graph_a_dir, graph_b_dir):
+        (directory / f"{sample_id}.json").write_text(
+            json.dumps({"sample_id": sample_id, "status": "SUCCESS", "num_nodes": 1,
+                        "num_edges": 0, "nodes": [], "edges": []}),
+            encoding="utf-8",
+        )
+    return SampleExtractionOutcome(
+        sample_id=sample_id, index=int(sample_id.split("-")[1]), cwe="CWE-1", project="p",
+        project_wise_split="train", seen_project_split="train", status="SUCCESS",
+        error_message=None, num_nodes=1, num_edges_a=0, num_edges_b=0, ast_edges=0,
+        cfg_edges=0, ddg_edges=0, parse_seconds=None, extraction_seconds=None, total_seconds=0.05,
+    )
+
+
+def _make_inputs(tmp_path: Path, count: int) -> tuple[Path, Path]:
+    dataset = tmp_path / "dataset.jsonl"
+    dataset.write_text(
+        "\n".join(json.dumps({"func": f"int f{i}(void) {{ return {i}; }}"}) for i in range(count)) + "\n",
+        encoding="utf-8",
+    )
+    manifest = tmp_path / "manifest.csv"
+    with open(manifest, "w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=MANIFEST_FIELDS)
+        writer.writeheader()
+        for i in range(count):
+            writer.writerow({
+                "sample_id": f"row-{i}", "cwe": "CWE-1", "project": "p", "commit": "c", "cve": "v",
+                "group_id": f"g-{i}", "project_wise_split": "train", "seen_project_split": "train",
+            })
+    return dataset, manifest
+
+
+def _run_main(monkeypatch, dataset: Path, manifest: Path, output_dir: Path, *extra: str) -> int:
+    argv = [
+        "extract_subset.py", "--dataset", str(dataset), "--manifest", str(manifest),
+        "--output-dir", str(output_dir), "--start-idx", "0", "--end-idx", "40", *extra,
+    ]
+    monkeypatch.setattr("sys.argv", argv)
+    monkeypatch.setattr(extract_subset, "process_single_sample", fake_process_single_sample)
+    return extract_subset.main()
+
+
+def _manifest_rows(output_dir: Path) -> list[dict[str, str]]:
+    manifest_files = list(output_dir.glob("manifest_*.csv"))
+    assert len(manifest_files) == 1
+    with open(manifest_files[0], "r", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+def test_seed_from_previous_copies_only_valid_pairs(tmp_path: Path):
+    previous = tmp_path / "kaggle_input" / "old_run" / "output_batch_2"
+    _write_graph_pair(previous, "row-1")
+    _write_graph_pair(previous, "row-2", corrupt_b=True)
+    _write_graph_pair(previous, "row-99")
+    (previous / "graph_a" / "row-3.json").write_text("{}", encoding="utf-8")
+
+    dest = tmp_path / "out"
+    (dest / "graph_a").mkdir(parents=True)
+    (dest / "graph_b").mkdir(parents=True)
+
+    copied = seed_from_previous(
+        [tmp_path / "kaggle_input"], dest / "graph_a", dest / "graph_b", {"row-1", "row-2", "row-3"}
+    )
+
+    assert copied == 1
+    assert (dest / "graph_a" / "row-1.json").is_file()
+    assert (dest / "graph_b" / "row-1.json").is_file()
+    assert not (dest / "graph_a" / "row-2.json").exists()
+    assert not (dest / "graph_a" / "row-99.json").exists()
+
+
+def test_resume_from_skips_seeded_samples(tmp_path: Path, monkeypatch):
+    dataset, manifest = _make_inputs(tmp_path, 40)
+    previous = tmp_path / "previous"
+    for i in range(10):
+        _write_graph_pair(previous, f"row-{i}")
+    PROCESSED_IDS.clear()
+
+    rc = _run_main(monkeypatch, dataset, manifest, tmp_path / "out", "--workers", "1",
+                   "--resume-from", str(previous))
+
+    assert rc == 0
+    assert len(PROCESSED_IDS) == 30
+    assert not {f"row-{i}" for i in range(10)} & set(PROCESSED_IDS)
+    assert len(_manifest_rows(tmp_path / "out")) == 40
+
+
+def test_max_runtime_stops_gracefully_sequential(tmp_path: Path, monkeypatch):
+    dataset, manifest = _make_inputs(tmp_path, 40)
+    PROCESSED_IDS.clear()
+
+    rc = _run_main(monkeypatch, dataset, manifest, tmp_path / "out", "--workers", "1",
+                   "--max-runtime-hours", "0.00003")
+
+    out = tmp_path / "out"
+    assert rc == 0
+    done = len(list((out / "graph_a").glob("*.json")))
+    assert 0 < done < 40
+    assert len(_manifest_rows(out)) == done == len(list((out / "graph_b").glob("*.json")))
+
+
+@pytest.mark.skipif(
+    multiprocessing.get_start_method() != "fork", reason="test patches the worker function and needs fork"
+)
+def test_max_runtime_stops_gracefully_with_pool(tmp_path: Path, monkeypatch):
+    dataset, manifest = _make_inputs(tmp_path, 40)
+
+    rc = _run_main(monkeypatch, dataset, manifest, tmp_path / "out", "--workers", "2",
+                   "--max-runtime-hours", "0.00003")
+
+    out = tmp_path / "out"
+    assert rc == 0
+    done = len(list((out / "graph_a").glob("*.json")))
+    assert 0 < done < 40
+    assert len(_manifest_rows(out)) == done == len(list((out / "graph_b").glob("*.json")))
+
+
+@pytest.mark.skipif(
+    multiprocessing.get_start_method() != "fork", reason="test patches the worker function and needs fork"
+)
+def test_pool_processes_everything_without_limit(tmp_path: Path, monkeypatch):
+    dataset, manifest = _make_inputs(tmp_path, 40)
+
+    rc = _run_main(monkeypatch, dataset, manifest, tmp_path / "out", "--workers", "3")
+
+    assert rc == 0
+    assert len(_manifest_rows(tmp_path / "out")) == 40
+
+
+def test_merge_treats_corrupt_json_as_missing(tmp_path: Path, monkeypatch):
+    manifest = tmp_path / "manifest.csv"
+    with open(manifest, "w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=MANIFEST_FIELDS)
+        writer.writeheader()
+        for i in range(2):
+            writer.writerow({
+                "sample_id": f"row-{i}", "cwe": "CWE-1", "project": "p", "commit": "c", "cve": "v",
+                "group_id": f"g-{i}", "project_wise_split": "train", "seen_project_split": "train",
+            })
+    batch = tmp_path / "batch"
+    _write_graph_pair(batch, "row-0")
+    _write_graph_pair(batch, "row-1", corrupt_b=True)
+    monkeypatch.setattr("sys.argv", [
+        "merge_and_report_3_3.py", "--batch-dirs", str(batch), "--manifest", str(manifest),
+        "--output-dir", str(tmp_path / "merged"), "--report-out", str(tmp_path / "report.md"),
+    ])
+
+    assert merge_main() == 0
+    report = (tmp_path / "report.md").read_text(encoding="utf-8")
+    assert "Số lượng mẫu chưa xử lý: 1" in report

@@ -112,8 +112,13 @@ def main() -> int:
         json_b = dest_graph_b / f"{s_id}.json"
 
         if json_a.is_file() and json_b.is_file():
-            data_b = json.loads(json_b.read_text(encoding="utf-8"))
-            data_a = json.loads(json_a.read_text(encoding="utf-8"))
+            try:
+                data_b = json.loads(json_b.read_text(encoding="utf-8"))
+                data_a = json.loads(json_a.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                # Tệp ghi dở do phiên bị hủy: tính là chưa hoàn tất để chạy bù.
+                missing_samples.append(s_id)
+                continue
             status = data_b.get("status", "UNKNOWN")
             err_msg = data_b.get("error_message")
             num_nodes = data_b.get("num_nodes", 0)
