@@ -309,6 +309,11 @@ def test_merge_treats_corrupt_json_as_missing(tmp_path: Path, monkeypatch):
     batch = tmp_path / "batch"
     _write_graph_pair(batch, "row-0")
     _write_graph_pair(batch, "row-1", corrupt_b=True)
+    with open(batch / "manifest_batch.csv", "w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["sample_id", "status"])
+        writer.writeheader()
+        writer.writerow({"sample_id": "row-0", "status": "SUCCESS"})
+        writer.writerow({"sample_id": "row-1", "status": "SUCCESS"})
     monkeypatch.setattr("sys.argv", [
         "merge_and_report_3_3.py", "--batch-dirs", str(batch), "--manifest", str(manifest),
         "--output-dir", str(tmp_path / "merged"), "--report-out", str(tmp_path / "report.md"),
@@ -317,6 +322,7 @@ def test_merge_treats_corrupt_json_as_missing(tmp_path: Path, monkeypatch):
     assert merge_main() == 0
     report = (tmp_path / "report.md").read_text(encoding="utf-8")
     assert "Số lượng mẫu chưa xử lý: 1" in report
+    assert "nhưng thiếu hoặc hỏng tệp graph: 1" in report
 
     with open(tmp_path / "3_3_failed_samples.csv", "r", encoding="utf-8") as handle:
         failed = list(csv.DictReader(handle))

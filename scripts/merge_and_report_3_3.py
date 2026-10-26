@@ -164,6 +164,17 @@ def main() -> int:
     print(f"Vượt ngưỡng kích thước: {total_oversized}")
     print(f"Số mẫu chưa hoàn tất: {len(missing_samples)}")
 
+    # Manifest phân đoạn chỉ ghi mẫu đã hoàn tất; mẫu có trong manifest mà thiếu tệp
+    # graph nghĩa là output bị thiếu hoặc hỏng so với lần chạy gốc.
+    processed_ids = {s["sample_id"] for s in processed_samples}
+    recorded_without_files = sorted(set(sample_records) - processed_ids)
+    if recorded_without_files:
+        print(
+            f"Cảnh báo: {len(recorded_without_files)} mẫu có trong manifest phân đoạn "
+            f"nhưng thiếu hoặc hỏng tệp graph, ví dụ {recorded_without_files[:3]}",
+            file=sys.stderr,
+        )
+
     failed_out = args.failed_out or args.report_out.with_name("3_3_failed_samples.csv")
     official_by_id = {row["sample_id"]: row for row in official_rows}
     failed_fields = [
@@ -248,6 +259,11 @@ def main() -> int:
             rf.write(f"- Số lượng mẫu chưa xử lý: {len(missing_samples)}\n\n")
         else:
             rf.write("- Tỷ lệ bao phủ: 100%\n\n")
+        if recorded_without_files:
+            rf.write(
+                f"- Mẫu đã ghi trong manifest phân đoạn nhưng thiếu hoặc hỏng tệp graph: "
+                f"{len(recorded_without_files)}\n\n"
+            )
 
         rf.write("## 2. Thống kê theo 23 lớp CWE\n\n")
         rf.write("| CWE | Tổng số mẫu | Số lượng thành công | Tỷ lệ thành công | Số lượng bị loại |\n")
