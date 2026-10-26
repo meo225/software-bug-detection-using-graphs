@@ -56,6 +56,12 @@ def parse_args() -> argparse.Namespace:
         help="Đường dẫn tệp báo cáo tổng kết Markdown",
     )
     parser.add_argument(
+        "--failed-out",
+        type=Path,
+        default=None,
+        help="Tệp CSV liệt kê mẫu không tạo được graph (mặc định cạnh tệp báo cáo)",
+    )
+    parser.add_argument(
         "--joern-version",
         default="4.0.654",
         help="Phiên bản Joern",
@@ -157,6 +163,33 @@ def main() -> int:
     print(f"Tổng bị loại: {total_rejected}")
     print(f"Vượt ngưỡng kích thước: {total_oversized}")
     print(f"Số mẫu chưa hoàn tất: {len(missing_samples)}")
+
+    failed_out = args.failed_out or args.report_out.with_name("3_3_failed_samples.csv")
+    official_by_id = {row["sample_id"]: row for row in official_rows}
+    failed_fields = [
+        "sample_id", "project", "cwe", "project_wise_split", "seen_project_split", "status", "error_message"
+    ]
+    failed_out.parent.mkdir(parents=True, exist_ok=True)
+    with open(failed_out, "w", encoding="utf-8", newline="") as ff:
+        failed_writer = csv.DictWriter(ff, fieldnames=failed_fields)
+        failed_writer.writeheader()
+        for s in processed_samples:
+            if s["status"] in success_statuses:
+                continue
+            failed_writer.writerow({
+                "sample_id": s["sample_id"], "project": s["project"], "cwe": s["cwe"],
+                "project_wise_split": s["project_wise_split"], "seen_project_split": s["seen_project_split"],
+                "status": s["status"], "error_message": s["error_message"] or "",
+            })
+        for sample_id in missing_samples:
+            off = official_by_id[sample_id]
+            failed_writer.writerow({
+                "sample_id": sample_id, "project": off.get("project", ""), "cwe": off.get("cwe", ""),
+                "project_wise_split": off.get("project_wise_split", ""),
+                "seen_project_split": off.get("seen_project_split", ""),
+                "status": "NOT_PROCESSED", "error_message": "",
+            })
+    print(f"Ghi danh sách mẫu không tạo được graph: {failed_out}")
 
     for kind, dest_dir in (("graph_a", dest_graph_a), ("graph_b", dest_graph_b)):
         manifest_path = dest_dir / "manifest.csv"

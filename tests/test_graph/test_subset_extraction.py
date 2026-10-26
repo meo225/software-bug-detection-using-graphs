@@ -317,3 +317,7 @@ def test_merge_treats_corrupt_json_as_missing(tmp_path: Path, monkeypatch):
     assert merge_main() == 0
     report = (tmp_path / "report.md").read_text(encoding="utf-8")
     assert "Số lượng mẫu chưa xử lý: 1" in report
+
+    with open(tmp_path / "3_3_failed_samples.csv", "r", encoding="utf-8") as handle:
+        failed = list(csv.DictReader(handle))
+    assert [(row["sample_id"], row["status"]) for row in failed] == [("row-1", "NOT_PROCESSED")]
