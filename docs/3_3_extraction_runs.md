@@ -6,20 +6,20 @@ Chỉ số theo manifest (0-based). Cập nhật cột "Trạng thái" và "Outp
 
 | Chỉ số | Sample ID | Lượt | Trạng thái | Output (Kaggle) |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 đến 249 | `row-1` đến `row-368` | `R1` | Chưa chạy | |
-| 250 đến 499 | `row-369` đến `row-844` | `R2` | Chưa chạy | |
-| 500 đến 749 | `row-847` đến `row-1314` | `R3` | Chưa chạy | |
-| 750 đến 999 | `row-1315` đến `row-1920` | `R4` | Chưa chạy | |
+| 0 đến 249 | `row-1` đến `row-368` | `R1` | Xong, có output | [362693328](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693328) |
+| 250 đến 499 | `row-369` đến `row-844` | `R2` | Xong, có output | [362693378](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693378) |
+| 500 đến 749 | `row-847` đến `row-1314` | `R3` | Xong, có output | [362693426](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693426) |
+| 750 đến 999 | `row-1315` đến `row-1920` | `R4` | Bị Cancel sau 7p21s, không có output. Nghi `row-1355` hoặc `row-1356` | |
 | 1000 đến 1999 | `row-1921` đến `row-4197` | Run 2 | Xong, 1.000 mẫu | [version 362571092](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362571092) |
 | 2000 đến 2999 | `row-4198` đến `row-6168` | Run 3 | Xong, 1.000 mẫu | [version 362571175](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362571175) |
 | 3000 đến 5699 | `row-6170` đến `row-10991` | Phân đoạn 2 cũ | Xong, 2.700 mẫu | [version 361230135](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361230135) |
 | 5700 đến 5999 | `row-10992` đến `row-11506` | Run 4 | Xong, 300 mẫu | [version 362569418](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362569418) |
 | 6000 đến 8436 | `row-11507` đến `row-16961` | Phân đoạn 3 cũ | Xong, 2.437 mẫu | [version 361232117](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361232117) |
-| 8437 đến 8656 | `row-16962` đến `row-17485` | `R5` | Chưa chạy | |
-| 8657 đến 8866 | `row-17486` đến `row-18317` | `R6` | Chưa chạy | |
-| 8867 đến 9076 | `row-18344` đến `row-18936` | `R7` | Chưa chạy | |
+| 8437 đến 8656 | `row-16962` đến `row-17485` | `R5` | Xong, có output | [362693505](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693505) |
+| 8657 đến 8866 | `row-17486` đến `row-18317` | `R6` | Bị Cancel sau 9p52s, không có output. Nghi `row-17523`, `row-17527`, `row-17558` hoặc `row-17559` | |
+| 8867 đến 9076 | `row-18344` đến `row-18936` | `R7` | Xong, có output (lần đầu bị Cancel, chạy lại xong) | [362714704](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362714704) |
 
-Lượt thăm dò (không cần đưa vào bước gộp): `P1` 760 đến 779 (`row-1338` đến `row-1375`), `P2` 770 (`row-1357`), `P3` 8670 đến 8699 (`row-17514` đến `row-17578`), `P4` 8679 (`row-17527`).
+Lượt thăm dò `P1` đến `P4` không cần đưa vào bước gộp (xem mục 3).
 
 ## 1. Hiện trạng
 
@@ -54,10 +54,12 @@ Lượt thăm dò (vài phút mỗi lượt), chạy trước để tìm mẫu g
 
 | Lượt | Chỉ số | Tiến trình | Mục đích |
 | :--- | :--- | ---: | :--- |
-| `P1` | 760 đến 779 | 4 | Tái hiện sự cố của Run 1 |
-| `P2` | 770 | 1 | Mẫu `row-1357` chạy một mình |
-| `P3` | 8670 đến 8699 | 4 | Tái hiện sự cố của Run 5 |
-| `P4` | 8679 | 1 | Mẫu `row-17527` chạy một mình |
+| `P1` | 768 đến 769 (`row-1355`, `row-1356`) | 1 | Chạy từng mẫu nghi ngờ của R4, dòng `Bắt đầu` cuối trong log là mẫu gây lỗi |
+| `P2` | 8678 đến 8681 (`row-17523`, `row-17527`, `row-17558`, `row-17559`) | 1 | Chạy từng mẫu nghi ngờ của R6 |
+| `P3` | 768 đến 771 | 4 | Tái hiện nhóm chạy song song của Run 1 cũ |
+| `P4` | 8678 đến 8681 | 4 | Tái hiện nhóm chạy song song của Run 5 và R6 |
+
+Nếu `P1` hoặc `P2` chết thì mẫu cuối cùng có dòng `Bắt đầu` là thủ phạm. Nếu `P1` và `P2` chạy xong nhưng `P3` hoặc `P4` chết thì lỗi do chạy song song.
 
 Lượt chạy thật:
 
