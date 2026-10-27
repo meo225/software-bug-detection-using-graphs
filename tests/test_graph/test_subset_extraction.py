@@ -357,3 +357,23 @@ def test_sequential_run_logs_sample_start_with_memory(tmp_path: Path, monkeypatc
     assert out.count("Bắt đầu: row-") == 3
     assert "RAM trống:" in out
     assert extract_subset.os.environ["JAVA_TOOL_OPTIONS"] == "-Xmx3072m"
+
+
+def test_skip_samples_writes_quarantined_records_without_running(tmp_path: Path, monkeypatch):
+    dataset, manifest = _make_inputs(tmp_path, 5)
+    PROCESSED_IDS.clear()
+
+    rc = _run_main(monkeypatch, dataset, manifest, tmp_path / "out", "--workers", "1",
+                   "--skip-samples", "row-1", "row-3")
+
+    out = tmp_path / "out"
+    assert rc == 0
+    rows = {r["sample_id"]: r for r in _manifest_rows(out)}
+    assert len(rows) == 5
+    assert rows["row-1"]["status"] == "QUARANTINED"
+    assert rows["row-3"]["status"] == "QUARANTINED"
+    assert "row-1" not in PROCESSED_IDS and "row-3" not in PROCESSED_IDS
+    for sample_id in ("row-1", "row-3"):
+        for graph_dir in ("graph_a", "graph_b"):
+            data = json.loads((out / graph_dir / f"{sample_id}.json").read_text(encoding="utf-8"))
+            assert data["status"] == "QUARANTINED"

@@ -9,14 +9,14 @@ Chỉ số theo manifest (0-based). Cập nhật cột "Trạng thái" và "Outp
 | 0 đến 249 | `row-1` đến `row-368` | `R1` | Xong, có output | [362693328](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693328) |
 | 250 đến 499 | `row-369` đến `row-844` | `R2` | Xong, có output | [362693378](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693378) |
 | 500 đến 749 | `row-847` đến `row-1314` | `R3` | Xong, có output | [362693426](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693426) |
-| 750 đến 999 | `row-1315` đến `row-1920` | `R4` | Bị Cancel sau 7p21s, không có output. Nghi `row-1355` hoặc `row-1356` | |
+| 750 đến 999 | `row-1315` đến `row-1920` | `R4` | Bị Cancel sau 7p21s, không có output. Thủ phạm `row-1355`, cần chạy lại với `--skip-samples` | |
 | 1000 đến 1999 | `row-1921` đến `row-4197` | Run 2 | Xong, 1.000 mẫu | [version 362571092](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362571092) |
 | 2000 đến 2999 | `row-4198` đến `row-6168` | Run 3 | Xong, 1.000 mẫu | [version 362571175](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362571175) |
 | 3000 đến 5699 | `row-6170` đến `row-10991` | Phân đoạn 2 cũ | Xong, 2.700 mẫu | [version 361230135](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361230135) |
 | 5700 đến 5999 | `row-10992` đến `row-11506` | Run 4 | Xong, 300 mẫu | [version 362569418](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362569418) |
 | 6000 đến 8436 | `row-11507` đến `row-16961` | Phân đoạn 3 cũ | Xong, 2.437 mẫu | [version 361232117](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361232117) |
 | 8437 đến 8656 | `row-16962` đến `row-17485` | `R5` | Xong, có output | [362693505](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693505) |
-| 8657 đến 8866 | `row-17486` đến `row-18317` | `R6` | Bị Cancel sau 9p52s, không có output. Nghi `row-17523`, `row-17527`, `row-17558` hoặc `row-17559` | |
+| 8657 đến 8866 | `row-17486` đến `row-18317` | `R6` | Bị Cancel sau 9p52s, không có output. Thủ phạm `row-17527`, cần chạy lại với `--skip-samples` | |
 | 8867 đến 9076 | `row-18344` đến `row-18936` | `R7` | Xong, có output (lần đầu bị Cancel, chạy lại xong) | [362714704](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362714704) |
 
 Lượt thăm dò `P1` đến `P4` không cần đưa vào bước gộp (xem mục 3).
@@ -40,12 +40,26 @@ Còn thiếu 1.640 mẫu: chỉ số 0 đến 999 và 8437 đến 9076.
 
 ## 2. Sự cố bị hủy giữa chừng
 
-Run 1 và Run 5 bị hủy khi đang chạy bình thường: không có traceback, không có timeout, không có lỗ hổng trong dãy mẫu đã xong, dòng log cuối trùng với thời điểm Kaggle ghi "Cancelled". Run 1 và phân đoạn 1 cũ dừng cùng ở mẫu thứ 768 (`row-1354`), nên nguyên nhân có thể phụ thuộc vào các mẫu đang chạy lúc đó (chỉ số 768 đến 771) khi bốn JVM chạy song song. Giả thuyết hết RAM chưa được kiểm chứng: các mẫu lớn hơn nhiều (ví dụ `row-17513`, 2.406 dòng) vẫn chạy xong.
+Run 1, Run 5, R4 và R6 bị Kaggle ghi "Cancelled" khi đang chạy bình thường: không có traceback, không có timeout, RAM trống còn khoảng 30 GB, mỗi JVM đã giới hạn heap 4 GB. Run 1 cũ và R4 chết cùng vùng chỉ số 768, Run 5 và R6 chết cùng nhóm 4 mẫu ở chỉ số 8678 đến 8681.
+
+Lượt thăm dò chạy ngày 27/10/2026:
+
+| Lượt | Chỉ số | Tiến trình | Kết quả |
+| :--- | :--- | ---: | :--- |
+| `P1` | 768 đến 769 | 1 | `row-1355` bắt đầu rồi phiên bị hủy, chưa có mẫu nào xong |
+| `P2` | 8678 đến 8681 | 1 | `row-17523` xong (SUCCESS, 322 node, 18,9 giây), rồi `row-17527` bắt đầu và phiên bị hủy |
+| `P3` | 768 đến 771 | 4 | Bốn mẫu bắt đầu, phiên bị hủy |
+| `P4` | 8678 đến 8681 | 4 | Bốn mẫu bắt đầu, phiên bị hủy |
+
+Kết luận có bằng chứng: `row-1355` (openvpn, chỉ số 768) và `row-17527` (tensorflow, chỉ số 8679) mỗi mẫu một mình đã làm cả phiên Kaggle bị hủy. Đây không phải va chạm giữa các tiến trình và không phải hết RAM của container. Cơ chế cụ thể (bộ nhớ native của Joern, số luồng, hoặc cơ chế giám sát của Kaggle) chưa xác định. `row-1356`, `row-17523`, `row-17558`, `row-17559` chưa được thử riêng sau mẫu gây lỗi, nên chưa loại trừ hoàn toàn.
+
+Xử lý: hai mẫu được cách ly bằng `--skip-samples` (trạng thái `QUARANTINED`, không gọi Joern) và tính vào nhóm mẫu thất bại trong báo cáo. Cần chạy lại `R4` và `R6` với danh sách này. Nếu một lượt khác lại bị hủy, đọc dòng `Bắt đầu` cuối cùng trong log, thêm mẫu đó vào `SKIP_SAMPLES` và chạy lại.
 
 Các thay đổi để chẩn đoán và giảm rủi ro:
 
 - `--jvm-heap-gb` (mặc định 4) đặt trần heap cho mỗi JVM qua `JAVA_TOOL_OPTIONS`.
 - Mỗi mẫu in dòng `Bắt đầu: <sample_id> ... RAM trống: ...` trước khi chạy và dòng tiến độ kèm RAM còn trống, để biết mẫu nào đang chạy nếu phiên bị hủy.
+- `--skip-samples` cách ly mẫu gây lỗi.
 - Chia nhỏ các lượt chạy: phiên bị hủy không giữ output, nên mỗi lượt chỉ khoảng 1 đến 1,5 giờ chạy.
 
 ## 3. Chạy bù

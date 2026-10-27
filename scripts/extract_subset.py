@@ -359,6 +359,12 @@ def parse_args() -> argparse.Namespace:
         help="Ngừng nhận mẫu mới sau số giờ này rồi thoát bình thường (0 là không giới hạn)",
     )
     parser.add_argument(
+        "--skip-samples",
+        nargs="*",
+        default=[],
+        help="sample_id bị cách ly (làm phiên Kaggle chết khi chạy riêng): ghi bản ghi lỗi QUARANTINED, không gọi Joern",
+    )
+    parser.add_argument(
         "--jvm-heap-gb",
         type=float,
         default=4.0,
@@ -423,6 +429,24 @@ def main() -> int:
             args.resume_from, graph_a_dir, graph_b_dir, {r["sample_id"] for r in selected_rows}
         )
         LOGGER.info("Đã nạp %d mẫu từ kết quả trước đó", seeded)
+
+    quarantined = set(args.skip_samples)
+    quarantined_written = 0
+    for row in selected_rows:
+        sample_id = row["sample_id"]
+        if sample_id not in quarantined:
+            continue
+        for directory, graph_type in ((graph_a_dir, "A"), (graph_b_dir, "B")):
+            target = directory / f"{sample_id}.json"
+            if not target.is_file():
+                write_fallback_failure_json(
+                    target, sample_id, row.get("cwe", ""), row.get("project_wise_split", ""),
+                    row.get("seen_project_split", ""), graph_type, "QUARANTINED",
+                    "Mẫu bị cách ly: chạy riêng một tiến trình làm phiên Kaggle bị hủy, không gọi Joern",
+                )
+        quarantined_written += 1
+    if quarantined_written:
+        LOGGER.warning("Bỏ qua %d mẫu bị cách ly (ghi trạng thái QUARANTINED)", quarantined_written)
 
     rows_to_process: list[dict[str, str]] = []
     already_done_outcomes: list[SampleExtractionOutcome] = []
