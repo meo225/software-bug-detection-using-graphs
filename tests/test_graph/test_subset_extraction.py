@@ -377,3 +377,21 @@ def test_skip_samples_writes_quarantined_records_without_running(tmp_path: Path,
         for graph_dir in ("graph_a", "graph_b"):
             data = json.loads((out / graph_dir / f"{sample_id}.json").read_text(encoding="utf-8"))
             assert data["status"] == "QUARANTINED"
+
+
+def test_monitor_line_reports_resources(tmp_path: Path):
+    line = extract_subset.format_monitor_line(tmp_path)
+
+    assert line.startswith("Giám sát: RAM trống")
+    assert "tiến trình con" in line and "RSS con" in line and "/tmp trống" in line
+
+
+def test_resource_monitor_prints_periodically_and_stops(tmp_path: Path, capfd):
+    process = extract_subset.start_resource_monitor(tmp_path, 0.05)
+    assert process is not None
+    time.sleep(0.5)
+    extract_subset.stop_resource_monitor(process)
+
+    assert not process.is_alive()
+    assert capfd.readouterr().out.count("Giám sát:") >= 2
+    assert extract_subset.start_resource_monitor(tmp_path, 0) is None

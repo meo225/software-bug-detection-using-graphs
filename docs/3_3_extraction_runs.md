@@ -16,7 +16,7 @@ Chỉ số theo manifest (0-based). Cập nhật cột "Trạng thái" và "Outp
 | 5700 đến 5999 | `row-10992` đến `row-11506` | Run 4 | Xong, 300 mẫu | [version 362569418](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362569418) |
 | 6000 đến 8436 | `row-11507` đến `row-16961` | Phân đoạn 3 cũ | Xong, 2.437 mẫu | [version 361232117](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361232117) |
 | 8437 đến 8656 | `row-16962` đến `row-17485` | `R5` | Xong, có output | [362693505](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693505) |
-| 8657 đến 8679 | `row-17486` đến `row-17527` | `R6a` | Chưa chạy (R6 cũ bị Cancel 2 lần, không có output) | |
+| 8657 đến 8679 | `row-17486` đến `row-17527` | `R6a` | Chưa chạy (R6 cũ và R6a lần 1 bị Cancel, không có output). `row-17523` tạm cách ly | |
 | 8680 đến 8682 | `row-17558` đến `row-17560` | `R6b` | Chưa chạy, 1 tiến trình. Chứa mẫu gây hủy phiên thứ hai | |
 | 8683 đến 8866 | `row-17561` đến `row-18317` | `R6c` | Chưa chạy | |
 | 8867 đến 9076 | `row-18344` đến `row-18936` | `R7` | Xong, có output (lần đầu bị Cancel, chạy lại xong) | [362714704](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362714704) |
@@ -46,6 +46,8 @@ Run 1, Run 5, R4 và R6 bị Kaggle ghi "Cancelled" khi đang chạy bình thư�
 
 Lần chạy lại `R6` với `row-17527` bị cách ly vẫn bị hủy sau khi `row-17522` hoàn tất (nghi ngờ nằm trong nhóm đang chạy lúc đó: `row-17523`, `row-17558`, `row-17559`, `row-17560`; `row-17523` đã chạy xong khi chạy riêng ở `P2`). Vì vậy `R6` được chia thành `R6a`, `R6b` (1 tiến trình) và `R6c`.
 
+`R6a` (8657 đến 8679, đã cách ly `row-17527`) vẫn bị hủy khi chỉ còn `row-17523` đang chạy, trong khi `row-17523` chạy riêng ở `P2` thì xong sau 18,9 giây. Hai kết quả này mâu thuẫn, nên chưa kết luận được `row-17523` tự nó gây lỗi; nguyên nhân có thể phụ thuộc vào trạng thái phiên hoặc thời điểm. `row-17523` tạm được thêm vào `SKIP_SAMPLES` để `R6a` hoàn tất. Lượt chẩn đoán `D1` chạy lại `R6a` không cách ly `row-17523`, kèm các dòng giám sát bên dưới.
+
 Lượt thăm dò chạy ngày 27/10/2026:
 
 | Lượt | Chỉ số | Tiến trình | Kết quả |
@@ -64,6 +66,8 @@ Các thay đổi để chẩn đoán và giảm rủi ro:
 - `--jvm-heap-gb` (mặc định 4) đặt trần heap cho mỗi JVM qua `JAVA_TOOL_OPTIONS`.
 - Mỗi mẫu in dòng `Bắt đầu: <sample_id> ... RAM trống: ...` trước khi chạy và dòng tiến độ kèm RAM còn trống, để biết mẫu nào đang chạy nếu phiên bị hủy.
 - `--skip-samples` cách ly mẫu gây lỗi.
+- `--monitor-interval` (mặc định 3 giây) in dòng `Giám sát:` gồm RAM trống, số tiến trình con và luồng, RSS tổng và lớn nhất của các JVM, dung lượng trống của đĩa output và `/tmp`. Dòng cuối trong log trước khi phiên chết cho biết tài nguyên nào bùng nổ.
+- Tiến trình cha ghi dòng `Nhận tín hiệu SIGTERM` (hoặc `SIGHUP`) nếu bị hủy từ bên ngoài. Nếu log không có dòng này và dừng đột ngột thì tiến trình bị `SIGKILL` (thường do hết bộ nhớ hoặc bị hệ thống giết).
 - Chia nhỏ các lượt chạy: phiên bị hủy không giữ output, nên mỗi lượt chỉ khoảng 1 đến 1,5 giờ chạy.
 
 ## 3. Chạy bù
