@@ -9,14 +9,16 @@ Chỉ số theo manifest (0-based). Cập nhật cột "Trạng thái" và "Outp
 | 0 đến 249 | `row-1` đến `row-368` | `R1` | Xong, có output | [362693328](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693328) |
 | 250 đến 499 | `row-369` đến `row-844` | `R2` | Xong, có output | [362693378](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693378) |
 | 500 đến 749 | `row-847` đến `row-1314` | `R3` | Xong, có output | [362693426](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693426) |
-| 750 đến 999 | `row-1315` đến `row-1920` | `R4` | Bị Cancel sau 7p21s, không có output. Thủ phạm `row-1355`, cần chạy lại với `--skip-samples` | |
+| 750 đến 999 | `row-1315` đến `row-1920` | `R4` | Xong, có output (chạy lại với `--skip-samples`, cách ly `row-1355`) | [362879111](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362879111) |
 | 1000 đến 1999 | `row-1921` đến `row-4197` | Run 2 | Xong, 1.000 mẫu | [version 362571092](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362571092) |
 | 2000 đến 2999 | `row-4198` đến `row-6168` | Run 3 | Xong, 1.000 mẫu | [version 362571175](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362571175) |
 | 3000 đến 5699 | `row-6170` đến `row-10991` | Phân đoạn 2 cũ | Xong, 2.700 mẫu | [version 361230135](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361230135) |
 | 5700 đến 5999 | `row-10992` đến `row-11506` | Run 4 | Xong, 300 mẫu | [version 362569418](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362569418) |
 | 6000 đến 8436 | `row-11507` đến `row-16961` | Phân đoạn 3 cũ | Xong, 2.437 mẫu | [version 361232117](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361232117) |
 | 8437 đến 8656 | `row-16962` đến `row-17485` | `R5` | Xong, có output | [362693505](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693505) |
-| 8657 đến 8866 | `row-17486` đến `row-18317` | `R6` | Bị Cancel sau 9p52s, không có output. Thủ phạm `row-17527`, cần chạy lại với `--skip-samples` | |
+| 8657 đến 8679 | `row-17486` đến `row-17527` | `R6a` | Chưa chạy (R6 cũ bị Cancel 2 lần, không có output) | |
+| 8680 đến 8682 | `row-17558` đến `row-17560` | `R6b` | Chưa chạy, 1 tiến trình. Chứa mẫu gây hủy phiên thứ hai | |
+| 8683 đến 8866 | `row-17561` đến `row-18317` | `R6c` | Chưa chạy | |
 | 8867 đến 9076 | `row-18344` đến `row-18936` | `R7` | Xong, có output (lần đầu bị Cancel, chạy lại xong) | [362714704](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362714704) |
 
 Lượt thăm dò `P1` đến `P4` không cần đưa vào bước gộp (xem mục 3).
@@ -42,6 +44,8 @@ Còn thiếu 1.640 mẫu: chỉ số 0 đến 999 và 8437 đến 9076.
 
 Run 1, Run 5, R4 và R6 bị Kaggle ghi "Cancelled" khi đang chạy bình thường: không có traceback, không có timeout, RAM trống còn khoảng 30 GB, mỗi JVM đã giới hạn heap 4 GB. Run 1 cũ và R4 chết cùng vùng chỉ số 768, Run 5 và R6 chết cùng nhóm 4 mẫu ở chỉ số 8678 đến 8681.
 
+Lần chạy lại `R6` với `row-17527` bị cách ly vẫn bị hủy sau khi `row-17522` hoàn tất (nghi ngờ nằm trong nhóm đang chạy lúc đó: `row-17523`, `row-17558`, `row-17559`, `row-17560`; `row-17523` đã chạy xong khi chạy riêng ở `P2`). Vì vậy `R6` được chia thành `R6a`, `R6b` (1 tiến trình) và `R6c`.
+
 Lượt thăm dò chạy ngày 27/10/2026:
 
 | Lượt | Chỉ số | Tiến trình | Kết quả |
@@ -53,7 +57,7 @@ Lượt thăm dò chạy ngày 27/10/2026:
 
 Kết luận có bằng chứng: `row-1355` (openvpn, chỉ số 768) và `row-17527` (tensorflow, chỉ số 8679) mỗi mẫu một mình đã làm cả phiên Kaggle bị hủy. Đây không phải va chạm giữa các tiến trình và không phải hết RAM của container. Cơ chế cụ thể (bộ nhớ native của Joern, số luồng, hoặc cơ chế giám sát của Kaggle) chưa xác định. `row-1356`, `row-17523`, `row-17558`, `row-17559` chưa được thử riêng sau mẫu gây lỗi, nên chưa loại trừ hoàn toàn.
 
-Xử lý: hai mẫu được cách ly bằng `--skip-samples` (trạng thái `QUARANTINED`, không gọi Joern) và tính vào nhóm mẫu thất bại trong báo cáo. Cần chạy lại `R4` và `R6` với danh sách này. Nếu một lượt khác lại bị hủy, đọc dòng `Bắt đầu` cuối cùng trong log, thêm mẫu đó vào `SKIP_SAMPLES` và chạy lại.
+Xử lý: hai mẫu được cách ly bằng `--skip-samples` (trạng thái `QUARANTINED`, không gọi Joern) và tính vào nhóm mẫu thất bại trong báo cáo. `R4` đã chạy xong với danh sách này. Nếu một lượt khác lại bị hủy, đọc dòng `Bắt đầu` cuối cùng trong log, thêm mẫu đó vào `SKIP_SAMPLES` và chạy lại.
 
 Các thay đổi để chẩn đoán và giảm rủi ro:
 
@@ -84,7 +88,9 @@ Lượt chạy thật:
 | `R3` | 500 đến 749 | 250 | 1 đến 1,5 giờ |
 | `R4` | 750 đến 999 | 250 | 1 đến 1,5 giờ |
 | `R5` | 8437 đến 8656 | 220 | 1 đến 1,3 giờ |
-| `R6` | 8657 đến 8866 | 210 | 1 đến 1,3 giờ |
+| `R6a` | 8657 đến 8679 | 23 | 10 đến 20 phút |
+| `R6b` | 8680 đến 8682 | 3 (1 tiến trình) | vài phút |
+| `R6c` | 8683 đến 8866 | 184 | 1 đến 1,3 giờ |
 | `R7` | 8867 đến 9076 | 210 | 1 đến 1,3 giờ |
 
 Ước tính theo tốc độ đo được: 200 đến 280 mẫu mỗi giờ khi chạy riêng, chậm hơn khi nhiều version chạy cùng lúc. Nên chạy tối đa 5 version song song.
