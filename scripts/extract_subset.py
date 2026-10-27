@@ -236,6 +236,48 @@ def process_single_sample(
             )
 
 
+def mem_available_gb() -> float | None:
+    """RAM còn trống (GB) theo /proc/meminfo; None nếu không đọc được (Windows, macOS)."""
+    try:
+        with open("/proc/meminfo", encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith("MemAvailable:"):
+                    return int(line.split()[1]) / 1024 / 1024
+    except (OSError, ValueError, IndexError):
+        return None
+    return None
+
+
+def format_mem() -> str:
+    value = mem_available_gb()
+    return "n/a" if value is None else f"{value:.1f} GB"
+
+
+def apply_jvm_heap_limit(heap_gb: float) -> str | None:
+    """Đặt trần heap cho mọi JVM con (joern-parse, joern) qua JAVA_TOOL_OPTIONS.
+
+    Mặc định JVM lấy 25% RAM vật lý cho mỗi tiến trình, 4 worker có thể cộng dồn
+    gần hết RAM của máy và làm hệ điều hành giết cả phiên.
+    """
+    if heap_gb <= 0:
+        return None
+    option = f"-Xmx{int(heap_gb * 1024)}m"
+    existing = os.environ.get("JAVA_TOOL_OPTIONS", "")
+    if "-Xmx" not in existing:
+        os.environ["JAVA_TOOL_OPTIONS"] = f"{existing} {option}".strip()
+    return os.environ["JAVA_TOOL_OPTIONS"]
+
+
+def process_tracked_sample(row, record, graph_a_dir, graph_b_dir, config):
+    """Bọc process_single_sample và in dòng bắt đầu để biết mẫu nào đang chạy nếu phiên bị giết."""
+    print(
+        f"Bắt đầu: {row['sample_id']} - Dự án: {row.get('project')} - "
+        f"Số ký tự: {len(str(record.get('func', '')))} - RAM trống: {format_mem()}",
+        flush=True,
+    )
+    return process_single_sample(row, record, graph_a_dir, graph_b_dir, config)
+
+
 def seed_from_previous(
     roots: list[Path],
     graph_a_dir: Path,
@@ -315,6 +357,12 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.0,
         help="Ngừng nhận mẫu mới sau số giờ này rồi thoát bình thường (0 là không giới hạn)",
+    )
+    parser.add_argument(
+        "--jvm-heap-gb",
+        type=float,
+        default=4.0,
+        help="Trần heap mỗi JVM tính bằng GB (0 là dùng mặc định của JVM)",
     )
     return parser.parse_args()
 
@@ -445,7 +493,11 @@ def main() -> int:
     completed_count = len(already_done_outcomes)
     success_count = sum(1 for o in already_done_outcomes if o.status in ("SUCCESS", "OVERSIZED_GRAPH"))
 
-    LOGGER.info("Bắt đầu thực thi với %d tiến trình", args.workers)
+    heap_option = apply_jvm_heap_limit(args.jvm_heap_gb)
+    LOGGER.info(
+        "Bắt đầu thực thi với %d tiến trình (JAVA_TOOL_OPTIONS=%s, RAM trống: %s)",
+        args.workers, heap_option or "mặc định", format_mem(),
+    )
     t_start = time.perf_counter()
 
     deadline = t_start + args.max_runtime_hours * 3600 if args.max_runtime_hours > 0 else None
@@ -458,7 +510,7 @@ def main() -> int:
             sample_id = row["sample_id"]
             d_index = parse_sample_id(sample_id)
             record = records_by_index[d_index]
-            outcome = process_single_sample(row, record, graph_a_dir, graph_b_dir, config)
+            outcome = process_tracked_sample(row, record, graph_a_dir, graph_b_dir, config)
             completed_count += 1
             if outcome.status in ("SUCCESS", "OVERSIZED_GRAPH"):
                 success_count += 1
@@ -486,7 +538,7 @@ def main() -> int:
                     if next_row is None:
                         return
                     future = executor.submit(
-                        process_single_sample,
+                        process_tracked_sample,
                         next_row,
                         records_by_index[parse_sample_id(next_row["sample_id"])],
                         graph_a_dir,
@@ -525,7 +577,8 @@ def main() -> int:
                         f"Tiến độ: {completed_count}/{len(selected_rows)} - Mẫu: {outcome.sample_id} - "
                         f"Dự án: {outcome.project} - Trạng thái: {outcome.status} - "
                         f"Số node: {outcome.num_nodes} - Số cạnh: {outcome.num_edges_b} - "
-                        f"Thời gian: {outcome.total_seconds:.1f}s - Dự kiến còn lại: {remaining / 3600:.1f}h"
+                        f"Thời gian: {outcome.total_seconds:.1f}s - Dự kiến còn lại: {remaining / 3600:.1f}h - "
+                        f"RAM trống: {format_mem()}"
                     )
 
                     if (

@@ -1,42 +1,70 @@
 # Task 3.3: kế hoạch chạy bù và gộp kết quả
 
-## 1. Hiện trạng sau ba lần chạy đầu
+## 1. Hiện trạng
 
-Đối chiếu từng dòng log và `manifest_batch_N.csv` với `data/splits/diversevul_experiment_manifest.csv` (9.077 mẫu, chỉ số từ 0). Log và manifest khớp hoàn toàn về tập mẫu, trạng thái và số node, số cạnh. Mẫu đã có dòng trong manifest thì cả `graph_a` và `graph_b` đã được ghi xong. Mỗi lần chạy là một khoảng liên tục, không có lỗ hổng.
+Đối chiếu từng dòng log và `manifest_*.csv` với `data/splits/diversevul_experiment_manifest.csv` (9.077 mẫu, chỉ số từ 0). Mẫu đã có dòng trong manifest thì cả `graph_a` và `graph_b` đã được ghi xong.
 
-| Lần chạy | Chỉ số đã xong | Số mẫu | Output | Ghi chú |
+| Lần chạy | Chỉ số | Số mẫu | Output | Ghi chú |
 | :--- | :--- | ---: | :--- | :--- |
-| Phân đoạn 1 | 0 đến 767 (`row-1` đến `row-1354`) | 768 | Không còn | Log kết thúc ở 9.934 giây, không có output nên chạy lại toàn bộ chỉ số 0 đến 2999 |
-| Phân đoạn 2 | 3000 đến 5699 (`row-6170` đến `row-10991`) | 2.700 | Còn | Dừng ở giới hạn 12 giờ của Kaggle |
-| Phân đoạn 3 | 6000 đến 8436 (`row-11507` đến `row-16961`) | 2.437 | Còn | Dừng ở giới hạn 12 giờ của Kaggle |
+| Phân đoạn 1 cũ | 0 đến 767 | 768 | Không còn | Bị Kaggle hủy, không giữ output |
+| Phân đoạn 2 cũ | 3000 đến 5699 | 2.700 | Còn | Dừng ở giới hạn 12 giờ |
+| Phân đoạn 3 cũ | 6000 đến 8436 | 2.437 | Còn | Dừng ở giới hạn 12 giờ |
+| Run 1 | 0 đến 767 | 768 | Không còn | Bị hủy sau mẫu thứ 768, cùng vị trí với phân đoạn 1 cũ |
+| Run 2 | 1000 đến 1999 | 1.000 | Còn | Chạy xong sau 4h28 |
+| Run 3 | 2000 đến 2999 | 1.000 | Còn | Chạy xong sau 4h36 |
+| Run 4 | 5700 đến 5999 | 300 | Còn | Chạy xong sau 1h27 |
+| Run 5 | 8437 đến 8677 | 241 | Không còn | Bị hủy sau 1h12 |
 
-Hiện có 5.137 mẫu. Còn thiếu 3.940 mẫu: 0 đến 2999, 5700 đến 5999 và 8437 đến 9076.
+Còn thiếu 1.640 mẫu: chỉ số 0 đến 999 và 8437 đến 9076.
 
-## 2. Chạy bù
+## 2. Sự cố bị hủy giữa chừng
 
-| Lượt chạy | Chỉ số | Số mẫu | Ước tính |
+Run 1 và Run 5 bị hủy khi đang chạy bình thường: không có traceback, không có timeout, không có lỗ hổng trong dãy mẫu đã xong, dòng log cuối trùng với thời điểm Kaggle ghi "Cancelled". Run 1 và phân đoạn 1 cũ dừng cùng ở mẫu thứ 768 (`row-1354`), nên nguyên nhân có thể phụ thuộc vào các mẫu đang chạy lúc đó (chỉ số 768 đến 771) khi bốn JVM chạy song song. Giả thuyết hết RAM chưa được kiểm chứng: các mẫu lớn hơn nhiều (ví dụ `row-17513`, 2.406 dòng) vẫn chạy xong.
+
+Các thay đổi để chẩn đoán và giảm rủi ro:
+
+- `--jvm-heap-gb` (mặc định 4) đặt trần heap cho mỗi JVM qua `JAVA_TOOL_OPTIONS`.
+- Mỗi mẫu in dòng `Bắt đầu: <sample_id> ... RAM trống: ...` trước khi chạy và dòng tiến độ kèm RAM còn trống, để biết mẫu nào đang chạy nếu phiên bị hủy.
+- Chia nhỏ các lượt chạy: phiên bị hủy không giữ output, nên mỗi lượt chỉ khoảng 1 đến 1,5 giờ chạy.
+
+## 3. Chạy bù
+
+Lượt thăm dò (vài phút mỗi lượt), chạy trước để tìm mẫu gây sự cố:
+
+| Lượt | Chỉ số | Tiến trình | Mục đích |
 | :--- | :--- | ---: | :--- |
-| `RUN = 1` | 0 đến 999 | 1.000 | 3,5 đến 5 giờ |
-| `RUN = 2` | 1000 đến 1999 | 1.000 | 3,5 đến 5 giờ |
-| `RUN = 3` | 2000 đến 2999 | 1.000 | 3,5 đến 5 giờ |
-| `RUN = 4` | 5700 đến 5999 | 300 | 1 đến 1,5 giờ |
-| `RUN = 5` | 8437 đến 9076 | 640 | 2,5 đến 3,5 giờ |
+| `P1` | 760 đến 779 | 4 | Tái hiện sự cố của Run 1 |
+| `P2` | 770 | 1 | Mẫu `row-1357` chạy một mình |
+| `P3` | 8670 đến 8699 | 4 | Tái hiện sự cố của Run 5 |
+| `P4` | 8679 | 1 | Mẫu `row-17527` chạy một mình |
 
-Ước tính theo tốc độ đo được trong log: 200 đến 280 mẫu mỗi giờ với 4 tiến trình. Đây là ước tính, chưa phải số đo của các lượt này.
+Lượt chạy thật:
 
-Các mẫu đang chạy dở lúc phiên bị dừng (tối đa 4 mẫu ngay sau mỗi đoạn đã xong) có thể có `graph_a` mà thiếu hoặc ghi dở `graph_b`. Chúng nằm trong các đoạn còn thiếu ở trên và sẽ được chạy lại.
+| Lượt | Chỉ số | Số mẫu | Ước tính |
+| :--- | :--- | ---: | :--- |
+| `R1` | 0 đến 249 | 250 | 1 đến 1,5 giờ |
+| `R2` | 250 đến 499 | 250 | 1 đến 1,5 giờ |
+| `R3` | 500 đến 749 | 250 | 1 đến 1,5 giờ |
+| `R4` | 750 đến 999 | 250 | 1 đến 1,5 giờ |
+| `R5` | 8437 đến 8656 | 220 | 1 đến 1,3 giờ |
+| `R6` | 8657 đến 8866 | 210 | 1 đến 1,3 giờ |
+| `R7` | 8867 đến 9076 | 210 | 1 đến 1,3 giờ |
+
+Ước tính theo tốc độ đo được: 200 đến 280 mẫu mỗi giờ khi chạy riêng, chậm hơn khi nhiều version chạy cùng lúc. Nên chạy tối đa 5 version song song.
+
+Nếu một lượt bị hủy, đọc các dòng `Bắt đầu` cuối log để thấy mẫu đang chạy, rồi chạy riêng từng mẫu đó với một tiến trình.
 
 Dùng `notebooks/3_3_graph_extraction.ipynb`. Mỗi lượt là một version Kaggle riêng:
 
-1. Đổi `RUN` ở mục 4 (1 đến 5), chọn Save & Run All.
+1. Đổi `RUN` ở mục 4 (`P1` đến `P4`, `R1` đến `R7`), chọn Save & Run All.
 2. Sau khi chạy xong, kiểm tra cell cuối: số `graph_a` và `graph_b` phải bằng số mẫu mong đợi.
 3. Nếu lượt chạy dừng sớm do `--max-runtime-hours`, chạy lại cùng `RUN`. Mẫu đã xong được bỏ qua nếu output cũ được Add Input và chỉ định bằng `--resume-from`.
 
-Notebook ghim Joern `v4.0.654`. Hai lần chạy đầu còn output không ghim phiên bản nên đã cài bản Joern mới nhất tại thời điểm chạy (22/10/2026), chưa rõ số phiên bản. Ghi điều này vào báo cáo khi dùng lại kết quả cũ.
+Notebook ghim Joern `v4.0.654`. Các lần chạy cũ (phân đoạn 2 và 3) không ghim phiên bản nên đã cài bản Joern mới nhất tại thời điểm chạy (22/10/2026), chưa rõ số phiên bản. Ghi điều này vào báo cáo khi dùng lại kết quả cũ.
 
 ## 3. Gộp kết quả
 
-Nên gộp ngay trên Kaggle để không phải tải hàng nghìn tệp về máy. Tạo một notebook mới, Add Input output của hai lần chạy còn output (phân đoạn 2 và 3) và năm lượt chạy bù, rồi chạy:
+Nên gộp ngay trên Kaggle để không phải tải hàng nghìn tệp về máy. Tạo một notebook mới, Add Input output của các lần chạy còn output (phân đoạn 2 và 3 cũ, Run 2, Run 3, Run 4) và các lượt `R1` đến `R7` (các lượt thăm dò `P1` đến `P4` không cần), rồi chạy:
 
 ```python
 import subprocess

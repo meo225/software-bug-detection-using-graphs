@@ -327,3 +327,33 @@ def test_merge_treats_corrupt_json_as_missing(tmp_path: Path, monkeypatch):
     with open(tmp_path / "3_3_failed_samples.csv", "r", encoding="utf-8") as handle:
         failed = list(csv.DictReader(handle))
     assert [(row["sample_id"], row["status"]) for row in failed] == [("row-1", "NOT_PROCESSED")]
+
+
+def test_apply_jvm_heap_limit_sets_xmx_once(monkeypatch):
+    monkeypatch.setenv("JAVA_TOOL_OPTIONS", "")
+
+    assert extract_subset.apply_jvm_heap_limit(4) == "-Xmx4096m"
+    # Gọi lại hoặc đã có -Xmx thì không thêm lần nữa.
+    assert extract_subset.apply_jvm_heap_limit(2) == "-Xmx4096m"
+
+    monkeypatch.setenv("JAVA_TOOL_OPTIONS", "-Xmx1g")
+    assert extract_subset.apply_jvm_heap_limit(4) == "-Xmx1g"
+
+    monkeypatch.delenv("JAVA_TOOL_OPTIONS", raising=False)
+    assert extract_subset.apply_jvm_heap_limit(0) is None
+    assert "JAVA_TOOL_OPTIONS" not in extract_subset.os.environ
+
+
+def test_sequential_run_logs_sample_start_with_memory(tmp_path: Path, monkeypatch, capsys):
+    dataset, manifest = _make_inputs(tmp_path, 3)
+    PROCESSED_IDS.clear()
+    monkeypatch.setenv("JAVA_TOOL_OPTIONS", "")
+
+    rc = _run_main(monkeypatch, dataset, manifest, tmp_path / "out", "--workers", "1",
+                   "--jvm-heap-gb", "3")
+
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.count("Bắt đầu: row-") == 3
+    assert "RAM trống:" in out
+    assert extract_subset.os.environ["JAVA_TOOL_OPTIONS"] == "-Xmx3072m"
