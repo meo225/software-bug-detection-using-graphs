@@ -16,7 +16,7 @@ Chỉ số theo manifest (0-based). Cập nhật cột "Trạng thái" và "Outp
 | 5700 đến 5999 | `row-10992` đến `row-11506` | Run 4 | Xong, 300 mẫu | [version 362569418](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362569418) |
 | 6000 đến 8436 | `row-11507` đến `row-16961` | Phân đoạn 3 cũ | Xong, 2.437 mẫu | [version 361232117](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361232117) |
 | 8437 đến 8656 | `row-16962` đến `row-17485` | `R5` | Xong, có output | [362693505](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362693505) |
-| 8657 đến 8679 | `row-17486` đến `row-17527` | `R6a` | Chưa chạy (R6 cũ và R6a lần 1 bị Cancel, không có output). `row-17523` tạm cách ly | |
+| 8657 đến 8679 | `row-17486` đến `row-17527` | `R6a` | Xong, có output (`row-17527` và `row-17523` cách ly) | [362922434](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362922434) |
 | 8680 đến 8682 | `row-17558` đến `row-17560` | `R6b` | Chưa chạy, 1 tiến trình. Chứa mẫu gây hủy phiên thứ hai | |
 | 8683 đến 8866 | `row-17561` đến `row-18317` | `R6c` | Chưa chạy | |
 | 8867 đến 9076 | `row-18344` đến `row-18936` | `R7` | Xong, có output (lần đầu bị Cancel, chạy lại xong) | [362714704](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362714704) |
