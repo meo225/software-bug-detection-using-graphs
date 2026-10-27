@@ -1,5 +1,26 @@
 # Task 3.3: kế hoạch chạy bù và gộp kết quả
 
+## 0. Bảng theo dõi toàn bộ 9.077 mẫu
+
+Chỉ số theo manifest (0-based). Cập nhật cột "Trạng thái" và "Output" sau mỗi lượt.
+
+| Chỉ số | Sample ID | Lượt | Trạng thái | Output (Kaggle) |
+| :--- | :--- | :--- | :--- | :--- |
+| 0 đến 249 | `row-1` đến `row-368` | `R1` | Chưa chạy | |
+| 250 đến 499 | `row-369` đến `row-844` | `R2` | Chưa chạy | |
+| 500 đến 749 | `row-847` đến `row-1314` | `R3` | Chưa chạy | |
+| 750 đến 999 | `row-1315` đến `row-1920` | `R4` | Chưa chạy | |
+| 1000 đến 1999 | `row-1921` đến `row-4197` | Run 2 | Xong, 1.000 mẫu | [version 362571092](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362571092) |
+| 2000 đến 2999 | `row-4198` đến `row-6168` | Run 3 | Xong, 1.000 mẫu | [version 362571175](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362571175) |
+| 3000 đến 5699 | `row-6170` đến `row-10991` | Phân đoạn 2 cũ | Xong, 2.700 mẫu | [version 361230135](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361230135) |
+| 5700 đến 5999 | `row-10992` đến `row-11506` | Run 4 | Xong, 300 mẫu | [version 362569418](https://www.kaggle.com/code/vtnmai/3-3-graph-extraction-fix?scriptVersionId=362569418) |
+| 6000 đến 8436 | `row-11507` đến `row-16961` | Phân đoạn 3 cũ | Xong, 2.437 mẫu | [version 361232117](https://www.kaggle.com/code/nth2k5/3-3-graph-extraction-1/output?scriptVersionId=361232117) |
+| 8437 đến 8656 | `row-16962` đến `row-17485` | `R5` | Chưa chạy | |
+| 8657 đến 8866 | `row-17486` đến `row-18317` | `R6` | Chưa chạy | |
+| 8867 đến 9076 | `row-18344` đến `row-18936` | `R7` | Chưa chạy | |
+
+Lượt thăm dò (không cần đưa vào bước gộp): `P1` 760 đến 779 (`row-1338` đến `row-1375`), `P2` 770 (`row-1357`), `P3` 8670 đến 8699 (`row-17514` đến `row-17578`), `P4` 8679 (`row-17527`).
+
 ## 1. Hiện trạng
 
 Đối chiếu từng dòng log và `manifest_*.csv` với `data/splits/diversevul_experiment_manifest.csv` (9.077 mẫu, chỉ số từ 0). Mẫu đã có dòng trong manifest thì cả `graph_a` và `graph_b` đã được ghi xong.
