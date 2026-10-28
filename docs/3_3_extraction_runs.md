@@ -1,5 +1,13 @@
 # Task 3.3: kế hoạch chạy bù và gộp kết quả
 
+## Kết quả nghiệm thu (28/10/2026)
+
+- Đã gộp đủ 9.077 mẫu; Graph A và Graph B đều bao phủ 100%, thành công + bị loại = 9.077.
+- Thành công 7.799 (Graph A: 7.245 SUCCESS + 554 OVERSIZED_GRAPH; Graph B: 6.802 SUCCESS + 997 OVERSIZED_GRAPH); bị loại 1.278: 647 AST_EXTRACTION_ERROR, 595 METHOD_RESOLUTION_ERROR, 32 UNSUPPORTED_SOURCE_REPRESENTATION, 3 QUARANTINED (row-1355, row-17523, row-17527), 1 TIMEOUT_ERROR.
+- Dữ liệu graph: Kaggle Dataset riêng tư [DiverseVul 9077 - Joern Code Graphs](https://www.kaggle.com/datasets/vtnmai/diversevul-9077-joern-code-graphs) (`graphs_subset_9077.zip`, gồm `graph_a/` và `graph_b/`).
+- Phiên bản Joern: các lần chạy đầu không ghim phiên bản; các lượt chạy bù dùng 4.0.654.
+- Notebook gộp: `notebooks/3_3d_merge_graphs.ipynb`.
+
 ## 0. Bảng theo dõi toàn bộ 9.077 mẫu
 
 Chỉ số theo manifest (0-based). Cập nhật cột "Trạng thái" và "Output" sau mỗi lượt.
