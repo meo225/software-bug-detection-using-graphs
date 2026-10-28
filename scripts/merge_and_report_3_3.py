@@ -26,6 +26,13 @@ from scripts.run_graph_extraction import parse_sample_id  # noqa: E402
 DEFAULT_MANIFEST = ROOT / "data" / "splits" / "diversevul_experiment_manifest.csv"
 DEFAULT_OUTPUT_DIR = ROOT / "data" / "graphs" / "subset_9077"
 DEFAULT_REPORT_PATH = ROOT / "reports" / "graph" / "3_3_extraction.md"
+MAX_ERROR_CHARS = 300
+
+
+def shorten_error(message: str | None) -> str:
+    """Gọn thông báo lỗi về một dòng ngắn để tệp danh sách mẫu lỗi nhẹ và dễ đọc."""
+    text = " ".join((message or "").split())
+    return text if len(text) <= MAX_ERROR_CHARS else text[:MAX_ERROR_CHARS] + "..."
 
 
 def parse_args() -> argparse.Namespace:
@@ -190,7 +197,7 @@ def main() -> int:
             failed_writer.writerow({
                 "sample_id": s["sample_id"], "project": s["project"], "cwe": s["cwe"],
                 "project_wise_split": s["project_wise_split"], "seen_project_split": s["seen_project_split"],
-                "status": s["status"], "error_message": s["error_message"] or "",
+                "status": s["status"], "error_message": shorten_error(s["error_message"]),
             })
         for sample_id in missing_samples:
             off = official_by_id[sample_id]
