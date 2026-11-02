@@ -74,3 +74,9 @@ joern-cli/
 # Excel files
 *.xlsx
 
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+
+
