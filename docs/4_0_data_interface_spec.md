@@ -1,10 +1,14 @@
 # Đặc tả giao diện dữ liệu (Data Interface Specification)
 
-Phiên bản: 1.0
+Phiên bản: 1.1
 Phạm vi: dữ liệu xử lý do Task 4.0 bàn giao cho Task 4.1a, 4.1b, 4.1c, 4.2 và 5.3.
 Tài liệu liên quan: `docs/3_1_graph_schema.md`, `configs/graph/schema_spec.yaml`, `docs/2_3_split.md`, `reports/graph/3_3_extraction.md`.
 
 Mọi thay đổi đối với tài liệu này phải tăng số phiên bản và báo cho bên còn lại trước khi áp dụng.
+
+Lịch sử thay đổi:
+- 1.1: đổi đối tượng PyTorch Geometric `Data` thành `dict` các tensor thuần (không cần cài thêm thư viện, đọc bằng `torch.load`), thêm trường `x_rel` (vị trí dòng tương đối, thuộc danh sách feature cho phép trong `schema_spec.yaml`), chốt cấu trúc thư mục bàn giao, chốt tham số vocabulary theo `schema_spec.yaml`. Mã chuyển đổi tối thiểu nằm ở `src/graph/processed.py` và `scripts/build_processed_data.py`.
+- 1.0: bản đầu.
 
 ## 1. Mẫu và nhãn
 
@@ -20,17 +24,20 @@ Mọi thay đổi đối với tài liệu này phải tăng số phiên bản v
 
 ## 3. Biểu diễn graph
 
-Mỗi mẫu là một đối tượng PyTorch Geometric `Data` với các trường:
+Mỗi mẫu là một `dict` với các trường:
 
 | Trường | Kiểu | Ý nghĩa |
 | :--- | :--- | :--- |
 | `x_type` | LongTensor [N] | id loại node (`node_type`) |
 | `x_tok` | LongTensor [N, K] | id token của node, cắt hoặc đệm về độ dài K, đệm bằng 0 |
+| `x_rel` | FloatTensor [N] | `rel_line_number` trong [0, 1], thiếu thì 0 |
 | `edge_index` | LongTensor [2, E] | cạnh, giữ chiều gốc của dữ liệu trích xuất |
 | `edge_type` | LongTensor [E] | 0 = AST, 1 = CFG, 2 = DATA_DEP (Graph A chỉ có 0) |
 | `y` | LongTensor [1] | nhãn trong [0, 22] |
 | `sample_id` | str | khóa mẫu |
-| `is_oversized` | bool | vượt ngưỡng kích thước theo `schema_spec.yaml` |
+| `is_oversized` | bool | số node lớn hơn 1.000 hoặc số cạnh lớn hơn 3.000 (ngưỡng trong `schema_spec.yaml`) |
+
+Thứ tự node giữ nguyên thứ tự trong JSON. Cạnh có đầu mút không thuộc tập node bị bỏ. Graph A và Graph B của cùng một mẫu có cùng số node, mã chuyển đổi báo lỗi nếu khác.
 
 Quy ước:
 - Cạnh ngược (nếu cần truyền tin hai chiều) do model thêm khi train, không lưu sẵn trong dữ liệu.
@@ -39,7 +46,8 @@ Quy ước:
 ## 4. Token và vocabulary
 
 - Token lấy từ trường `code_token` của từng node, tách theo khoảng trắng. Nguồn dữ liệu đã chuẩn hóa chữ thường và thay chuỗi ký tự bằng `<STR>`.
-- Vocabulary của `node_type` và của token được fit **chỉ trên tập train** của từng protocol. Mỗi protocol một tệp vocabulary.
+- Vocabulary token: tần suất tối thiểu 2 (`vocabulary_policy.min_token_frequency` trong `schema_spec.yaml`), token đặc biệt `<PAD>`=0, `<UNK>`=1, `<MASK>`=2, các token còn lại xếp theo tần suất giảm dần rồi theo bảng chữ cái. Vocabulary loại node: tần suất tối thiểu 1, gồm `<PAD>`=0 và `<UNK>`=1.
+- Vocabulary của `node_type` và của token được fit **chỉ trên tập train** của từng protocol. Mỗi protocol một tệp `vocab.json`, tính trên Graph A vì node Graph B trùng node Graph A.
 - Token ngoài vocabulary ánh xạ về `<UNK>`, đệm dùng id 0.
 
 ## 5. Graph quá lớn
@@ -49,18 +57,23 @@ Quy ước:
 
 ## 6. Tệp bàn giao
 
-- Một tệp `.pt` cho mỗi tổ hợp (graph, protocol, split), chứa danh sách `Data`.
-- Tệp vocabulary và manifest cho mỗi protocol.
-- Bảng số mẫu theo CWE và theo split.
-- Bộ 30 graph pilot đã chuyển sang cùng định dạng để kiểm thử sớm. Nhãn pilot chỉ dùng để kiểm tra chạy được, không dùng để đánh giá.
-- Output của notebook chỉ chứa các tệp bàn giao. Tệp tạm đặt ngoài thư mục output để New Dataset không lấy thừa.
-- Lưu thành Kaggle Dataset riêng tư `DiverseVul 9077 - Processed Graph Data`, chia sẻ cho cả nhóm. Không commit dữ liệu graph lên git.
+Cấu trúc thư mục `processed/`:
+- `<protocol>/graph_a_<split>.pt` và `<protocol>/graph_b_<split>.pt` với split thuộc `train`, `validation`, `test`: danh sách `dict` ở mục 3, lưu bằng `torch.save`.
+- `<protocol>/vocab.json`: `node_type`, `token`, `k`.
+- `<protocol>/manifest.csv`: `sample_id`, `split`, `y` của các mẫu hợp lệ.
+- `cwe_counts.csv`: số mẫu theo protocol, split và CWE.
+- `metadata.json`: phiên bản đặc tả, tham số, số mẫu bị bỏ và lý do, số mẫu và số graph quá lớn theo từng tệp, K và phân vị 95 thô.
+
+Việc còn lại của Task 4.0 do Hoàng làm:
+- Bộ 30 graph pilot chuyển sang cùng định dạng để kiểm thử sớm. Nhãn pilot chỉ dùng để kiểm tra chạy được, không dùng để đánh giá.
+- Đối chiếu số liệu với báo cáo 3.2 và 3.3, thống kê phân bố số node, số cạnh, số token mỗi node.
+- Lưu thành Kaggle Dataset riêng tư `DiverseVul 9077 - Processed Graph Data`, chia sẻ cho cả nhóm. Output của notebook chỉ chứa thư mục `processed`, tệp tạm đặt ngoài thư mục output. Không commit dữ liệu graph lên git.
 
 ## 7. Các quyết định và giá trị mặc định
 
 | Quyết định | Giá trị mặc định | Người quyết định | Ghi chú |
 | :--- | :--- | :--- | :--- |
-| Độ dài token K | 16 | Hoàng, đo lại trên tập train | Mặc định chọn theo mẫu 25 graph pilot: K = 8 phủ 83% node, K = 16 phủ 92%, K = 32 phủ 97% (không tính node Method, vốn chứa toàn bộ hàm và luôn bị cắt). Quy tắc chốt: K bằng phân vị 95 của số token mỗi node trên tập train, tối đa 32. |
+| Độ dài token K | Tính tự động | Mã chuyển đổi | K bằng phân vị 95 (nearest-rank) của số token mỗi node trên tập train của từng protocol, không tính node Method vì node này chứa cả hàm và luôn bị cắt, chặn trên 32, tối thiểu 1. Giá trị cụ thể được ghi trong `metadata.json`. Tham khảo từ mẫu 25 graph pilot: K = 8 phủ 83% node, K = 16 phủ 92%, K = 32 phủ 97%. Hoàng có thể đổi tham số `--k-percentile`, `--k-cap` hoặc ép `--k` sau khi xem thống kê, nhưng phải báo Mai. |
 | Xử lý graph quá lớn lúc train | Giữ nguyên, không cắt | Mai, qua tham số `max_nodes` trong cấu hình train | Chạy thêm một cấu hình `max_nodes = 1000` (ngưỡng của schema 3.1) để so sánh độ nhạy. Tiền lệ: Vul-LMGNNs loại graph trên 500 node. |
 | Cạnh ngược | Thêm lúc train | Mai | Không lưu sẵn |
 | Seed | 3 seed, chốt danh sách trước khi chạy | Cả hai | Ghi vào cấu hình |
