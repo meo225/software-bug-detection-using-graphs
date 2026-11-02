@@ -7,6 +7,8 @@ Các metric lỗ hổng binary vẫn là tùy chọn cho đến khi có experime
 
 from __future__ import annotations
 
+from typing import Sequence
+
 MULTICLASS_METRICS: tuple[str, ...] = (
     "macro_f1",
     "weighted_f1",
@@ -15,6 +17,7 @@ MULTICLASS_METRICS: tuple[str, ...] = (
     "per_class_f1",
     "confusion_matrix",
     "accuracy",
+    "mcc",
 )
 
 BINARY_METRICS: tuple[str, ...] = (
@@ -25,12 +28,43 @@ BINARY_METRICS: tuple[str, ...] = (
 )
 
 
-def classification_report(y_true: object, y_pred: object, labels: list[str]) -> dict[str, object]:
-    """Tính mọi metric có tên trong ``MULTICLASS_METRICS``.
+def classification_report(
+    y_true: Sequence[int], y_pred: Sequence[int], labels: list[str]
+) -> dict[str, object]:
+    """Tính mọi metric trong ``MULTICLASS_METRICS``.
 
-    TODO: triển khai bằng scikit-learn khi có prediction. Trả về precision,
-    recall và F1 theo từng CWE cùng các score tổng hợp.
+    ``labels`` là danh sách tên lớp theo chỉ số 0..K-1. Lớp không có mẫu thật
+    (support bằng 0) vẫn xuất hiện trong bảng theo lớp với score bằng 0, và
+    được tính vào Macro-F1 để không che lớp hiếm.
     """
-    raise NotImplementedError(
-        f"Chưa triển khai classification_report cho {len(labels)} label."
+    from sklearn.metrics import (
+        accuracy_score,
+        confusion_matrix,
+        f1_score,
+        matthews_corrcoef,
+        precision_recall_fscore_support,
     )
+
+    index = list(range(len(labels)))
+    precision, recall, f1, support = precision_recall_fscore_support(
+        y_true, y_pred, labels=index, zero_division=0
+    )
+    macro_p, macro_r, macro_f1, _ = precision_recall_fscore_support(
+        y_true, y_pred, labels=index, average="macro", zero_division=0
+    )
+    return {
+        "accuracy": float(accuracy_score(y_true, y_pred)),
+        "macro_precision": float(macro_p),
+        "macro_recall": float(macro_r),
+        "macro_f1": float(macro_f1),
+        "weighted_f1": float(
+            f1_score(y_true, y_pred, labels=index, average="weighted", zero_division=0)
+        ),
+        "mcc": float(matthews_corrcoef(y_true, y_pred)),
+        "per_class_precision": [float(v) for v in precision],
+        "per_class_recall": [float(v) for v in recall],
+        "per_class_f1": [float(v) for v in f1],
+        "per_class_support": [int(v) for v in support],
+        "confusion_matrix": confusion_matrix(y_true, y_pred, labels=index).tolist(),
+        "labels": list(labels),
+    }
