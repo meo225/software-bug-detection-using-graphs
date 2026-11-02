@@ -92,7 +92,7 @@ def run_training(
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), 5.0)
             optim.step()
-            total += float(loss) * batch["y"].shape[0]
+            total += float(loss.detach()) * batch["y"].shape[0]
             seen += batch["y"].shape[0]
         yt, yp = predict(model, val, batch_size, add_reverse, device)
         f1 = classification_report(yt, yp, labels)["macro_f1"]

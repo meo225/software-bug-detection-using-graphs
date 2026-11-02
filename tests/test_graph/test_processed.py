@@ -99,7 +99,8 @@ def test_build_processed_invariants(dataset) -> None:
     assert g["edge_index"].shape == (2, 3)  # cạnh trỏ tới id 99 bị loại
     assert set(g["edge_type"].tolist()) == {0, 1}
     assert g["y"].item() in (0, 1)
-    assert train_b[0]["sample_id"] == "row-0"
+    assert train_b[0]["sample_id"] == "row-0" and train_b[0]["is_oversized"] is True
+    assert train_b[1]["is_oversized"] is False
 
     with open(out / "cwe_counts.csv") as h:
         counts = list(csv.DictReader(h))
@@ -113,3 +114,24 @@ def test_k_computed_from_train_only(dataset) -> None:
     # node không phải Method trong train đều có đúng 1 token
     assert meta["protocols"]["project_wise"]["k"] == 1
     assert meta["protocols"]["project_wise"]["train_token_len_p95_raw"] == 1
+
+
+def test_train_script_end_to_end(dataset) -> None:
+    """Chạy thật scripts/train_gnn.py trên dữ liệu tổng hợp, kiểm tra tệp kết quả."""
+    import subprocess
+    import sys
+
+    root, manifest = dataset
+    out = root / "proc"
+    build_processed(root, manifest, SCHEMA, out)
+    res = root / "res"
+    script = Path(__file__).resolve().parents[2] / "scripts" / "train_gnn.py"
+    proc = subprocess.run(
+        [sys.executable, str(script), "--processed-dir", str(out), "--out-dir", str(res),
+         "--protocols", "project_wise", "--seeds", "1", "--max-epochs", "2", "--dim", "8",
+         "--batch-size", "4"], capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr[-2000:]
+    rows = list(csv.DictReader(open(res / "results.csv")))
+    assert {(r["graph"], r["model"], r["split"]) for r in rows} == {
+        (g, m, s) for g in ("graph_a", "graph_b") for m in ("gcn", "ggnn") for s in ("validation", "test")}
+    assert (res / "summary.md").is_file() and (res / "per_class.csv").is_file()

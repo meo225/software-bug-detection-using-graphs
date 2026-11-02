@@ -57,9 +57,9 @@ def test_training_learns_separable_toy_task(kind: str) -> None:
             it["x_tok"][0, 0] = 7
         return it
 
-    data = [make(i) for i in range(80)]
-    out = run_training(data[:50], data[50:65], data[65:], kind, 6, 9, ["a", "b"], seed=0, dim=32,
-                       max_epochs=25, patience=25, batch_size=16, log=lambda *_: None,
+    data = [make(i) for i in range(600)]
+    out = run_training(data[:400], data[400:500], data[500:], kind, 6, 9, ["a", "b"], seed=0, dim=32,
+                       lr=1e-2, max_epochs=30, patience=30, batch_size=16, log=lambda *_: None,
                        device=torch.device("cpu"))
     assert out["reports"]["test"]["accuracy"] >= 0.9
     assert out["history"][-1]["train_loss"] < out["history"][0]["train_loss"]

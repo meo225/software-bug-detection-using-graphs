@@ -79,7 +79,6 @@ def encode_graph(
     tok_vocab: dict[str, int],
     k: int,
     y: int,
-    oversize: dict[str, int],
 ):
     """Mã hóa một graph thành dict tensor. Trả về ``None`` nếu không có node."""
     import torch
@@ -111,7 +110,8 @@ def encode_graph(
             etype.append(int(edge["type"]))
     edge_index = torch.tensor([src, dst], dtype=torch.long).reshape(2, -1)
 
-    is_oversized = n > oversize["max_nodes"] or len(src) > oversize["max_edges"]
+    # Cờ lấy từ status của Task 3.3 để khớp số liệu nghiệm thu (554 graph A, 997 graph B).
+    is_oversized = record.get("status") == "OVERSIZED_GRAPH"
     return {
         "sample_id": record["sample_id"],
         "x_type": x_type,
@@ -151,10 +151,6 @@ def build_processed(
     cwe_mapping = {str(k): int(v) for k, v in schema["cwe_mapping"].items()}
     if min_token_freq is None:
         min_token_freq = int(schema["vocabulary_policy"]["min_token_frequency"])
-    oversize = {
-        "max_nodes": int(schema["size_limits"]["max_nodes"]),
-        "max_edges": int(schema["size_limits"]["max_edges"]),
-    }
     rows = read_manifest(manifest_path, cwe_mapping)
     if limit:
         rows = rows[:limit]
@@ -187,7 +183,6 @@ def build_processed(
         "min_token_freq": min_token_freq,
         "k_percentile": k_percentile,
         "k_cap": k_cap,
-        "oversize_thresholds": oversize,
         "n_manifest_rows_in_23_classes": len(rows),
         "n_valid_samples": len(records),
         "skipped": dict(skipped),
@@ -235,7 +230,7 @@ def build_processed(
                 items = []
                 for r in split_rows[split]:
                     item = encode_graph(records[r["sample_id"]][kind], type_vocab, tok_vocab,
-                                        k, r["y"], oversize)
+                                        k, r["y"])
                     if item is not None:
                         items.append(item)
                 torch.save(items, proto_dir / f"{kind}_{split}.pt")

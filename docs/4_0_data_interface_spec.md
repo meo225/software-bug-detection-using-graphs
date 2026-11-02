@@ -35,7 +35,7 @@ Mỗi mẫu là một `dict` với các trường:
 | `edge_type` | LongTensor [E] | 0 = AST, 1 = CFG, 2 = DATA_DEP (Graph A chỉ có 0) |
 | `y` | LongTensor [1] | nhãn trong [0, 22] |
 | `sample_id` | str | khóa mẫu |
-| `is_oversized` | bool | số node lớn hơn 1.000 hoặc số cạnh lớn hơn 3.000 (ngưỡng trong `schema_spec.yaml`) |
+| `is_oversized` | bool | `status` của bản ghi 3.3 bằng `OVERSIZED_GRAPH` (ngưỡng 1.000 node hoặc 3.000 cạnh trong `schema_spec.yaml`) |
 
 Thứ tự node giữ nguyên thứ tự trong JSON. Cạnh có đầu mút không thuộc tập node bị bỏ. Graph A và Graph B của cùng một mẫu có cùng số node, mã chuyển đổi báo lỗi nếu khác.
 
