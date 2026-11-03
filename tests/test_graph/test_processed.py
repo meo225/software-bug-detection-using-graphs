@@ -135,3 +135,48 @@ def test_train_script_end_to_end(dataset) -> None:
     assert {(r["graph"], r["model"], r["split"]) for r in rows} == {
         (g, m, s) for g in ("graph_a", "graph_b") for m in ("gcn", "ggnn") for s in ("validation", "test")}
     assert (res / "summary.md").is_file() and (res / "per_class.csv").is_file()
+
+
+def test_validate_passes_and_reports_duplicates(dataset) -> None:
+    from src.graph.processed_checks import validate_processed
+
+    root, manifest = dataset
+    out = root / "outv"
+    build_processed(root, manifest, SCHEMA, out)
+    report = validate_processed(out, manifest, expected_valid=12, expected_oversized={"graph_a": 1})
+    failed = [c for c in report["checks"] if not c["passed"]]
+    assert report["passed"], failed
+    dup = report["protocols"]["project_wise"]["model_input_duplicates"]["graph_a"]
+    # validation/test của fixture chứa token only_val nên không trùng train
+    assert dup["train_duplicates_within_train"] == 7  # 8 graph train giống nhau
+    assert dup["held_out"]["validation"]["n_overlap"] == 0
+
+
+def test_validate_detects_tampered_manifest(dataset) -> None:
+    from src.graph.processed_checks import validate_processed
+
+    root, manifest = dataset
+    out = root / "outt"
+    build_processed(root, manifest, SCHEMA, out)
+    path = out / "project_wise" / "manifest.csv"
+    text = path.read_text().replace(",test,", ",train,", 1)
+    path.write_text(text)
+    report = validate_processed(out, manifest)
+    assert not report["passed"]
+
+
+def test_real_pilot_graphs_convert(dataset) -> None:
+    """Dữ liệu pilot thật của Task 3.2 trong repo đọc và đếm node, cạnh khớp JSON gốc."""
+    from src.graph.processed_checks import convert_pilot
+
+    pilot = Path(__file__).resolve().parents[2] / "reports/graph/3_2_pilot"
+    if not (pilot / "graph_a").is_dir():
+        pytest.skip("Không có dữ liệu pilot")
+    root, manifest = dataset
+    out = root / "outp"
+    build_processed(root, manifest, SCHEMA, out)
+    result = convert_pilot(pilot, out, out / "pilot")
+    assert result["n_pilot_files"] > 0 and result["n_converted"] > 0
+    assert result["count_mismatches_vs_json"] == []
+    loaded = torch.load(out / "pilot" / "graph_b.pt")
+    assert all(int(g["y"]) == -1 for g in loaded)

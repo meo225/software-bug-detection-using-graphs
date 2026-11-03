@@ -12,6 +12,7 @@ cấu hình, không có hằng số ước lượng.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import math
 from collections import Counter
@@ -33,6 +34,11 @@ GRAPH_KINDS = ("graph_a", "graph_b")
 def load_schema(schema_path: Path) -> dict[str, Any]:
     with open(schema_path, "r", encoding="utf-8") as handle:
         return yaml.safe_load(handle)
+
+
+def ids_hash(ids: Iterable[str]) -> str:
+    """Băm danh sách sample_id (không phụ thuộc thứ tự) để ghi nhận tập train đã dùng fit vocabulary."""
+    return hashlib.sha256("\n".join(sorted(ids)).encode("utf-8")).hexdigest()
 
 
 def read_graph(path: Path) -> dict[str, Any] | None:
@@ -213,7 +219,8 @@ def build_processed(
         proto_dir = out_dir / protocol
         proto_dir.mkdir(parents=True, exist_ok=True)
         (proto_dir / "vocab.json").write_text(
-            json.dumps({"node_type": type_vocab, "token": tok_vocab, "k": k},
+            json.dumps({"node_type": type_vocab, "token": tok_vocab, "k": k,
+                        "train_ids_sha256": ids_hash(train_ids)},
                        ensure_ascii=False), encoding="utf-8")
 
         meta["protocols"][protocol] = {
