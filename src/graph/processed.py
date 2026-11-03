@@ -164,7 +164,9 @@ def build_processed(
     # Đọc graph một lần. Mẫu hợp lệ: cả hai graph có status hợp lệ.
     records: dict[str, dict[str, dict[str, Any]]] = {}
     skipped: Counter = Counter()
-    for row in rows:
+    for n_done, row in enumerate(rows, 1):
+        if n_done % 1000 == 0:
+            print(f"Đã đọc {n_done}/{len(rows)} mẫu", flush=True)
         sid = row["sample_id"]
         pair = {}
         for kind in GRAPH_KINDS:
@@ -216,6 +218,7 @@ def build_processed(
         type_vocab = build_vocab(type_counter, 1, (PAD, UNK))
         tok_vocab = build_vocab(tok_counter, min_token_freq, (PAD, UNK, MASK))
 
+        print(f"{protocol}: K={k}, vocab token={len(tok_vocab)}, đang mã hóa và lưu", flush=True)
         proto_dir = out_dir / protocol
         proto_dir.mkdir(parents=True, exist_ok=True)
         (proto_dir / "vocab.json").write_text(
