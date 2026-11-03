@@ -187,7 +187,7 @@ def build_processed(
 
     out_dir.mkdir(parents=True, exist_ok=True)
     meta: dict[str, Any] = {
-        "spec_version": "1.1",
+        "spec_version": "1.2",
         "min_token_freq": min_token_freq,
         "k_percentile": k_percentile,
         "k_cap": k_cap,
