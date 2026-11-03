@@ -1,12 +1,13 @@
 # Đặc tả giao diện dữ liệu (Data Interface Specification)
 
-Phiên bản: 1.1
+Phiên bản: 1.2
 Phạm vi: dữ liệu xử lý do Task 4.0 bàn giao cho Task 4.1a, 4.1b, 4.1c, 4.2 và 5.3.
 Tài liệu liên quan: `docs/3_1_graph_schema.md`, `configs/graph/schema_spec.yaml`, `docs/2_3_split.md`, `reports/graph/3_3_extraction.md`.
 
 Mọi thay đổi đối với tài liệu này phải tăng số phiên bản và báo cho bên còn lại trước khi áp dụng.
 
 Lịch sử thay đổi:
+- 1.2: Task 4.0 hoàn tất, bổ sung cấu trúc `validation_report.json` và `pilot/`, bổ sung kiểm tra input trùng. Định dạng dữ liệu không đổi so với 1.1.
 - 1.1: đổi đối tượng PyTorch Geometric `Data` thành `dict` các tensor thuần (không cần cài thêm thư viện, đọc bằng `torch.load`), thêm trường `x_rel` (vị trí dòng tương đối, thuộc danh sách feature cho phép trong `schema_spec.yaml`), chốt cấu trúc thư mục bàn giao, chốt tham số vocabulary theo `schema_spec.yaml`. Mã chuyển đổi tối thiểu nằm ở `src/graph/processed.py` và `scripts/build_processed_data.py`.
 - 1.0: bản đầu.
 
@@ -64,9 +65,9 @@ Cấu trúc thư mục `processed/`:
 - `cwe_counts.csv`: số mẫu theo protocol, split và CWE.
 - `metadata.json`: phiên bản đặc tả, tham số, số mẫu bị bỏ và lý do, số mẫu và số graph quá lớn theo từng tệp, K và phân vị 95 thô.
 
-Việc còn lại của Task 4.0 do Hoàng làm:
-- Bộ 30 graph pilot chuyển sang cùng định dạng để kiểm thử sớm. Nhãn pilot chỉ dùng để kiểm tra chạy được, không dùng để đánh giá.
-- Đối chiếu số liệu với báo cáo 3.2 và 3.3, thống kê phân bố số node, số cạnh, số token mỗi node.
+Task 4.0 gồm, và đã được mã hóa trong `scripts/build_processed_data.py`:
+- Chuyển bộ 30 graph pilot của Task 3.2 sang cùng định dạng (`processed/pilot/`, kèm `pilot_report.json`). Chỉ các mẫu có status hợp lệ (25 mẫu) được chuyển, nhãn `y = -1` vì pilot giữ chuỗi CWE thô. Chỉ dùng kiểm tra chạy được.
+- Kiểm tra tự động (`validation_report.json`, mục 8), thống kê số node, số cạnh theo loại, tỷ lệ node chạm giới hạn K, và số mẫu có input mô hình trùng giữa train và validation hoặc test.
 - Lưu thành Kaggle Dataset riêng tư `DiverseVul 9077 - Processed Graph Data`, chia sẻ cho cả nhóm. Output của notebook chỉ chứa thư mục `processed`, tệp tạm đặt ngoài thư mục output. Không commit dữ liệu graph lên git.
 
 ## 7. Các quyết định và giá trị mặc định
@@ -80,7 +81,12 @@ Việc còn lại của Task 4.0 do Hoàng làm:
 
 ## 8. Kiểm tra trước khi bàn giao
 
-- Số mẫu mỗi (graph, protocol, split) khớp báo cáo 3.3 và manifest.
-- Vocabulary không đọc validation hoặc test.
-- Đọc lại được 30 graph pilot và số node, số cạnh khớp báo cáo 3.2.
-- Không mẫu nào xuất hiện ở hai split của cùng một protocol.
+`validation_report.json` do `src/graph/processed_checks.py` tạo, đọc lại các tệp `.pt` đã lưu. Mọi kiểm tra phải đạt:
+- Tổng số mẫu hợp lệ bằng 7.799 và số graph quá lớn bằng 554 (A) và 997 (B), khớp báo cáo 3.3.
+- Danh sách mẫu của từng (graph, protocol, split) khớp `manifest.csv`, Graph A và Graph B cùng danh sách và cùng node.
+- Không mẫu nào xuất hiện ở hai split của cùng một protocol, split khớp manifest gốc.
+- `vocab.json` ghi băm danh sách id train (`train_ids_sha256`) khớp tập train, tức vocabulary chỉ được fit trên train. Kiểm tra này xác nhận tập id đã dùng, không đọc lại dữ liệu thô.
+- Chỉ số token và loại node nằm trong vocabulary, hình dạng tensor đúng, loại cạnh trong {0,1,2} (Graph A chỉ 0), nhãn trong [0, 22], `x_rel` trong [0, 1].
+- Bộ pilot chuyển được và số node, số cạnh khớp JSON gốc.
+
+Số mẫu trùng input giữa train và validation hoặc test (băm loại node, token, cạnh và loại cạnh) được báo cáo riêng, không làm kiểm tra thất bại. Cần xét trước khi diễn giải kết quả, nhất là khi hai bản sao có nhãn khác nhau (`n_label_conflict`).
