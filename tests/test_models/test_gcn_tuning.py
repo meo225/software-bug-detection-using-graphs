@@ -405,7 +405,7 @@ def test_notebook_tuning_recovery_and_separate_final_only(monkeypatch, processed
     exec(notebook_code('OUT_DIR.mkdir'), namespace)
     exec(notebook_code('FROZEN_ROOT ='), namespace)
     assert manifest.read_bytes() == original
-    exec(notebook_code('if FINAL_OUT_DIR.exists()'), namespace)  # test flag false: no work
+    exec(notebook_code('if FINAL_OUT_DIR.exists()'), namespace)
     # Simulate a fresh session with a different mounted results root.
     import shutil
     relocated = tmp_path.parent / (tmp_path.name + "_relocated")
@@ -415,7 +415,7 @@ def test_notebook_tuning_recovery_and_separate_final_only(monkeypatch, processed
         torch.save([graph(0), graph(1)], moved_processed / protocol / "graph_a_test.pt")
     namespace.update(RUN_TUNING=False, RUN_FINAL_TEST=True, READ_ROOT=relocated, PROCESSED=moved_processed,
                      FINAL_OUT_DIR=relocated / "final_output")
-    exec(notebook_code('OUT_DIR.mkdir'), namespace)  # tuning disabled: no work
+    exec(notebook_code('OUT_DIR.mkdir'), namespace)
     exec(notebook_code('FROZEN_ROOT ='), namespace)
     def evaluate(arguments, *unused):
         assert "--frozen-selection" in arguments and "--results-root" in arguments
