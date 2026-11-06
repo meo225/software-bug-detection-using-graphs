@@ -1,0 +1,120 @@
+{
+  "code": {
+    "commit": "5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5",
+    "dirty": false,
+    "source_sha256": {
+      "src/models/gnn.py": "209900236ceb90a21fa46fe0038af4d60314bf5ac07d79a48476aff11243f0d9",
+      "src/training/gnn_trainer.py": "c82156144ae7af36bda0431bf28287457fd83d817ed1605e0290ae2ce519bced",
+      "src/training/gcn_tuning.py": "e9edc7001acc79542fa6c4d0d50ce34fd49ef43e59c205287f6941e4c5f67fc0",
+      "src/evaluation/metrics.py": "56b295671f2a4d90ef416355aac488019799529531705d8311ad0eefc4c00e65",
+      "scripts/train_gnn.py": "654f12fa16193e2adbec90a9b3bdccb8a96b8bb4af12cefc7fb6d18e8f085b64"
+    }
+  },
+  "dataset_id": "vtnmai/diversevul-9077-processed-graph-data/versions/1",
+  "configurations": {
+    "B0": {
+      "dim": 128,
+      "num_layers": 3,
+      "dropout": 0.2,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": null,
+      "early_stopping": "macro_f1"
+    },
+    "E1": {
+      "dim": 128,
+      "num_layers": 3,
+      "dropout": 0.2,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": null,
+      "early_stopping": "val_loss"
+    },
+    "D1": {
+      "dim": 128,
+      "num_layers": 3,
+      "dropout": 0.4,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": null,
+      "early_stopping": "macro_f1"
+    },
+    "W1": {
+      "dim": 128,
+      "num_layers": 3,
+      "dropout": 0.2,
+      "lr": 0.001,
+      "weight_decay": 0.001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": null,
+      "early_stopping": "macro_f1"
+    },
+    "H1": {
+      "dim": 64,
+      "num_layers": 3,
+      "dropout": 0.2,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": null,
+      "early_stopping": "macro_f1"
+    },
+    "L1": {
+      "dim": 128,
+      "num_layers": 2,
+      "dropout": 0.2,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": null,
+      "early_stopping": "macro_f1"
+    },
+    "N1": {
+      "dim": 128,
+      "num_layers": 3,
+      "dropout": 0.2,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": 1000,
+      "early_stopping": "macro_f1"
+    }
+  },
+  "hypotheses": {
+    "B0": "Reproduce the official default in the tuning environment.",
+    "E1": "Validation-loss stopping may be less sensitive to noisy Macro-F1 fluctuations.",
+    "D1": "More dropout may reduce early overfitting.",
+    "W1": "Stronger weight decay may improve generalization.",
+    "H1": "Smaller hidden dimension may reduce memorization.",
+    "L1": "Two GCN layers may reduce excessive propagation and model capacity.",
+    "N1": "A 1000-node cap tests sensitivity to large graphs and aggregation cost."
+  },
+  "protocols": [
+    "project_wise",
+    "seen_project"
+  ],
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "selection": "project_wise.validation.macro_f1.mean",
+  "checkpoint_selection": "maximum raw validation Macro-F1; earliest tie"
+}
