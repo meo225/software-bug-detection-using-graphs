@@ -1,0 +1,137 @@
+{
+  "task": "4.1c",
+  "code": {
+    "commit": "5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5",
+    "dirty": false,
+    "source_sha256": {
+      "src/models/gnn.py": "209900236ceb90a21fa46fe0038af4d60314bf5ac07d79a48476aff11243f0d9",
+      "src/training/gnn_trainer.py": "c82156144ae7af36bda0431bf28287457fd83d817ed1605e0290ae2ce519bced",
+      "src/training/gcn_tuning.py": "e9edc7001acc79542fa6c4d0d50ce34fd49ef43e59c205287f6941e4c5f67fc0",
+      "src/evaluation/metrics.py": "56b295671f2a4d90ef416355aac488019799529531705d8311ad0eefc4c00e65",
+      "scripts/train_gnn.py": "654f12fa16193e2adbec90a9b3bdccb8a96b8bb4af12cefc7fb6d18e8f085b64"
+    }
+  },
+  "environment": {
+    "python": "3.13.16",
+    "torch": "2.11.0+cu130",
+    "numpy": "2.1.3",
+    "sklearn": "1.6.1",
+    "cuda": "13.0",
+    "gpu": "Tesla T4"
+  },
+  "dataset_id": "vtnmai/diversevul-9077-processed-graph-data/versions/1",
+  "processed_dir": "/kaggle/input/datasets/vtnmai/diversevul-9077-processed-graph-data/processed",
+  "graph": "graph_b",
+  "model": "gcn",
+  "config_id": "L1",
+  "configuration": {
+    "dim": 128,
+    "num_layers": 2,
+    "dropout": 0.2,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 32,
+    "max_epochs": 40,
+    "patience": 8,
+    "max_nodes": null,
+    "early_stopping": "macro_f1"
+  },
+  "protocols": [
+    "project_wise",
+    "seen_project"
+  ],
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "limit": null,
+  "training_runs": 6,
+  "test_evaluations": 6,
+  "notebook_provenance": {
+    "origin": "direct Kaggle upload of uncommitted Task 4.1c notebook",
+    "source_commit": null,
+    "execution_inputs_sha256": "596801035d144e183bfe45d96e356dd492aee87c707dfa6421e279561464ebd8",
+    "archive": "Save executed notebook and Kaggle Saved Version with outputs"
+  },
+  "source_branch": "feature/4_1b_gcn_tuning",
+  "frozen_selection_reference": "e2ccb58def76ca3f3fd329b17627cbff924dd914:reports/graph/4_1b_results/tuning/frozen_selection.json",
+  "frozen_selection_sha256": "47b7ae96a1918813aa37b36416492ce355045a8001a794857bc3a4bf9fa88900",
+  "selection_metric": "project_wise.validation.macro_f1.mean",
+  "original_selection_score": 0.06958665231149123,
+  "original_experiment_code": {
+    "commit": "5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5",
+    "dirty": false,
+    "source_sha256": {
+      "src/models/gnn.py": "209900236ceb90a21fa46fe0038af4d60314bf5ac07d79a48476aff11243f0d9",
+      "src/training/gnn_trainer.py": "c82156144ae7af36bda0431bf28287457fd83d817ed1605e0290ae2ce519bced",
+      "src/training/gcn_tuning.py": "e9edc7001acc79542fa6c4d0d50ce34fd49ef43e59c205287f6941e4c5f67fc0",
+      "src/evaluation/metrics.py": "56b295671f2a4d90ef416355aac488019799529531705d8311ad0eefc4c00e65",
+      "scripts/train_gnn.py": "654f12fa16193e2adbec90a9b3bdccb8a96b8bb4af12cefc7fb6d18e8f085b64"
+    }
+  },
+  "checkpoint_selection": "maximum raw validation Macro-F1; earliest tie",
+  "test_policy": "evaluate once per validation-selected model; never select using test",
+  "schema_sha256": "d4a7cddc5205fa7435d41f324e335bf70bf20551cfffe44a8ee876c98f11a0c9",
+  "inputs": {
+    "project_wise": {
+      "project_wise/vocab.json": "9266628bdbe65d113b1008ec03ec2012b1c76c7c6d3e25cbbd66b705cc2d5c6b",
+      "project_wise/graph_b_train.pt": "a2f59c0161b064a073df5bfe31a5d7a5fc76b6a70cd8b5f2d3cd20ece587c9dc",
+      "project_wise/graph_b_validation.pt": "211e71b2fad02bc71392b6e2969a84faa796679a4f619962400a62ba8a66d8b0",
+      "metadata.json": "3813f72c20865545faeeb8b90bbb7d069df6f740441c9e81c245f7f7d9a212d7",
+      "project_wise/manifest.csv": "6348faac79a0857018167c14fa60be2ec728e6bdcfdd96da94f45056d8ed1e70"
+    },
+    "seen_project": {
+      "seen_project/vocab.json": "63d518ee917909861c1d2c6c6ddb2236eea0d3195191ac28c1522befc8debc1d",
+      "seen_project/graph_b_train.pt": "a417de35882ed238137208435237c2d4c76a9970e8d1806df69699dffad8315c",
+      "seen_project/graph_b_validation.pt": "82b35b39fcd7f96e2f626e2a0db65b6c6b1ee741684b5524eca49ee37cebf52f",
+      "metadata.json": "3813f72c20865545faeeb8b90bbb7d069df6f740441c9e81c245f7f7d9a212d7",
+      "seen_project/manifest.csv": "a2f99846b541b4d21cd90e0ed3de3199d036fb09b62d41d1145879c077d6862a"
+    }
+  },
+  "test_sha256": {
+    "project_wise": "1ad531b317e6f16882397d5037756abb3d2bdf46ed3a90652e5e0ed14685e832",
+    "seen_project": "a3f6a7588a01ef0e3c37f9ce3015de33cd5ed2c231ff2efbdcdb71ec3ad691a4"
+  },
+  "output_dir": "/kaggle/working/results_4_1c_gcn_graph_b/L1",
+  "arguments": [
+    "--processed-dir",
+    "/kaggle/input/datasets/vtnmai/diversevul-9077-processed-graph-data/processed",
+    "--out-dir",
+    "/kaggle/working/results_4_1c_gcn_graph_b/L1",
+    "--models",
+    "gcn",
+    "--graphs",
+    "graph_b",
+    "--protocols",
+    "project_wise",
+    "seen_project",
+    "--seeds",
+    "42",
+    "43",
+    "44",
+    "--save-checkpoints",
+    "--config-id",
+    "L1",
+    "--dataset-id",
+    "vtnmai/diversevul-9077-processed-graph-data/versions/1",
+    "--dim",
+    "128",
+    "--num-layers",
+    "2",
+    "--dropout",
+    "0.2",
+    "--lr",
+    "0.001",
+    "--weight-decay",
+    "0.0001",
+    "--batch-size",
+    "32",
+    "--max-epochs",
+    "40",
+    "--patience",
+    "8",
+    "--early-stopping",
+    "macro_f1"
+  ]
+}

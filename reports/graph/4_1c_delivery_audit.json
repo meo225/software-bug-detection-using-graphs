@@ -1,0 +1,288 @@
+{
+  "archive": {
+    "path": "results.zip",
+    "sha256": "270768770d67ea532b512621d666e6ac0b087442e30f888bc943e7decfcd137f",
+    "bytes": 84476153,
+    "crc": "passed",
+    "safe_paths": "passed"
+  },
+  "imported_files": {
+    "L1/confusion_matrices.json": {
+      "sha256": "c7dfbb630d5bb3e90f25ac1bc483e3420bdf79aa3fa5afbed94f90a8e8f9edfb",
+      "bytes": 6761
+    },
+    "L1/metadata.json": {
+      "sha256": "c9a666b6557f0cbd476e398723fd9071a1b493e81ceba69cb56b7edcb34767ce",
+      "bytes": 4649
+    },
+    "L1/per_class.csv": {
+      "sha256": "a4c6d646f7edc27ab0e423a8cc4bd7c5153d86221cabe3e49ced779ba883df05",
+      "bytes": 24224
+    },
+    "L1/project_wise_graph_b_gcn_42.pt": {
+      "sha256": "44c7436fc80a1f3013e4ecfde9878548532cdd3dce7543f7cce8f8795f4e83c7",
+      "bytes": 13175975
+    },
+    "L1/project_wise_graph_b_gcn_43.pt": {
+      "sha256": "079aa5a0ec0c5f32fc792e893b17060b10756f746b7574f53b8c6c2ea2d1d380",
+      "bytes": 13176039
+    },
+    "L1/project_wise_graph_b_gcn_44.pt": {
+      "sha256": "e04d4912c8f4781b4fb4841e3f7ec07d8a00d2a810ef1e191a2df8c4c5b5d00b",
+      "bytes": 13175911
+    },
+    "L1/results.csv": {
+      "sha256": "2f3fe28a577af0749f3d1aa12e004f301e277a927c97fafa50418da3457c76de",
+      "bytes": 2542
+    },
+    "L1/seen_project_graph_b_gcn_42.pt": {
+      "sha256": "5658c387ebd580012f14d118062606a01b2a986af3db12dc5137ac029d7891f5",
+      "bytes": 13482855
+    },
+    "L1/seen_project_graph_b_gcn_43.pt": {
+      "sha256": "c274b7c6ee325eed1b594d536c76988f6e40cae89a11652b48336bb391e98ab2",
+      "bytes": 13482983
+    },
+    "L1/seen_project_graph_b_gcn_44.pt": {
+      "sha256": "1e7778757cbb7f56507ac35ecc166407fd413226b5fcb6b719bde71e4c43d1d7",
+      "bytes": 13482791
+    },
+    "L1/summary.md": {
+      "sha256": "3d74a6bed8b7e825030dee68db2d403c3ee443170eb6dddce01fc2ddef0a8c8f",
+      "bytes": 795
+    },
+    "L1/training_history.json": {
+      "sha256": "f3d1da699dd42e98e184d9a847b7758dd2f53755ab2b206daa21612423dcb51f",
+      "bytes": 13493
+    },
+    "experiment_plan.json": {
+      "sha256": "b705760fc50addb3dd81e4ec6adfce56ca286f6d4ff30215a5f57504daf3b873",
+      "bytes": 5185
+    },
+    "graph_b.log": {
+      "sha256": "ba97b2921e920969b84a6502fc9886f6a725e81f04be626aa9faf1013385bf9e",
+      "bytes": 9742
+    }
+  },
+  "checkpoint_checks": [
+    {
+      "protocol": "project_wise",
+      "seed": 42,
+      "best_epoch": 14,
+      "epochs_run": 22,
+      "sha256": "44c7436fc80a1f3013e4ecfde9878548532cdd3dce7543f7cce8f8795f4e83c7",
+      "bytes": 13175975
+    },
+    {
+      "protocol": "project_wise",
+      "seed": 43,
+      "best_epoch": 16,
+      "epochs_run": 24,
+      "sha256": "079aa5a0ec0c5f32fc792e893b17060b10756f746b7574f53b8c6c2ea2d1d380",
+      "bytes": 13176039
+    },
+    {
+      "protocol": "project_wise",
+      "seed": 44,
+      "best_epoch": 12,
+      "epochs_run": 20,
+      "sha256": "e04d4912c8f4781b4fb4841e3f7ec07d8a00d2a810ef1e191a2df8c4c5b5d00b",
+      "bytes": 13175911
+    },
+    {
+      "protocol": "seen_project",
+      "seed": 42,
+      "best_epoch": 21,
+      "epochs_run": 29,
+      "sha256": "5658c387ebd580012f14d118062606a01b2a986af3db12dc5137ac029d7891f5",
+      "bytes": 13482855
+    },
+    {
+      "protocol": "seen_project",
+      "seed": 43,
+      "best_epoch": 25,
+      "epochs_run": 33,
+      "sha256": "c274b7c6ee325eed1b594d536c76988f6e40cae89a11652b48336bb391e98ab2",
+      "bytes": 13482983
+    },
+    {
+      "protocol": "seen_project",
+      "seed": 44,
+      "best_epoch": 18,
+      "epochs_run": 26,
+      "sha256": "1e7778757cbb7f56507ac35ecc166407fd413226b5fcb6b719bde71e4c43d1d7",
+      "bytes": 13482791
+    }
+  ],
+  "result_rows": 12,
+  "per_class_rows": 276,
+  "cwe_classes": 23,
+  "source_commit": "5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5",
+  "configuration": {
+    "dim": 128,
+    "num_layers": 2,
+    "dropout": 0.2,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 32,
+    "max_epochs": 40,
+    "patience": 8,
+    "max_nodes": null,
+    "early_stopping": "macro_f1"
+  },
+  "executed_notebook": {
+    "status": "preserved and matched",
+    "original_path": "notebooks/4_1c_gcn_graph_b_run.ipynb",
+    "archive_path": "reports/graph/4_1c_gcn_graph_b_run.ipynb",
+    "sha256": "207de975ee296cb9c602d43e921014e7fd2d21aba0ea22463512de027146d4d6",
+    "bytes": 51111,
+    "printed_plan_matches_imported_plan": true,
+    "printed_command_matches_plan": true,
+    "stdout_contains_original_training_log": true,
+    "ast_matches_cleaned_source_except_plan_print": true,
+    "papermill": {
+      "default_parameters": {},
+      "duration": 1012.462948,
+      "end_time": "2026-11-06T18:16:09.181136+00:00",
+      "environment_variables": {},
+      "exception": null,
+      "input_path": "__notebook__.ipynb",
+      "output_path": "__notebook__.ipynb",
+      "parameters": {},
+      "start_time": "2026-11-06T17:59:16.718188+00:00",
+      "version": "2.7.0"
+    },
+    "saved_version_number": null,
+    "saved_version_url": null,
+    "kaggle_metadata": {
+      "accelerator": "nvidiaTeslaT4",
+      "dataSources": [
+        {
+          "sourceType": "datasetVersion",
+          "sourceId": 21619537
+        },
+        {
+          "sourceType": "kernelVersion",
+          "sourceId": 365719082
+        }
+      ],
+      "isInternetEnabled": true,
+      "language": "python",
+      "sourceType": "notebook",
+      "isGpuEnabled": false
+    },
+    "note": "kernelVersion sourceId is an attached input, not a verified identity of this run; isGpuEnabled=false conflicts with actual Tesla T4 runtime evidence"
+  },
+  "historical_report_prefix": {
+    "bytes": 28980,
+    "sha256": "e22117fb0fe9768f8e70d96357efaf89a8dd474e7ce3da8deacd029fdb725b95",
+    "git_parent_bytes": 28757,
+    "git_parent_sha256": "b3e1e0db2d3d09b3b1e698744b3e4dd4b7ea77cc0faae0753beec48f7148320f",
+    "note": "bytes/sha256 above describe the unchanged original local prefix; git_parent fields describe its LF-normalized committed representation"
+  },
+  "source_notebook": {
+    "before_cleanup_sha256": "207de975ee296cb9c602d43e921014e7fd2d21aba0ea22463512de027146d4d6",
+    "after_cleanup_sha256": "9503b8047f45eb91109f076aa01977aebd6e5e2d24428da074a66482d1f2f3c0",
+    "ast_equivalent_except_single_diagnostic_print": true,
+    "code_cell_order_preserved": true,
+    "normalized_code_asts": [
+      {
+        "cell": 1,
+        "normalized_ast_sha256": "07e1bab28264e2fb885c4d2ee11e08a642ae71872a46f744a366a5bc2ef74ffd"
+      },
+      {
+        "cell": 3,
+        "normalized_ast_sha256": "86a901880d89ab4fec318ec2e18bab4c236399117ecdc92cb99e5e5745787708"
+      },
+      {
+        "cell": 5,
+        "normalized_ast_sha256": "3ff18164bf961791bcb7c2a67091e0fbbc043c64c3574e6ff7bc21170c54f482"
+      },
+      {
+        "cell": 7,
+        "normalized_ast_sha256": "083ccb4580605aab1188461c052db111dfd43ca539c433c32a5b9ce135a0e497"
+      },
+      {
+        "cell": 9,
+        "normalized_ast_sha256": "18577415331964ee1e8de21250daec67aaecb31becba71a6356a486dcf26657e"
+      },
+      {
+        "cell": 11,
+        "normalized_ast_sha256": "965d39ca401f9c99572c9b6466c3a17a597c98abf4fb5422687389ed47dd281f"
+      },
+      {
+        "cell": 13,
+        "normalized_ast_sha256": "e3a41e211b21804fce51c114fa1097f16af56ccb03c50c7963ffea3991a2058d"
+      },
+      {
+        "cell": 15,
+        "normalized_ast_sha256": "096cc67a67ecc6feec462559b58f273076bb9c2b53b8744716ce5975b497b556"
+      }
+    ],
+    "source_execution_records_cleared": true,
+    "code_cells_cleared": 8,
+    "pre_lf_normalization_sha256": "debe8753ac90ca1358058fba471b5b9588e0ceec8fd3bddaf195075ab1b91459",
+    "line_endings": "LF; same as parent Git blob",
+    "lf_normalization_preserves_ast_and_filtered_git_blob": true
+  },
+  "graph_a_vs_b_test": {
+    "project_wise": {
+      "macro_f1": {
+        "graph_a": 0.055224573143783866,
+        "graph_b": 0.06498435353887683,
+        "delta_b_minus_a": 0.009759780395092961
+      },
+      "weighted_f1": {
+        "graph_a": 0.10882468277272214,
+        "graph_b": 0.10686726939968504,
+        "delta_b_minus_a": -0.0019574133730371063
+      },
+      "mcc": {
+        "graph_a": 0.03237686522831027,
+        "graph_b": 0.03069424968580604,
+        "delta_b_minus_a": -0.001682615542504231
+      },
+      "accuracy": {
+        "graph_a": 0.11217948717948718,
+        "graph_b": 0.10576923076923077,
+        "delta_b_minus_a": -0.006410256410256415
+      }
+    },
+    "seen_project": {
+      "macro_f1": {
+        "graph_a": 0.09998831756159732,
+        "graph_b": 0.10256655957324766,
+        "delta_b_minus_a": 0.002578242011650342
+      },
+      "weighted_f1": {
+        "graph_a": 0.14889631092981395,
+        "graph_b": 0.13867528588160127,
+        "delta_b_minus_a": -0.010221025048212679
+      },
+      "mcc": {
+        "graph_a": 0.08263521426905232,
+        "graph_b": 0.07296060938926381,
+        "delta_b_minus_a": -0.00967460487978851
+      },
+      "accuracy": {
+        "graph_a": 0.15246832678025338,
+        "graph_b": 0.1402359108781127,
+        "delta_b_minus_a": -0.012232415902140664
+      }
+    }
+  },
+  "report_appended_only": true,
+  "git_line_ending_integrity": {
+    "attributes": {
+      "/notebooks/4_1b_gcn_tuning.ipynb": "text eol=lf",
+      "/reports/graph/4_1c_results/**": "-text",
+      "/reports/graph/4_1c_gcn_graph_b_run.ipynb": "-text",
+      "/reports/graph/4_1c_results/L1/results.csv": "whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol",
+      "/reports/graph/4_1c_results/L1/per_class.csv": "whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol"
+    },
+    "source_diff_numstat": "425\t60\tnotebooks/4_1b_gcn_tuning.ipynb",
+    "experimental_files_modified": false,
+    "git_configuration_modified": false,
+    "csv_crlf_whitespace_note": "Only CR at line end is accepted; blank-at-eol, blank-at-eof and space-before-tab checks remain enabled for both exact CSV paths."
+  }
+}
