@@ -260,7 +260,7 @@ Các bảng được tính từ CSV gốc, dùng `statistics.mean` và `statisti
 | seen_project | validation | 0,1505 ± 0,0055 | 0,1972 ± 0,0103 | 0,1297 ± 0,0107 | 0,1928 ± 0,0134 |
 | seen_project | test | 0,1026 ± 0,0161 | 0,1387 ± 0,0152 | 0,0730 ± 0,0152 | 0,1402 ± 0,0149 |
 
-Trên project_wise, best epoch theo seed 42/43/44 là 14/16/12, số epoch đã chạy là 22/24/20. Trên seen_project, các giá trị tương ứng là 21/25/18 và 29/33/26. Cả sáu checkpoint đều khớp epoch sớm nhất có Macro-F1 validation lớn nhất trong lịch sử gốc.
+Cả sáu checkpoint đều khớp epoch sớm nhất có Macro-F1 validation lớn nhất trong lịch sử gốc.
 
 ### 6.3. So sánh GCN-A và GCN-B với L1
 
@@ -278,16 +278,16 @@ Chênh lệch Macro-F1 test tính từ trung bình CSV chưa làm tròn (B − A
 - `project_wise`: `0.06498435353887683 − 0.055224573143783866 = 0.009759780395092961`.
 - `seen_project`: `0.10256655957324766 − 0.09998831756159732 = 0.002578242011650342`.
 
-Trên project_wise, Graph B có Macro-F1 test cao hơn khoảng 0,0098, nhưng Weighted-F1, MCC và accuracy đều thấp hơn Graph A. Trên seen_project, Macro-F1 tăng khoảng 0,0026 trong khi ba chỉ số còn lại cũng giảm. Vì vậy, kết quả không thể hiện sự cải thiện đồng đều giữa các tiêu chí.
+Ở cả hai protocol, Graph B tăng Macro-F1 test nhưng giảm Weighted-F1, MCC và Accuracy; kết quả không cải thiện đồng đều giữa các tiêu chí.
 
-**Ngữ cảnh lịch sử Task 4.1a và baseline token.** Các thực nghiệm mặc định dùng 3 lớp, khác L1 2 lớp; đây là tham chiếu lịch sử, không phải phép so sánh cố định L1.
+**Ngữ cảnh lịch sử Task 4.1a và baseline token.** Các thực nghiệm mặc định dùng 3 lớp, khác L1 2 lớp; đây là tham chiếu lịch sử, không phải phép so sánh cố định L1. Bảng trình bày Macro-F1 test dưới dạng trung bình ± độ lệch chuẩn tổng thể.
 
 | Protocol | GCN-A mặc định 4.1a | GCN-B mặc định 4.1a | token_nodes | token_method |
 | :--- | ---: | ---: | ---: | ---: |
 | project_wise | 0,0664 ± 0,0088 | 0,0551 ± 0,0121 | 0,1000 ± 0,0000 | 0,0875 ± 0,0000 |
 | seen_project | 0,1033 ± 0,0051 | 0,0897 ± 0,0078 | 0,1541 ± 0,0000 | 0,1701 ± 0,0000 |
 
-L1 GCN-B vẫn có Macro-F1 test thấp hơn cả hai baseline token ở cả hai protocol. Các khác biệt giữa 4.1a và L1 không chỉ là loại graph; không quy toàn bộ chênh lệch lịch sử cho việc bổ sung CFG/DATA_DEP.
+L1 GCN-B vẫn có Macro-F1 test thấp hơn cả hai baseline token ở cả hai protocol.
 
 **Kết quả theo CWE trên test.** F1 dưới đây là trung bình ba seed; support là số mẫu của cùng split, không cộng lặp qua seed.
 
@@ -304,7 +304,7 @@ L1 GCN-B vẫn có Macro-F1 test thấp hơn cả hai baseline token ở cả ha
 | seen_project | CWE-190 | 41 | 0,2169 | 0,1936 | -0,0233 |
 | seen_project | CWE-415 | 16 | 0,0000 | 0,0000 | 0,0000 |
 
-GCN-B có F1 bằng 0 ở cả ba seed đối với CWE-264, CWE-400, CWE-401, CWE-770 và CWE-835 trên project_wise; support tương ứng là 6/5/4/4/10. Trên seen_project, CWE-415, CWE-59 và CWE-770 có F1 bằng 0 ở cả ba seed. Các lớp ít mẫu có dao động lớn, nên không kết luận mức cải thiện theo CWE chỉ từ một vài trường hợp.
+GCN-B có F1 bằng 0 ở cả ba seed đối với CWE-264, CWE-400, CWE-401, CWE-770 và CWE-835 trên `project_wise`; support tương ứng là 6/5/4/4/10. Trên `seen_project`, CWE-415, CWE-59 và CWE-770 có F1 bằng 0 ở cả ba seed. Các lớp ít mẫu có dao động lớn, nên không kết luận mức cải thiện theo CWE chỉ từ một vài trường hợp.
 
 ### 6.4. Thời gian, tham số và bộ nhớ
 
@@ -317,7 +317,7 @@ Cả hai lần chạy ghi nhận Tesla T4, Python 3.13.16, PyTorch 2.11.0+cu130,
 | seen_project | A | 138,5 ± 4,9 | 3367959 | 907,0 ± 53,0 |
 | seen_project | B | 183,9 ± 18,1 | 3367959 | 1256,5 ± 46,3 |
 
-Trên `project_wise`, Graph B tăng thời gian trung bình 56,7 giây/seed (76,7%) và mức CUDA cấp phát tối đa quan sát được tăng 589,5 MiB. Số tham số giữ nguyên vì GCN không tạo tham số riêng theo loại cạnh.
+Trên `project_wise`, Graph B tăng thời gian trung bình 56,7 giây/seed (76,7%) và mức CUDA cấp phát tối đa quan sát được tăng 589,5 MiB.
 
 Trên `seen_project`, Graph B tăng thời gian trung bình 45,4 giây/seed (32,8%) và mức CUDA cấp phát tối đa quan sát được tăng 349,5 MiB. Số tham số giữ nguyên vì GCN không tạo tham số riêng theo loại cạnh.
 
@@ -327,20 +327,22 @@ Tổng thời gian của sáu lần train Graph B là **943,8 giây**. Thời gi
 
 ### 6.5. Diễn giải và giới hạn
 
-- Với L1, Graph B tăng Macro-F1 test trung bình trên cả hai protocol, nhưng giảm Weighted-F1, MCC và accuracy. Không có bằng chứng cho kết luận Graph B cải thiện GCN một cách phổ quát.
-- Chênh lệch Macro-F1 project_wise khoảng 0,0098 lớn hơn độ lệch chuẩn riêng của mỗi nhóm trong lần chạy này; điều đó không thay thế kiểm định thống kê hoặc chứng minh ý nghĩa thống kê với ba seed. Trên seen_project, mức tăng khoảng 0,0026 nhỏ hơn nhiều độ lệch chuẩn Graph B khoảng 0,0161.
-- Macro-F1 validation của Graph B thấp hơn Graph A L1 ở cả hai protocol (Graph A khoảng 0,0696/0,1612; Graph B khoảng 0,0663/0,1505). Test Graph B khoảng 0,0650/0,1026 vẫn thấp hơn validation, đặc biệt trên seen_project. Không dùng các giá trị test để chọn lại cấu hình hoặc epoch.
-- Giữ nguyên các giới hạn Task 4.0: mất cân bằng và lệch phân bố lớp, lớp hiếm, graph lớn. seen_project có 5 mẫu validation và 6 mẫu test trùng input với train; lần lượt 1 và 2 mẫu khác nhãn với mẫu trùng tương ứng. project_wise không có input trùng giữa train và held-out theo kiểm tra đã bàn giao.
-- Chỉ ba seed và một cách chia cố định mỗi protocol; chưa có khoảng tin cậy, kiểm định thống kê hay thực nghiệm tách riêng tác động CFG và DATA_DEP. Không có tái huấn luyện hoặc suy luận lại trong quá trình nhập và kiểm tra artifact.
+- Với L1, Graph B tăng Macro-F1 test trung bình trên cả hai protocol, nhưng giảm Weighted-F1, MCC và Accuracy. Không có bằng chứng cho kết luận Graph B cải thiện GCN một cách phổ quát.
+- Chênh lệch Macro-F1 `project_wise` khoảng 0,0098 lớn hơn độ lệch chuẩn riêng của mỗi nhóm trong lần chạy này. Trên `seen_project`, mức tăng khoảng 0,0026 nhỏ hơn nhiều độ lệch chuẩn Graph B khoảng 0,0161.
+- Macro-F1 validation của Graph B thấp hơn Graph A L1 ở cả hai protocol (Graph A khoảng 0,0696/0,1612; Graph B khoảng 0,0663/0,1505). Test Graph B khoảng 0,0650/0,1026 vẫn thấp hơn validation, đặc biệt trên `seen_project`. Không dùng các giá trị test để chọn lại cấu hình hoặc epoch.
+- Giữ nguyên các giới hạn Task 4.0: mất cân bằng và lệch phân bố lớp, lớp hiếm, graph lớn. `seen_project` có 5 mẫu validation và 6 mẫu test trùng input với train; lần lượt 1 và 2 mẫu khác nhãn với mẫu trùng tương ứng. `project_wise` không có input trùng giữa train và held-out theo kiểm tra đã bàn giao.
+- Thí nghiệm chỉ có ba seed và một cách chia cố định mỗi protocol; chưa có khoảng tin cậy, kiểm định thống kê hay ablation tách riêng CFG và DATA_DEP. So sánh độ lệch chuẩn không chứng minh ý nghĩa thống kê. Không tái huấn luyện hoặc suy luận lại khi nhập và kiểm tra artifact.
 
 ### 6.6. Provenance và bàn giao artifact
 
-- Mã shared trainer: `5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5`, nhánh `feature/4_1b_gcn_tuning`; checkout sạch theo metadata. Notebook được upload trực tiếp trước khi commit, không thuộc SHA mã trainer này.
-- Dataset: `vtnmai/diversevul-9077-processed-graph-data/versions/1`. Kế hoạch ghi hash train/validation/test Graph B, vocabulary, manifest, metadata dữ liệu và schema. Hash vocabulary, manifest và metadata dữ liệu khớp tham chiếu Graph A; các tensor nguồn không được tải lại để kiểm tra trong lần audit này.
+- Shared trainer: `5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5`, nhánh `feature/4_1b_gcn_tuning`, checkout sạch theo metadata. Notebook được upload trước khi commit, không thuộc SHA trainer này.
+- Dataset: `vtnmai/diversevul-9077-processed-graph-data/versions/1`. Plan ghi hash train/validation/test Graph B, vocabulary, manifest, metadata dữ liệu và schema. Hash vocabulary, manifest và metadata dữ liệu khớp Graph A; tensor nguồn không được tải lại trong lần audit này.
 - L1 tham chiếu: [frozen_selection.json](4_1b_results/tuning/frozen_selection.json), lấy từ delivery commit `e2ccb58def76ca3f3fd329b17627cbff924dd914`; SHA-256 `47b7ae96a1918813aa37b36416492ce355045a8001a794857bc3a4bf9fa88900`, điểm chọn ban đầu `0.06958665231149123`.
-- Kết quả: [results.csv](4_1c_results/L1/results.csv), [per_class.csv](4_1c_results/L1/per_class.csv), [metadata.json](4_1c_results/L1/metadata.json), [experiment_plan.json](4_1c_results/experiment_plan.json), [training_history.json](4_1c_results/L1/training_history.json), [confusion_matrices.json](4_1c_results/L1/confusion_matrices.json), [summary.md](4_1c_results/L1/summary.md) và [graph_b.log](4_1c_results/graph_b.log). Giữ nguyên tiêu đề Task 4.1a trong summary gốc; phần báo cáo này thuộc Task 4.1c.
-- Thư mục output gốc: `/kaggle/working/results_4_1c_gcn_graph_b/L1`. Bản nhập giữ nguyên cấu trúc dưới `reports/graph/4_1c_results/`, đủ 14 tệp, 12 dòng metric, 276 dòng per-CWE và sáu checkpoint. Confusion matrix chỉ có seed 42 theo quy ước exporter.
-- ZIP gốc `results.zip` được giữ nguyên, SHA-256 `270768770d67ea532b512621d666e6ac0b087442e30f888bc943e7decfcd137f`. Tất cả tệp nhập khớp byte với ZIP; hash checkpoint và năm artifact chuẩn khớp metadata. [Biên bản kiểm tra](4_1c_delivery_audit.json) ghi hash và kích thước từng tệp.
-- Notebook đã thực thi được lưu nguyên byte tại [4_1c_gcn_graph_b_run.ipynb](4_1c_gcn_graph_b_run.ipynb), SHA-256 `207de975ee296cb9c602d43e921014e7fd2d21aba0ea22463512de027146d4d6` (51.111 byte). Bản gốc do người thực hiện cung cấp tại `notebooks/4_1c_gcn_graph_b_run.ipynb` được giữ nguyên. Plan in trong notebook trùng hoàn toàn với JSON nhập; lệnh và toàn bộ log train khớp artifact. AST của mã thực thi trùng notebook nguồn sau khi chỉ bỏ lệnh in plan được cho phép.
-- Papermill ghi thực thi thành công từ 00:59:16 đến 01:16:09 ngày 07/11/2026 (UTC+7), tổng 1.012,46 giây. Hash lịch sử cell được lưu trong plan là `596801035d144e183bfe45d96e356dd492aee87c707dfa6421e279561464ebd8`. Chưa có số Saved Version hoặc URL công khai xác minh được trong tệp tải; không suy đoán từ `kernelVersion` ở danh sách input. Metadata Kaggle có `isGpuEnabled=false` dù accelerator là Tesla T4; log GPU và metadata runtime PyTorch nhất quán xác nhận Tesla T4 đã được sử dụng. Giữ nguyên sự không nhất quán metadata này trong bằng chứng gốc.
-- Sáu checkpoint tổng cộng 79.976.554 byte được giữ an toàn tại bản nhập cục bộ và bị Git bỏ qua bởi `*.pt`; ZIP cũng bị bỏ qua. Chỉ bàn giao các artifact văn bản, notebook và báo cáo qua Git; lưu checkpoint/ZIP trên Kaggle hoặc kho riêng, không force-add vào Git.
+- Kết quả: [results.csv](4_1c_results/L1/results.csv), [per_class.csv](4_1c_results/L1/per_class.csv), [metadata.json](4_1c_results/L1/metadata.json), [experiment_plan.json](4_1c_results/experiment_plan.json), [training_history.json](4_1c_results/L1/training_history.json), [confusion_matrices.json](4_1c_results/L1/confusion_matrices.json), [summary.md](4_1c_results/L1/summary.md) và [graph_b.log](4_1c_results/graph_b.log). Summary gốc giữ tiêu đề lịch sử Task 4.1a; kết quả ở đây thuộc Task 4.1c.
+- Output gốc: `/kaggle/working/results_4_1c_gcn_graph_b/L1`; bản nhập tại `reports/graph/4_1c_results/` giữ nguyên cấu trúc, đủ 14 tệp, 12 dòng metric, 276 dòng per-CWE và sáu checkpoint. Confusion matrix chỉ có seed 42.
+- ZIP gốc `results.zip` giữ nguyên, SHA-256 `270768770d67ea532b512621d666e6ac0b087442e30f888bc943e7decfcd137f`. Bản nhập khớp byte với ZIP; hash checkpoint và năm artifact chuẩn khớp metadata. [Biên bản kiểm tra](4_1c_delivery_audit.json) ghi hash và kích thước từng tệp.
+- Notebook thực thi được lưu nguyên byte tại [4_1c_gcn_graph_b_run.ipynb](4_1c_gcn_graph_b_run.ipynb), SHA-256 `207de975ee296cb9c602d43e921014e7fd2d21aba0ea22463512de027146d4d6` (51.111 byte); bản gốc tại `notebooks/4_1c_gcn_graph_b_run.ipynb` được giữ nguyên. Plan, lệnh và toàn bộ log khớp artifact; AST khớp notebook nguồn sau khi bỏ lệnh in plan.
+- Papermill ghi thực thi thành công từ 00:59:16 đến 01:16:09 ngày 07/11/2026 (UTC+7), tổng 1.012,46 giây. Hash lịch sử cell trong plan: `596801035d144e183bfe45d96e356dd492aee87c707dfa6421e279561464ebd8`.
+- Chưa xác minh được số Saved Version hoặc URL công khai từ tệp tải; `kernelVersion` trong danh sách input không xác định phiên bản của lần chạy này.
+- Metadata Kaggle ghi `isGpuEnabled=false` dù accelerator là Tesla T4; log GPU và metadata runtime PyTorch xác nhận Tesla T4 đã được sử dụng. Sự không nhất quán này được giữ nguyên trong bằng chứng gốc.
+- Sáu checkpoint tổng cộng 79.976.554 byte được giữ tại bản nhập cục bộ và bị Git bỏ qua bởi `*.pt`; ZIP cũng bị bỏ qua. Theo chính sách lưu trữ, Git chỉ chứa artifact văn bản, notebook và báo cáo; checkpoint/ZIP được lưu ngoài Git trên Kaggle hoặc kho riêng.
