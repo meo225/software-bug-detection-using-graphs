@@ -25,6 +25,7 @@ from src.training.gnn_trainer import run_training, evaluate_saved  # noqa: E402
 
 from src.training.gcn_tuning import (  # noqa: E402
     BASELINE, code_identity, environment, data_identity, digest, read_frozen, write_json, checkpoint_path, ARTIFACTS,
+    sensitivity_target,
 )
 
 SCALARS = ("accuracy", "macro_precision", "macro_recall", "macro_f1", "weighted_f1", "mcc")
@@ -59,9 +60,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--dataset-id", default="unspecified", help="Dataset name and immutable Kaggle version")
     p.add_argument("--frozen-selection", type=Path, help="Evaluate only the frozen winner, without training")
     p.add_argument("--results-root", type=Path, help="Root of relocated candidate artifacts")
+    p.add_argument("--sensitivity-config", default=None,
+                   help="With --frozen-selection: evaluate this ranked non-winning configuration on test "
+                        "for a sensitivity analysis. Never used to select a configuration")
     args = p.parse_args()
     if args.frozen_selection and (args.validation_only or args.limit):
         p.error("Frozen evaluation cannot use --validation-only or --limit")
+    if args.sensitivity_config and not args.frozen_selection:
+        p.error("--sensitivity-config requires --frozen-selection")
     if args.edge_types and (args.frozen_selection or args.save_checkpoints):
         p.error("--edge-types chưa dùng được với --frozen-selection hoặc --save-checkpoints")
     if min(args.dim, args.num_layers, args.batch_size, args.max_epochs, args.patience) < 1:
@@ -85,8 +91,13 @@ def main() -> int:
     if a.out_dir.exists() and any(a.out_dir.iterdir()):
         raise FileExistsError(f"Output directory must be empty: {a.out_dir}")
     frozen = read_frozen(a.frozen_selection, ROOT, a.processed_dir, a.schema, a.results_root) if a.frozen_selection else None
+    sensitivity = a.sensitivity_config
+    target = frozen["winner"] if frozen else None
+    if sensitivity:
+        target = sensitivity_target(frozen, sensitivity, ROOT, a.processed_dir, a.schema,
+                                    a.results_root or a.frozen_selection.parent)
     if frozen:
-        previous = frozen["winner"]["metadata"]["arguments"]
+        previous = target["metadata"]["arguments"]
         for key in (*BASELINE, "protocols", "graphs", "models", "seeds", "config_id", "dataset_id"):
             setattr(a, key, previous[key])
     a.out_dir.mkdir(parents=True, exist_ok=True)
@@ -100,6 +111,8 @@ def main() -> int:
                 "schema_sha256": digest(a.schema), "inputs": {}, "runs": []}
     if frozen:
         metadata["frozen_selection_sha256"] = digest(a.frozen_selection)
+    if sensitivity:
+        metadata["purpose"] = "test sensitivity analysis; not used for selection"
     write_json(a.out_dir / "metadata.json", metadata)
     rows, per_class, matrices, histories = [], [], {}, []
     for protocol in a.protocols:
@@ -121,10 +134,10 @@ def main() -> int:
                 for seed in a.seeds:
                     cfg = {key: getattr(a, key) for key in BASELINE}
                     if frozen:
-                        winner = frozen["winner"]
-                        entry = next(r for r in winner["metadata"]["runs"]
+                        entry = next(r for r in target["metadata"]["runs"]
                                      if r["protocol"] == protocol and r["seed"] == seed)
-                        payload = torch.load(checkpoint_path(frozen, entry, a.results_root or a.frozen_selection.parent),
+                        payload = torch.load(checkpoint_path({"winner": target}, entry,
+                                                             a.results_root or a.frozen_selection.parent),
                                              map_location="cpu", weights_only=True)
                         if (payload["configuration"] != cfg or payload["protocol"] != protocol
                                 or payload["seed"] != seed or payload["labels"] != labels):
@@ -179,7 +192,10 @@ def main() -> int:
     groups: dict[tuple, list[dict]] = {}
     for r in rows:
         groups.setdefault((r["protocol"], r["graph"], r["model"], r["split"]), []).append(r)
-    title = "# Kết quả GCN (Task 4.1b)" if a.validation_only or frozen else "# Kết quả GNN (Task 4.1a)"
+    title = (f"# Kết quả {'/'.join(a.models).upper()} {'/'.join(a.graphs)} (cấu hình {a.config_id})"
+             if a.validation_only or frozen else "# Kết quả GNN (Task 4.1a)")
+    if sensitivity:
+        title += ", độ nhạy trên test, không dùng để chọn cấu hình"
     lines = [title, "", "Trung bình ± độ lệch chuẩn theo seed.", "",
              "| Protocol | Graph | Model | Split | Macro-F1 | Weighted-F1 | MCC | Accuracy | Tham số | Giây/seed |",
              "| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |"]

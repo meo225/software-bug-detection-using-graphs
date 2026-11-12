@@ -1,6 +1,7 @@
 """Focused synthetic-data checks for the shared 4.1b tuning workflow."""
 import copy
 import csv
+import re
 import json
 import subprocess
 import sys
@@ -141,7 +142,8 @@ def processed(tmp_path):
                                                        "token": {"p": 0, "a": 1, "b": 2}, "k": 2}))
         # Deliberately no test file until after freezing.
         for split in ("train", "validation"):
-            torch.save([graph(0), graph(1)], folder / f"graph_a_{split}.pt")
+            for name in ("graph_a", "graph_b"):
+                torch.save([graph(0), graph(1)], folder / f"{name}_{split}.pt")
     return root
 
 
@@ -151,7 +153,8 @@ def call_cli(monkeypatch, processed, output, *extra):
     return cli.main()
 
 
-def synthetic_candidates(monkeypatch, processed, tmp_path, equal_scores=False):
+def synthetic_candidates(monkeypatch, processed, tmp_path, equal_scores=False,
+                         model="gcn", graph_name="graph_a"):
     """Mock optimization only; exercise real CLI loading, writing and checkpoint gates."""
     def train(*args, **kwargs):
         labels, dim = args[6], args[8]
@@ -172,7 +175,7 @@ def synthetic_candidates(monkeypatch, processed, tmp_path, equal_scores=False):
         for name, value in tuning.configuration(key).items():
             if value is not None:
                 params += ["--" + name.replace("_", "-"), str(value)]
-        call_cli(monkeypatch, processed, out, "--models", "gcn", "--graphs", "graph_a",
+        call_cli(monkeypatch, processed, out, "--models", model, "--graphs", graph_name,
                  "--validation-only", "--save-checkpoints", "--config-id", key, *params)
         directories.append(out)
     return directories
@@ -211,6 +214,68 @@ def test_cli_freezes_then_evaluates_only_saved_winner(monkeypatch, processed, tm
     assert metadata["frozen_selection_sha256"] == tuning.digest(frozen_path)
     with pytest.raises(FileExistsError):
         call_cli(monkeypatch, processed, output, "--frozen-selection", str(frozen_path))
+
+
+def test_ggnn_graph_b_scope_freezes_and_evaluates_only_its_graph(monkeypatch, processed, tmp_path):
+    scope = tuning.GGNN_B
+    directories = synthetic_candidates(monkeypatch, processed, tmp_path, model="ggnn", graph_name="graph_b")
+    # A GCN-A validator must refuse GGNN-B artifacts.
+    with pytest.raises(ValueError, match="declared"):
+        tuning.validate_candidate(directories[0])
+    for folder in directories:
+        meta = tuning.validate_candidate(folder, scope)
+        assert "project_wise/graph_b_train.pt" in meta["inputs"]["project_wise"]
+    frozen_path = tmp_path / "frozen.json"
+    frozen = tuning.freeze_winner(directories, frozen_path, scope)
+    assert frozen["winner"]["config_id"] == "H1"
+    schema = ROOT / "configs/graph/schema_spec.yaml"
+    with pytest.raises(ValueError):  # an explicit wrong scope is refused
+        tuning.read_frozen(frozen_path, ROOT, processed, schema, scope=tuning.GCN_A)
+    assert tuning.read_frozen(frozen_path, ROOT, processed, schema) == tuning.read_frozen(
+        frozen_path, ROOT, processed, schema, scope=scope)
+    for protocol in tuning.PROTOCOLS:
+        torch.save([graph(0), graph(1)], processed / protocol / "graph_b_test.pt")
+    monkeypatch.setattr(cli, "run_training", lambda *a, **k: pytest.fail("final evaluation must not train"))
+    output = tmp_path / "final"
+    call_cli(monkeypatch, processed, output, "--frozen-selection", str(frozen_path))
+    meta = tuning.validate_final(output, frozen_path, ROOT, processed,
+                                 ROOT / "configs/graph/schema_spec.yaml", scope=scope)
+    assert set(meta["test_sha256"]) == set(tuning.PROTOCOLS)
+    with (output / "results.csv").open() as handle:
+        rows = list(csv.DictReader(handle))
+    assert {(r["model"], r["graph"], r["split"]) for r in rows} == {("ggnn", "graph_b", "test")}
+    assert "GGNN graph_b" in (output / "summary.md").read_text(encoding="utf-8")
+
+
+def test_sensitivity_evaluates_ranked_loser_without_training_or_replacing_final(monkeypatch, processed, tmp_path):
+    scope = tuning.GGNN_B
+    schema = ROOT / "configs/graph/schema_spec.yaml"
+    directories = synthetic_candidates(monkeypatch, processed, tmp_path, model="ggnn", graph_name="graph_b")
+    frozen_path = tmp_path / "frozen.json"
+    assert tuning.freeze_winner(directories, frozen_path, scope)["winner"]["config_id"] == "H1"
+    original = frozen_path.read_bytes()
+    for protocol in tuning.PROTOCOLS:
+        torch.save([graph(0), graph(1)], processed / protocol / "graph_b_test.pt")
+    monkeypatch.setattr(cli, "run_training", lambda *a, **k: pytest.fail("sensitivity must not train"))
+    out = tmp_path / "sensitivity_B0"
+    call_cli(monkeypatch, processed, out, "--frozen-selection", str(frozen_path), "--sensitivity-config", "B0")
+    meta = json.loads((out / "metadata.json").read_text())
+    assert meta["arguments"]["config_id"] == "B0" and meta["arguments"]["dim"] == 128
+    assert "not used for selection" in meta["purpose"]
+    with (out / "results.csv").open() as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 6 and {(r["model"], r["graph"], r["split"]) for r in rows} == {("ggnn", "graph_b", "test")}
+    assert "không dùng để chọn" in (out / "summary.md").read_text(encoding="utf-8")
+    assert frozen_path.read_bytes() == original  # the selection is untouched
+    with pytest.raises(ValueError, match="different frozen selection"):  # cannot pass as the final result
+        tuning.validate_final(out, frozen_path, ROOT, processed, schema, scope=scope)
+    with pytest.raises(ValueError, match="not part of the frozen ranking"):
+        call_cli(monkeypatch, processed, tmp_path / "bad", "--frozen-selection", str(frozen_path),
+                 "--sensitivity-config", "D1")
+    monkeypatch.setattr(sys, "argv", ["train_gnn.py", "--processed-dir", str(processed),
+                                      "--out-dir", str(tmp_path / "x"), "--sensitivity-config", "B0"])
+    with pytest.raises(SystemExit):
+        cli.parse_args()
 
 
 def test_freeze_rejects_test_rows_and_mixed_factors(monkeypatch, processed, tmp_path):
@@ -471,3 +536,79 @@ def test_notebook_requires_only_shared_training_pipeline():
                 assert "preflight" not in (node.module or "")
             if isinstance(node, ast.Import):
                 assert all("preflight" not in item.name for item in node.names)
+
+
+def nb42_cells():
+    nb = json.loads((ROOT / "notebooks/4_2_ggnn_tuning.ipynb").read_text(encoding="utf-8"))
+    return ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"]
+
+
+def test_notebook_42_is_valid_and_pinned():
+    import ast
+    import nbformat
+    notebook = nbformat.read(ROOT / "notebooks/4_2_ggnn_tuning.ipynb", as_version=4)
+    nbformat.validate(notebook)
+    for cell in notebook.cells:
+        if cell.cell_type == "code":
+            assert cell.execution_count is None and not cell.outputs
+            ast.parse(cell.source)
+    text = "\n".join(nb42_cells())
+    assert 'APPROVED_BRANCH = "feature/4_2_ggnn_tuning"' in text
+    assert "scripts/train_gnn.py" in text and "--frozen-selection" in text and "--validation-only" in text
+    assert '"--models", SCOPE[0], "--graphs", SCOPE[1]' in text
+    assert "class GNNClassifier" not in text and "def run_training" not in text
+    sha = re.search(r'APPROVED_COMMIT = "([0-9a-f]{40})"', text)
+    assert sha, "Notebook must pin a full commit SHA"
+
+
+def test_notebook_42_all_stages_disabled_is_clean(monkeypatch):
+    def forbidden(*args, **kwargs):
+        pytest.fail("Disabled stages must not access Git, GPU, data or subprocesses")
+    monkeypatch.setattr(subprocess, "run", forbidden)
+    monkeypatch.setattr(subprocess, "Popen", forbidden)
+    monkeypatch.setattr(subprocess, "check_output", forbidden)
+    namespace = {}
+    for source in nb42_cells():
+        source = source.replace("RUN_TUNING = True", "RUN_TUNING = False").replace(
+            "RUN_FINAL_TEST = True", "RUN_FINAL_TEST = False")
+        exec(compile(source, "<notebook>", "exec"), namespace)
+    assert not namespace["ACTIVE"]
+
+
+def test_notebook_42_full_flow_writes_figures_and_light_submission(monkeypatch, processed, tmp_path):
+    import matplotlib
+    matplotlib.use("Agg")
+    out = tmp_path / "tuning"
+    synthetic_candidates(monkeypatch, processed, out, model="ggnn", graph_name="graph_b")
+    for protocol in tuning.PROTOCOLS:
+        torch.save([graph(0), graph(1)], processed / protocol / "graph_b_test.pt")
+    namespace = {name: getattr(tuning, name) for name in (
+        "BASELINE", "CANDIDATES", "GGNN_HYPOTHESES", "GGNN_B", "PROTOCOLS", "SEEDS", "configuration",
+        "code_identity", "environment", "freeze_winner", "reuse_candidate", "read_frozen",
+        "validate_context", "validate_final")}
+    import shutil
+    namespace.update(ACTIVE=False, RUN_TUNING=True, RUN_FINAL_TEST=True, RUN_SENSITIVITY=True,
+                     SENS_DIR=tmp_path / "sensitivity", OUT_DIR=out, READ_ROOT=out,
+                     FINAL_OUT_DIR=tmp_path / "final", FIG_DIR=tmp_path / "figures",
+                     SUBMISSION_DIR=tmp_path / "submission", APPROVED_CONFIG_IDS=["B0", "H1"],
+                     PROCESSED=processed, REPO_DIR=ROOT, DATASET_ID="unspecified", SCOPE=tuning.GGNN_B,
+                     json=json, csv=csv, shutil=shutil, Path=Path)
+    def evaluate(arguments, *unused):
+        monkeypatch.setattr(sys, "argv", ["train_gnn.py", *arguments])
+        cli.main()
+    for source in nb42_cells()[1:]:
+        exec(compile(source, "<notebook>", "exec"), namespace)
+        namespace["run_script"] = evaluate  # the notebook helper would spawn a subprocess
+    figures = {p.name for p in (tmp_path / "figures").iterdir()}
+    assert {"validation_macro_f1.png", "learning_curves.png", "cost.png", "test_macro_f1.png",
+            "per_cwe_f1.png", "confusion_matrix.png", "validation_ranking.csv",
+            "test_comparison.csv", "sensitivity_validation_vs_test.png",
+            "sensitivity_test_all_configs.csv"} <= figures
+    assert (tmp_path / "sensitivity/B0/results.csv").is_file()  # the loser, scored on test only
+    assert not (tmp_path / "sensitivity/H1").exists()  # the winner reuses the official final result
+    assert (tmp_path / "submission/sensitivity/B0/summary.md").is_file()
+    submission = tmp_path / "submission"
+    assert not list(submission.rglob("*.pt"))
+    assert (submission / "tuning/frozen_selection.json").is_file()
+    assert (submission / "final/results.csv").is_file()
+    assert (tmp_path / "submission.zip").is_file()

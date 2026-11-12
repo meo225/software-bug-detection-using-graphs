@@ -1,4 +1,8 @@
-"""Controlled GCN-A configurations and validation-only winner selection."""
+"""Controlled GNN configurations and validation-only winner selection.
+
+Used by 4.1b (GCN on Graph A) and 4.2 (GGNN on Graph B). The scope ``(model, graph)``
+selects which experiment is validated; the default keeps the 4.1b behaviour.
+"""
 from __future__ import annotations
 
 import csv
@@ -30,6 +34,17 @@ HYPOTHESES = {
     "N1": "A 1000-node cap tests sensitivity to large graphs and aggregation cost.",
 }
 ARTIFACTS = ("results.csv", "per_class.csv", "confusion_matrices.json", "training_history.json", "summary.md")
+GGNN_HYPOTHESES = {
+    "B0": "Reproduce the official default in the tuning environment.",
+    "E1": "Validation-loss stopping may be less sensitive to noisy Macro-F1 fluctuations.",
+    "D1": "More dropout may reduce the early overfitting seen in the default GGNN.",
+    "W1": "Stronger weight decay may improve generalization.",
+    "H1": "Smaller hidden dimension may reduce memorization and VRAM on Graph B.",
+    "L1": "Two propagation steps may reduce over-smoothing and cost on the larger Graph B.",
+    "N1": "A 1000-node cap bounds Graph B cost; it truncates the oversized graphs.",
+}
+GCN_A = ("gcn", "graph_a")  # scope of task 4.1b
+GGNN_B = ("ggnn", "graph_b")  # scope of task 4.2
 PROTOCOLS = ("project_wise", "seen_project")
 SEEDS = (42, 43, 44)
 
@@ -104,7 +119,8 @@ def validate_artifacts(directory: Path) -> dict:
     return meta
 
 
-def validate_candidate(directory: Path) -> dict:
+def validate_candidate(directory: Path, scope: tuple[str, str] = GCN_A) -> dict:
+    model, graph = scope
     directory = Path(directory)
     meta = validate_artifacts(directory)
     args = meta["arguments"]
@@ -112,14 +128,14 @@ def validate_candidate(directory: Path) -> dict:
     if config_id not in CANDIDATES or any(args[k] != v for k, v in configuration(config_id).items()):
         raise ValueError("Candidate must change exactly its declared baseline factor")
     if (not args["validation_only"] or args["limit"] is not None or args["frozen_selection"]
-            or args["graphs"] != ["graph_a"] or args["models"] != ["gcn"]
+            or args["graphs"] != [graph] or args["models"] != [model]
             or args["seeds"] != list(SEEDS) or args["protocols"] != list(PROTOCOLS)):
-        raise ValueError("Freeze requires complete validation-only GCN-A experiments")
+        raise ValueError("Freeze requires complete validation-only experiments for the declared model and graph")
     with (directory / "results.csv").open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
     expected = {(p, str(s)) for p in PROTOCOLS for s in SEEDS}
     if (len(rows) != 6 or {(r["protocol"], r["seed"]) for r in rows} != expected
-            or any(r["split"] != "validation" or r["graph"] != "graph_a" or r["model"] != "gcn" for r in rows)):
+            or any(r["split"] != "validation" or r["graph"] != graph or r["model"] != model for r in rows)):
         raise ValueError("Incomplete validation results or test contamination")
     if not all(math.isfinite(float(row["macro_f1"])) for row in rows):
         raise ValueError("Non-finite validation score")
@@ -127,7 +143,7 @@ def validate_candidate(directory: Path) -> dict:
     if len(runs) != 6 or {(r["protocol"], str(r["seed"])) for r in runs} != expected:
         raise ValueError("Missing candidate checkpoints")
     histories = json.loads((directory / "training_history.json").read_text(encoding="utf-8"))
-    expected_tags = {f"{p}|graph_a|gcn|{s}" for p in PROTOCOLS for s in SEEDS}
+    expected_tags = {f"{p}|{graph}|{model}|{s}" for p in PROTOCOLS for s in SEEDS}
     if len(histories) != 6 or {h["tag"] for h in histories} != expected_tags:
         raise ValueError("Incomplete training histories")
     with (directory / "per_class.csv").open(encoding="utf-8", newline="") as handle:
@@ -142,37 +158,37 @@ def validate_candidate(directory: Path) -> dict:
         cfg = configuration(config_id)
         if (payload["configuration"] != cfg or payload["protocol"] != run["protocol"]
                 or payload["seed"] != run["seed"] or set(payload["training"]["reports"]) != {"validation"}
-                or constructor["kind"] != "gcn" or constructor["n_classes"] != len(payload["labels"])
+                or constructor["kind"] != model or constructor["n_classes"] != len(payload["labels"])
                 or any(constructor[k] != cfg[k] for k in ("dim", "num_layers", "dropout"))
                 or payload["training"]["reports"]["validation"]["macro_f1"] != float(row["macro_f1"])
                 or payload["training"]["best_epoch"] != int(row["best_epoch"])):
             raise ValueError("Validation results do not match saved checkpoint")
-        tag = f"{run['protocol']}|graph_a|gcn|{run['seed']}"
+        tag = f"{run['protocol']}|{graph}|{model}|{run['seed']}"
         history = next(h["history"] for h in histories if h["tag"] == tag)
         if history != payload["training"]["history"] or len(history) != int(row["epochs_run"]):
             raise ValueError("Training history differs from checkpoint")
         classes = [c for c in per_class if c["protocol"] == run["protocol"] and int(c["seed"]) == run["seed"]]
         if (len(per_class) != 6 * len(payload["labels"]) or len(classes) != len(payload["labels"]) or {c["cwe"] for c in classes} != set(payload["labels"])
-                or any(c["split"] != "validation" or c["graph"] != "graph_a" or c["model"] != "gcn" for c in classes)):
+                or any(c["split"] != "validation" or c["graph"] != graph or c["model"] != model for c in classes)):
             raise ValueError("Incomplete per-class results")
     return meta
 
 
 def validate_context(meta: dict, root: Path, processed_dir: Path, schema: Path,
-                     dataset_id: str | None = None) -> None:
+                     dataset_id: str | None = None, scope: tuple[str, str] = GCN_A) -> None:
     if meta["code"] != code_identity(root) or meta["schema_sha256"] != digest(schema):
         raise ValueError("Code or schema differs from saved experiment")
     if dataset_id is not None and meta["arguments"]["dataset_id"] != dataset_id:
         raise ValueError("Dataset version differs from saved experiment")
     for protocol in PROTOCOLS:
-        if meta["inputs"][protocol] != data_identity(processed_dir, protocol, "graph_a"):
+        if meta["inputs"][protocol] != data_identity(processed_dir, protocol, scope[1]):
             raise ValueError("Dataset differs from saved experiment")
 
 
 def reuse_candidate(directory: Path, config_id: str, root: Path, processed_dir: Path,
-                    schema: Path, dataset_id: str) -> dict:
-    meta = validate_candidate(directory)
-    validate_context(meta, root, processed_dir, schema, dataset_id)
+                    schema: Path, dataset_id: str, scope: tuple[str, str] = GCN_A) -> dict:
+    meta = validate_candidate(directory, scope)
+    validate_context(meta, root, processed_dir, schema, dataset_id, scope)
     if meta["arguments"]["config_id"] != config_id or meta["environment"] != environment():
         raise ValueError("Configuration or training environment differs from saved experiment")
     return meta
@@ -182,7 +198,7 @@ def checkpoint_path(frozen: dict, run: dict, results_root: Path) -> Path:
     return checked_path(results_root, str(Path(frozen["winner"]["directory"]) / run["checkpoint"]))
 
 
-def freeze_winner(candidate_dirs: list[Path], destination: Path) -> dict:
+def freeze_winner(candidate_dirs: list[Path], destination: Path, scope: tuple[str, str] = GCN_A) -> dict:
     """Freeze validation-only results with paths relative to the manifest directory."""
     destination = Path(destination)
     if destination.exists():
@@ -190,7 +206,7 @@ def freeze_winner(candidate_dirs: list[Path], destination: Path) -> dict:
     candidates, identities = [], []
     for directory in candidate_dirs:
         directory = Path(directory).resolve()
-        meta = validate_candidate(directory)
+        meta = validate_candidate(directory, scope)
         args = meta["arguments"]
         identities.append((meta["code"], meta["inputs"], meta["environment"], meta["schema_sha256"], args["dataset_id"]))
         with (directory / "results.csv").open(encoding="utf-8", newline="") as handle:
@@ -212,7 +228,8 @@ def freeze_winner(candidate_dirs: list[Path], destination: Path) -> dict:
 
 
 def read_frozen(path: Path, root: Path, processed_dir: Path, schema: Path,
-                results_root: Path | None = None) -> dict:
+                results_root: Path | None = None, scope: tuple[str, str] | None = None) -> dict:
+    """Verify a frozen winner. ``scope`` defaults to the winner's own single model and graph."""
     path = Path(path)
     frozen = json.loads(path.read_text(encoding="utf-8"))
     if frozen["format_version"] != 2 or frozen["selection_metric"] != "project_wise.validation.macro_f1.mean":
@@ -220,10 +237,15 @@ def read_frozen(path: Path, root: Path, processed_dir: Path, schema: Path,
     winner = frozen["winner"]
     results_root = Path(results_root) if results_root else path.parent
     meta = winner["metadata"]
-    validate_context(meta, root, processed_dir, schema)
+    if scope is None:
+        models, graphs = meta["arguments"]["models"], meta["arguments"]["graphs"]
+        if len(models) != 1 or len(graphs) != 1:
+            raise ValueError("Frozen winner must declare exactly one model and one graph")
+        scope = (models[0], graphs[0])
+    validate_context(meta, root, processed_dir, schema, scope=scope)
     # Verify the stored winner, never reselect using new candidates or test metrics.
     directory = checked_path(results_root, str(Path(winner["directory"]) / "metadata.json")).parent
-    saved = validate_candidate(directory)
+    saved = validate_candidate(directory, scope)
     if saved != meta or winner["config_id"] != meta["arguments"]["config_id"]:
         raise ValueError("Frozen winner metadata differs from saved configuration")
     with (directory / "results.csv").open(encoding="utf-8", newline="") as handle:
@@ -236,11 +258,33 @@ def read_frozen(path: Path, root: Path, processed_dir: Path, schema: Path,
     return frozen
 
 
+def sensitivity_target(frozen: dict, config_id: str, root: Path, processed_dir: Path,
+                       schema: Path, results_root: Path) -> dict:
+    """Return a non-winning candidate for a post-selection test sensitivity analysis.
+
+    Only configurations ranked in an already frozen selection are accepted, so test
+    scores can never influence which configuration is reported as the tuned result.
+    """
+    winner = frozen["winner"]
+    if config_id not in {r["config_id"] for r in frozen["ranking"]}:
+        raise ValueError(f"Configuration {config_id} is not part of the frozen ranking")
+    arguments = winner["metadata"]["arguments"]
+    scope = (arguments["models"][0], arguments["graphs"][0])
+    relative = (Path(winner["directory"]).parent / config_id).as_posix()
+    directory = checked_path(results_root, f"{relative}/metadata.json").parent
+    meta = validate_candidate(directory, scope)
+    validate_context(meta, root, processed_dir, schema, arguments["dataset_id"], scope)
+    if meta["arguments"]["config_id"] != config_id:
+        raise ValueError("Candidate directory holds a different configuration")
+    return {"config_id": config_id, "directory": relative, "metadata": meta}
+
+
 def validate_final(directory: Path, frozen_path: Path, root: Path, processed_dir: Path,
-                   schema: Path, results_root: Path | None = None) -> dict:
-    frozen = read_frozen(frozen_path, root, processed_dir, schema, results_root)
+                   schema: Path, results_root: Path | None = None, scope: tuple[str, str] = GCN_A) -> dict:
+    model, graph = scope
+    frozen = read_frozen(frozen_path, root, processed_dir, schema, results_root, scope)
     meta = validate_artifacts(directory)
-    validate_context(meta, root, processed_dir, schema)
+    validate_context(meta, root, processed_dir, schema, scope=scope)
     args = meta["arguments"]
     cfg = configuration(frozen["winner"]["config_id"])
     if (meta.get("frozen_selection_sha256") != digest(frozen_path)
@@ -251,9 +295,9 @@ def validate_final(directory: Path, frozen_path: Path, root: Path, processed_dir
         rows = list(csv.DictReader(handle))
     if (len(rows) != 6 or {(r["protocol"], int(r["seed"])) for r in rows} !=
             {(p, s) for p in PROTOCOLS for s in SEEDS}
-            or any(r["split"] != "test" or r["model"] != "gcn" or r["graph"] != "graph_a" for r in rows)):
+            or any(r["split"] != "test" or r["model"] != model or r["graph"] != graph for r in rows)):
         raise ValueError("Incomplete final test results")
     for protocol in PROTOCOLS:
-        if meta["test_sha256"][protocol] != digest(processed_dir / protocol / "graph_a_test.pt"):
+        if meta["test_sha256"][protocol] != digest(processed_dir / protocol / f"{graph}_test.pt"):
             raise ValueError("Test inputs differ from saved final evaluation")
     return meta

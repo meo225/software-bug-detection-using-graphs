@@ -1,0 +1,11 @@
+Thiết bị: cuda; torch 2.11.0+cu130
+project_wise/graph_b: test=936; K=23
+seen_project/graph_b: test=763; K=24
+# Kết quả GGNN graph_b (cấu hình E1), độ nhạy trên test, không dùng để chọn cấu hình
+
+Trung bình ± độ lệch chuẩn theo seed.
+
+| Protocol | Graph | Model | Split | Macro-F1 | Weighted-F1 | MCC | Accuracy | Tham số | Giây/seed |
+| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| project_wise | graph_b | ggnn | test | 0.0561 ± 0.0011 | 0.0661 ± 0.0093 | 0.0207 ± 0.0028 | 0.0726 ± 0.0076 | 3456407 | 94 |
+| seen_project | graph_b | ggnn | test | 0.0896 ± 0.0069 | 0.1140 ± 0.0119 | 0.0569 ± 0.0109 | 0.1140 ± 0.0177 | 3533079 | 107 |

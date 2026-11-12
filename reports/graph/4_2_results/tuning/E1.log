@@ -1,0 +1,131 @@
+Thiết bị: cuda; torch 2.11.0+cu130
+project_wise/graph_b: train=6101, validation=762; K=23
+  validation loss=3.149859
+  [ggnn seed=42] epoch 01 loss=3.1379 val_macro_f1=0.0181
+  validation loss=3.181189
+  [ggnn seed=42] epoch 02 loss=3.0559 val_macro_f1=0.0234
+  validation loss=3.213221
+  [ggnn seed=42] epoch 03 loss=2.9006 val_macro_f1=0.0276
+  validation loss=3.258276
+  [ggnn seed=42] epoch 04 loss=2.6384 val_macro_f1=0.0367
+  validation loss=3.708685
+  [ggnn seed=42] epoch 05 loss=2.4072 val_macro_f1=0.0393
+  validation loss=3.573319
+  [ggnn seed=42] epoch 06 loss=2.1286 val_macro_f1=0.0264
+  validation loss=4.007419
+  [ggnn seed=42] epoch 07 loss=1.9403 val_macro_f1=0.0302
+  validation loss=4.130972
+  [ggnn seed=42] epoch 08 loss=1.7489 val_macro_f1=0.0618
+  validation loss=4.528764
+  [ggnn seed=42] epoch 09 loss=1.5740 val_macro_f1=0.0406
+  validation loss=3.064343
+  [ggnn seed=43] epoch 01 loss=3.1397 val_macro_f1=0.0050
+  validation loss=3.132875
+  [ggnn seed=43] epoch 02 loss=3.1124 val_macro_f1=0.0111
+  validation loss=3.166425
+  [ggnn seed=43] epoch 03 loss=3.0836 val_macro_f1=0.0027
+  validation loss=3.109855
+  [ggnn seed=43] epoch 04 loss=3.0140 val_macro_f1=0.0167
+  validation loss=3.314202
+  [ggnn seed=43] epoch 05 loss=2.9033 val_macro_f1=0.0247
+  validation loss=3.369359
+  [ggnn seed=43] epoch 06 loss=2.7435 val_macro_f1=0.0158
+  validation loss=3.408966
+  [ggnn seed=43] epoch 07 loss=2.5862 val_macro_f1=0.0327
+  validation loss=3.796050
+  [ggnn seed=43] epoch 08 loss=2.4290 val_macro_f1=0.0169
+  validation loss=4.036676
+  [ggnn seed=43] epoch 09 loss=2.2244 val_macro_f1=0.0299
+  validation loss=3.065849
+  [ggnn seed=44] epoch 01 loss=3.1382 val_macro_f1=0.0143
+  validation loss=3.133262
+  [ggnn seed=44] epoch 02 loss=3.0740 val_macro_f1=0.0073
+  validation loss=2.995546
+  [ggnn seed=44] epoch 03 loss=2.9570 val_macro_f1=0.0344
+  validation loss=3.165164
+  [ggnn seed=44] epoch 04 loss=2.7516 val_macro_f1=0.0482
+  validation loss=3.284035
+  [ggnn seed=44] epoch 05 loss=2.5419 val_macro_f1=0.0384
+  validation loss=3.603044
+  [ggnn seed=44] epoch 06 loss=2.3220 val_macro_f1=0.0292
+  validation loss=3.360680
+  [ggnn seed=44] epoch 07 loss=2.1160 val_macro_f1=0.0518
+  validation loss=3.855328
+  [ggnn seed=44] epoch 08 loss=1.9356 val_macro_f1=0.0272
+  validation loss=4.196914
+  [ggnn seed=44] epoch 09 loss=1.7415 val_macro_f1=0.0413
+  validation loss=4.025807
+  [ggnn seed=44] epoch 10 loss=1.5986 val_macro_f1=0.0378
+  validation loss=4.257053
+  [ggnn seed=44] epoch 11 loss=1.4463 val_macro_f1=0.0484
+seen_project/graph_b: train=6272, validation=764; K=24
+  validation loss=3.110227
+  [ggnn seed=42] epoch 01 loss=3.1393 val_macro_f1=0.0333
+  validation loss=3.029330
+  [ggnn seed=42] epoch 02 loss=3.0670 val_macro_f1=0.0547
+  validation loss=3.102772
+  [ggnn seed=42] epoch 03 loss=2.9189 val_macro_f1=0.0349
+  validation loss=3.037641
+  [ggnn seed=42] epoch 04 loss=2.7103 val_macro_f1=0.0602
+  validation loss=3.114706
+  [ggnn seed=42] epoch 05 loss=2.4682 val_macro_f1=0.0833
+  validation loss=3.257445
+  [ggnn seed=42] epoch 06 loss=2.2508 val_macro_f1=0.0721
+  validation loss=3.453830
+  [ggnn seed=42] epoch 07 loss=2.0369 val_macro_f1=0.0929
+  validation loss=3.665014
+  [ggnn seed=42] epoch 08 loss=1.8429 val_macro_f1=0.0901
+  validation loss=3.933624
+  [ggnn seed=42] epoch 09 loss=1.6642 val_macro_f1=0.1357
+  validation loss=4.157388
+  [ggnn seed=42] epoch 10 loss=1.5131 val_macro_f1=0.1273
+  validation loss=3.108353
+  [ggnn seed=43] epoch 01 loss=3.1378 val_macro_f1=0.0150
+  validation loss=3.083312
+  [ggnn seed=43] epoch 02 loss=3.0953 val_macro_f1=0.0232
+  validation loss=3.071436
+  [ggnn seed=43] epoch 03 loss=3.0019 val_macro_f1=0.0211
+  validation loss=3.117391
+  [ggnn seed=43] epoch 04 loss=2.8457 val_macro_f1=0.0554
+  validation loss=3.122033
+  [ggnn seed=43] epoch 05 loss=2.5961 val_macro_f1=0.0759
+  validation loss=3.172328
+  [ggnn seed=43] epoch 06 loss=2.3662 val_macro_f1=0.0611
+  validation loss=3.386474
+  [ggnn seed=43] epoch 07 loss=2.1417 val_macro_f1=0.0803
+  validation loss=3.431916
+  [ggnn seed=43] epoch 08 loss=1.9423 val_macro_f1=0.0846
+  validation loss=3.907982
+  [ggnn seed=43] epoch 09 loss=1.7919 val_macro_f1=0.0904
+  validation loss=3.895628
+  [ggnn seed=43] epoch 10 loss=1.6357 val_macro_f1=0.0811
+  validation loss=4.190983
+  [ggnn seed=43] epoch 11 loss=1.4482 val_macro_f1=0.0892
+  validation loss=3.098725
+  [ggnn seed=44] epoch 01 loss=3.1404 val_macro_f1=0.0331
+  validation loss=3.049066
+  [ggnn seed=44] epoch 02 loss=3.0573 val_macro_f1=0.0167
+  validation loss=3.053891
+  [ggnn seed=44] epoch 03 loss=2.9141 val_macro_f1=0.0675
+  validation loss=3.064893
+  [ggnn seed=44] epoch 04 loss=2.7141 val_macro_f1=0.0488
+  validation loss=3.240498
+  [ggnn seed=44] epoch 05 loss=2.5306 val_macro_f1=0.0721
+  validation loss=3.266477
+  [ggnn seed=44] epoch 06 loss=2.3258 val_macro_f1=0.0578
+  validation loss=3.508569
+  [ggnn seed=44] epoch 07 loss=2.1316 val_macro_f1=0.0791
+  validation loss=3.486704
+  [ggnn seed=44] epoch 08 loss=1.9174 val_macro_f1=0.0572
+  validation loss=3.742104
+  [ggnn seed=44] epoch 09 loss=1.7501 val_macro_f1=0.0893
+  validation loss=4.297423
+  [ggnn seed=44] epoch 10 loss=1.6156 val_macro_f1=0.0886
+# Kết quả GGNN graph_b (cấu hình E1)
+
+Trung bình ± độ lệch chuẩn theo seed.
+
+| Protocol | Graph | Model | Split | Macro-F1 | Weighted-F1 | MCC | Accuracy | Tham số | Giây/seed |
+| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| project_wise | graph_b | ggnn | validation | 0.0488 ± 0.0121 | 0.0914 ± 0.0332 | 0.0270 ± 0.0208 | 0.0814 ± 0.0299 | 3456407 | 94 |
+| seen_project | graph_b | ggnn | validation | 0.1051 ± 0.0216 | 0.1486 ± 0.0148 | 0.0870 ± 0.0146 | 0.1444 ± 0.0209 | 3533079 | 107 |

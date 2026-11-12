@@ -1,0 +1,8 @@
+# Kết quả GGNN graph_b (cấu hình H1), độ nhạy trên test, không dùng để chọn cấu hình
+
+Trung bình ± độ lệch chuẩn theo seed.
+
+| Protocol | Graph | Model | Split | Macro-F1 | Weighted-F1 | MCC | Accuracy | Tham số | Giây/seed |
+| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| project_wise | graph_b | ggnn | test | 0.0642 ± 0.0083 | 0.1001 ± 0.0156 | 0.0252 ± 0.0074 | 0.1036 ± 0.0101 | 1670871 | 150 |
+| seen_project | graph_b | ggnn | test | 0.0894 ± 0.0148 | 0.1298 ± 0.0139 | 0.0771 ± 0.0084 | 0.1363 ± 0.0088 | 1709207 | 184 |
