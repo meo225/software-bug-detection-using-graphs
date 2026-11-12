@@ -179,7 +179,8 @@ def main() -> int:
     groups: dict[tuple, list[dict]] = {}
     for r in rows:
         groups.setdefault((r["protocol"], r["graph"], r["model"], r["split"]), []).append(r)
-    title = "# Kết quả GCN (Task 4.1b)" if a.validation_only or frozen else "# Kết quả GNN (Task 4.1a)"
+    title = (f"# Kết quả {'/'.join(a.models).upper()} {'/'.join(a.graphs)} (cấu hình {a.config_id})"
+             if a.validation_only or frozen else "# Kết quả GNN (Task 4.1a)")
     lines = [title, "", "Trung bình ± độ lệch chuẩn theo seed.", "",
              "| Protocol | Graph | Model | Split | Macro-F1 | Weighted-F1 | MCC | Accuracy | Tham số | Giây/seed |",
              "| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |"]

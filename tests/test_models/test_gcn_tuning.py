@@ -141,7 +141,8 @@ def processed(tmp_path):
                                                        "token": {"p": 0, "a": 1, "b": 2}, "k": 2}))
         # Deliberately no test file until after freezing.
         for split in ("train", "validation"):
-            torch.save([graph(0), graph(1)], folder / f"graph_a_{split}.pt")
+            for name in ("graph_a", "graph_b"):
+                torch.save([graph(0), graph(1)], folder / f"{name}_{split}.pt")
     return root
 
 
@@ -151,7 +152,8 @@ def call_cli(monkeypatch, processed, output, *extra):
     return cli.main()
 
 
-def synthetic_candidates(monkeypatch, processed, tmp_path, equal_scores=False):
+def synthetic_candidates(monkeypatch, processed, tmp_path, equal_scores=False,
+                         model="gcn", graph_name="graph_a"):
     """Mock optimization only; exercise real CLI loading, writing and checkpoint gates."""
     def train(*args, **kwargs):
         labels, dim = args[6], args[8]
@@ -172,7 +174,7 @@ def synthetic_candidates(monkeypatch, processed, tmp_path, equal_scores=False):
         for name, value in tuning.configuration(key).items():
             if value is not None:
                 params += ["--" + name.replace("_", "-"), str(value)]
-        call_cli(monkeypatch, processed, out, "--models", "gcn", "--graphs", "graph_a",
+        call_cli(monkeypatch, processed, out, "--models", model, "--graphs", graph_name,
                  "--validation-only", "--save-checkpoints", "--config-id", key, *params)
         directories.append(out)
     return directories
@@ -211,6 +213,37 @@ def test_cli_freezes_then_evaluates_only_saved_winner(monkeypatch, processed, tm
     assert metadata["frozen_selection_sha256"] == tuning.digest(frozen_path)
     with pytest.raises(FileExistsError):
         call_cli(monkeypatch, processed, output, "--frozen-selection", str(frozen_path))
+
+
+def test_ggnn_graph_b_scope_freezes_and_evaluates_only_its_graph(monkeypatch, processed, tmp_path):
+    scope = tuning.GGNN_B
+    directories = synthetic_candidates(monkeypatch, processed, tmp_path, model="ggnn", graph_name="graph_b")
+    # A GCN-A validator must refuse GGNN-B artifacts.
+    with pytest.raises(ValueError, match="declared"):
+        tuning.validate_candidate(directories[0])
+    for folder in directories:
+        meta = tuning.validate_candidate(folder, scope)
+        assert "project_wise/graph_b_train.pt" in meta["inputs"]["project_wise"]
+    frozen_path = tmp_path / "frozen.json"
+    frozen = tuning.freeze_winner(directories, frozen_path, scope)
+    assert frozen["winner"]["config_id"] == "H1"
+    schema = ROOT / "configs/graph/schema_spec.yaml"
+    with pytest.raises(ValueError):  # an explicit wrong scope is refused
+        tuning.read_frozen(frozen_path, ROOT, processed, schema, scope=tuning.GCN_A)
+    assert tuning.read_frozen(frozen_path, ROOT, processed, schema) == tuning.read_frozen(
+        frozen_path, ROOT, processed, schema, scope=scope)
+    for protocol in tuning.PROTOCOLS:
+        torch.save([graph(0), graph(1)], processed / protocol / "graph_b_test.pt")
+    monkeypatch.setattr(cli, "run_training", lambda *a, **k: pytest.fail("final evaluation must not train"))
+    output = tmp_path / "final"
+    call_cli(monkeypatch, processed, output, "--frozen-selection", str(frozen_path))
+    meta = tuning.validate_final(output, frozen_path, ROOT, processed,
+                                 ROOT / "configs/graph/schema_spec.yaml", scope=scope)
+    assert set(meta["test_sha256"]) == set(tuning.PROTOCOLS)
+    with (output / "results.csv").open() as handle:
+        rows = list(csv.DictReader(handle))
+    assert {(r["model"], r["graph"], r["split"]) for r in rows} == {("ggnn", "graph_b", "test")}
+    assert "GGNN graph_b" in (output / "summary.md").read_text(encoding="utf-8")
 
 
 def test_freeze_rejects_test_rows_and_mixed_factors(monkeypatch, processed, tmp_path):
