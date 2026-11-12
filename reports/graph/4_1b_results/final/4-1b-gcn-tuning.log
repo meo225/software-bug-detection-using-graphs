@@ -1,0 +1,50 @@
+[{"stream_name":"stderr","time":7.367995077,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":7.368062349,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":7.368070043,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":7.368074566,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":7.968689491,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":7.968721752,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":7.968726525,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":7.968730617,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":9.100631962,"data":"Cloning into '/tmp/g41b/5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5'...\n"}
+,{"stream_name":"stderr","time":9.302576551,"data":"Cloning into '/tmp/g41b/5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5'...\n"}
+,{"stream_name":"stderr","time":9.302618767,"data":"\n"}
+,{"stream_name":"stderr","time":9.302624583,"data":"Cloning into '/tmp/g41b/5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5'...\n"}
+,{"stream_name":"stderr","time":10.393605482,"data":"HEAD is now at 5d8b99e feat(gnn): implement Task 4.1b GCN tuning\n"}
+,{"stream_name":"stderr","time":12.535027156,"data":"HEAD is now at 5d8b99e feat(gnn): implement Task 4.1b GCN tuning\n"}
+,{"stream_name":"stderr","time":12.535063945,"data":"\n"}
+,{"stream_name":"stderr","time":12.535069336,"data":"HEAD is now at 5d8b99e feat(gnn): implement Task 4.1b GCN tuning\n"}
+,{"stream_name":"stdout","time":19.666848484,"data":"Revision: 5d8b99e821c0eb93d873f6ff17c3c7fe8ab5d5f5 Environment: {'python': '3.13.16', 'torch': '2.11.0+cu130', 'numpy': '2.1.3', 'sklearn': '1.6.1', 'cuda': '13.0', 'gpu': 'Tesla T4'}\n"}
+,{"stream_name":"stdout","time":21.393509896,"data":"Dataset: vtnmai/diversevul-9077-processed-graph-data/versions/1 /kaggle/input/datasets/vtnmai/diversevul-9077-processed-graph-data/processed\n"}
+,{"stream_name":"stdout","time":32.733295082,"data":"Validation ranking: [{'config_id': 'L1', 'score': 0.06958665231149123}, {'config_id': 'H1', 'score': 0.06321407529734191}, {'config_id': 'N1', 'score': 0.0594369634345724}, {'config_id': 'W1', 'score': 0.05590380480392897}, {'config_id': 'B0', 'score': 0.05452052013497637}, {'config_id': 'D1', 'score': 0.048967718905094514}, {'config_id': 'E1', 'score': 0.043418551187484986}]\n"}
+,{"stream_name":"stdout","time":32.734186038,"data":"Frozen configuration: L1\n"}
+,{"stream_name":"stdout","time":32.749537765,"data":"Command: ['/usr/bin/python3', 'scripts/train_gnn.py', '--processed-dir', '/kaggle/input/datasets/vtnmai/diversevul-9077-processed-graph-data/processed', '--out-dir', '/kaggle/working/results_4_1b_gcn_final', '--frozen-selection', '/kaggle/input/notebooks/nth2k5/4-1b-gcn-tuning/results_4_1b_gcn_tuning/frozen_selection.json', '--results-root', '/kaggle/input/notebooks/nth2k5/4-1b-gcn-tuning/results_4_1b_gcn_tuning']\n"}
+,{"stream_name":"stdout","time":37.665559438,"data":"Thiết bị: cuda; torch 2.11.0+cu130\n"}
+,{"stream_name":"stdout","time":42.140155313,"data":"project_wise/graph_a: test=936; K=23\n"}
+,{"stream_name":"stdout","time":47.783663663,"data":"seen_project/graph_a: test=763; K=24\n"}
+,{"stream_name":"stdout","time":48.541824639,"data":"# Kết quả GCN (Task 4.1b)\n"}
+,{"stream_name":"stdout","time":48.543509175,"data":"\n"}
+,{"stream_name":"stdout","time":48.544618801,"data":"Trung bình ± độ lệch chuẩn theo seed.\n"}
+,{"stream_name":"stdout","time":48.545533193,"data":"\n"}
+,{"stream_name":"stdout","time":48.546453279,"data":"| Protocol | Graph | Model | Split | Macro-F1 | Weighted-F1 | MCC | Accuracy | Tham số | Giây/seed |\n"}
+,{"stream_name":"stdout","time":48.547267356,"data":"| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n"}
+,{"stream_name":"stdout","time":48.548024906,"data":"| project_wise | graph_a | gcn | test | 0.0552 ± 0.0051 | 0.1088 ± 0.0130 | 0.0324 ± 0.0103 | 0.1122 ± 0.0130 | 3291287 | 74 |\n"}
+,{"stream_name":"stdout","time":48.548889975,"data":"| seen_project | graph_a | gcn | test | 0.1000 ± 0.0054 | 0.1489 ± 0.0052 | 0.0826 ± 0.0032 | 0.1525 ± 0.0027 | 3367959 | 139 |\n"}
+,{"stream_name":"stdout","time":58.336904654,"data":"# Kết quả GCN (Task 4.1b)\n"}
+,{"stream_name":"stdout","time":58.336964081,"data":"\n"}
+,{"stream_name":"stdout","time":58.336969436,"data":"Trung bình ± độ lệch chuẩn theo seed.\n"}
+,{"stream_name":"stdout","time":58.336973278,"data":"\n"}
+,{"stream_name":"stdout","time":58.336976649,"data":"| Protocol | Graph | Model | Split | Macro-F1 | Weighted-F1 | MCC | Accuracy | Tham số | Giây/seed |\n"}
+,{"stream_name":"stdout","time":58.336980783,"data":"| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n"}
+,{"stream_name":"stdout","time":58.33698474,"data":"| project_wise | graph_a | gcn | test | 0.0552 ± 0.0051 | 0.1088 ± 0.0130 | 0.0324 ± 0.0103 | 0.1122 ± 0.0130 | 3291287 | 74 |\n"}
+,{"stream_name":"stdout","time":58.336989038,"data":"| seen_project | graph_a | gcn | test | 0.1000 ± 0.0054 | 0.1489 ± 0.0052 | 0.0826 ± 0.0032 | 0.1525 ± 0.0027 | 3367959 | 139 |\n"}
+,{"stream_name":"stdout","time":58.337005234,"data":"\n"}
+,{"stream_name":"stderr","time":61.466300812,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":61.466334573,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":61.629533896,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":61.629565131,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":62.430994691,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to notebook\n"}
+,{"stream_name":"stderr","time":62.508662407,"data":"[NbConvertApp] Writing 25316 bytes to __notebook__.ipynb\n"}
+,{"stream_name":"stderr","time":64.956365272,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to html\n"}
+,{"stream_name":"stderr","time":65.493788906,"data":"[NbConvertApp] Writing 332549 bytes to __results__.html\n"}
+]
