@@ -587,7 +587,8 @@ def test_notebook_42_full_flow_writes_figures_and_light_submission(monkeypatch, 
         "code_identity", "environment", "freeze_winner", "reuse_candidate", "read_frozen",
         "validate_context", "validate_final")}
     import shutil
-    namespace.update(ACTIVE=False, RUN_TUNING=True, RUN_FINAL_TEST=True, OUT_DIR=out, READ_ROOT=out,
+    namespace.update(ACTIVE=False, RUN_TUNING=True, RUN_FINAL_TEST=True, RUN_SENSITIVITY=True,
+                     SENS_DIR=tmp_path / "sensitivity", OUT_DIR=out, READ_ROOT=out,
                      FINAL_OUT_DIR=tmp_path / "final", FIG_DIR=tmp_path / "figures",
                      SUBMISSION_DIR=tmp_path / "submission", APPROVED_CONFIG_IDS=["B0", "H1"],
                      PROCESSED=processed, REPO_DIR=ROOT, DATASET_ID="unspecified", SCOPE=tuning.GGNN_B,
@@ -601,7 +602,11 @@ def test_notebook_42_full_flow_writes_figures_and_light_submission(monkeypatch, 
     figures = {p.name for p in (tmp_path / "figures").iterdir()}
     assert {"validation_macro_f1.png", "learning_curves.png", "cost.png", "test_macro_f1.png",
             "per_cwe_f1.png", "confusion_matrix.png", "validation_ranking.csv",
-            "test_comparison.csv"} <= figures
+            "test_comparison.csv", "sensitivity_validation_vs_test.png",
+            "sensitivity_test_all_configs.csv"} <= figures
+    assert (tmp_path / "sensitivity/B0/results.csv").is_file()  # the loser, scored on test only
+    assert not (tmp_path / "sensitivity/H1").exists()  # the winner reuses the official final result
+    assert (tmp_path / "submission/sensitivity/B0/summary.md").is_file()
     submission = tmp_path / "submission"
     assert not list(submission.rglob("*.pt"))
     assert (submission / "tuning/frozen_selection.json").is_file()
