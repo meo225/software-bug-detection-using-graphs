@@ -247,6 +247,37 @@ def test_ggnn_graph_b_scope_freezes_and_evaluates_only_its_graph(monkeypatch, pr
     assert "GGNN graph_b" in (output / "summary.md").read_text(encoding="utf-8")
 
 
+def test_sensitivity_evaluates_ranked_loser_without_training_or_replacing_final(monkeypatch, processed, tmp_path):
+    scope = tuning.GGNN_B
+    schema = ROOT / "configs/graph/schema_spec.yaml"
+    directories = synthetic_candidates(monkeypatch, processed, tmp_path, model="ggnn", graph_name="graph_b")
+    frozen_path = tmp_path / "frozen.json"
+    assert tuning.freeze_winner(directories, frozen_path, scope)["winner"]["config_id"] == "H1"
+    original = frozen_path.read_bytes()
+    for protocol in tuning.PROTOCOLS:
+        torch.save([graph(0), graph(1)], processed / protocol / "graph_b_test.pt")
+    monkeypatch.setattr(cli, "run_training", lambda *a, **k: pytest.fail("sensitivity must not train"))
+    out = tmp_path / "sensitivity_B0"
+    call_cli(monkeypatch, processed, out, "--frozen-selection", str(frozen_path), "--sensitivity-config", "B0")
+    meta = json.loads((out / "metadata.json").read_text())
+    assert meta["arguments"]["config_id"] == "B0" and meta["arguments"]["dim"] == 128
+    assert "not used for selection" in meta["purpose"]
+    with (out / "results.csv").open() as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 6 and {(r["model"], r["graph"], r["split"]) for r in rows} == {("ggnn", "graph_b", "test")}
+    assert "không dùng để chọn" in (out / "summary.md").read_text(encoding="utf-8")
+    assert frozen_path.read_bytes() == original  # the selection is untouched
+    with pytest.raises(ValueError, match="different frozen selection"):  # cannot pass as the final result
+        tuning.validate_final(out, frozen_path, ROOT, processed, schema, scope=scope)
+    with pytest.raises(ValueError, match="not part of the frozen ranking"):
+        call_cli(monkeypatch, processed, tmp_path / "bad", "--frozen-selection", str(frozen_path),
+                 "--sensitivity-config", "D1")
+    monkeypatch.setattr(sys, "argv", ["train_gnn.py", "--processed-dir", str(processed),
+                                      "--out-dir", str(tmp_path / "x"), "--sensitivity-config", "B0"])
+    with pytest.raises(SystemExit):
+        cli.parse_args()
+
+
 def test_freeze_rejects_test_rows_and_mixed_factors(monkeypatch, processed, tmp_path):
     directories = synthetic_candidates(monkeypatch, processed, tmp_path)
     metadata_path = directories[1] / "metadata.json"

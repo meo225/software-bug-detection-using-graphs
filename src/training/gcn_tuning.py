@@ -258,6 +258,27 @@ def read_frozen(path: Path, root: Path, processed_dir: Path, schema: Path,
     return frozen
 
 
+def sensitivity_target(frozen: dict, config_id: str, root: Path, processed_dir: Path,
+                       schema: Path, results_root: Path) -> dict:
+    """Return a non-winning candidate for a post-selection test sensitivity analysis.
+
+    Only configurations ranked in an already frozen selection are accepted, so test
+    scores can never influence which configuration is reported as the tuned result.
+    """
+    winner = frozen["winner"]
+    if config_id not in {r["config_id"] for r in frozen["ranking"]}:
+        raise ValueError(f"Configuration {config_id} is not part of the frozen ranking")
+    arguments = winner["metadata"]["arguments"]
+    scope = (arguments["models"][0], arguments["graphs"][0])
+    relative = (Path(winner["directory"]).parent / config_id).as_posix()
+    directory = checked_path(results_root, f"{relative}/metadata.json").parent
+    meta = validate_candidate(directory, scope)
+    validate_context(meta, root, processed_dir, schema, arguments["dataset_id"], scope)
+    if meta["arguments"]["config_id"] != config_id:
+        raise ValueError("Candidate directory holds a different configuration")
+    return {"config_id": config_id, "directory": relative, "metadata": meta}
+
+
 def validate_final(directory: Path, frozen_path: Path, root: Path, processed_dir: Path,
                    schema: Path, results_root: Path | None = None, scope: tuple[str, str] = GCN_A) -> dict:
     model, graph = scope
