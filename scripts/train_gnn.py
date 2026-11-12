@@ -60,8 +60,9 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--label-smoothing", type=float, default=0.1, help="Chỉ dùng với --loss adaptive")
     p.add_argument("--head-fraction", type=float, default=0.5,
                    help="Tỷ lệ mẫu train cộng dồn xác định nhóm lớp đầu, chỉ dùng với --loss adaptive")
-    p.add_argument("--token-init", type=Path, default=None,
-                   help="Tệp .pt sinh bởi scripts/export_token_embeddings.py, đặt khởi tạo cho embedding token")
+    p.add_argument("--token-init", type=Path, nargs="+", default=None,
+                   help="Một tệp .pt cho mỗi protocol, sinh bởi scripts/export_token_embeddings.py. "
+                        "Mỗi tệp tự khai báo protocol của nó, nên thứ tự không quan trọng")
     p.add_argument("--validation-only", action="store_true", help="Never load or evaluate test tensors")
     p.add_argument("--save-checkpoints", action="store_true")
     p.add_argument("--config-id", default="B0")
@@ -89,15 +90,33 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def load_token_init(path: Path, protocol: str, n_tokens: int, dim: int) -> torch.Tensor:
-    """Nạp bảng khởi tạo embedding token và kiểm tra khớp vocabulary của protocol."""
-    payload = torch.load(path, map_location="cpu", weights_only=True)
+def _plain(value):
+    """Chuyển Path thành chuỗi để ghi vào metadata JSON."""
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, list):
+        return [_plain(item) for item in value]
+    return value
+
+
+def load_token_init(paths: list[Path], protocol: str, n_tokens: int, dim: int) -> torch.Tensor:
+    """Chọn tệp khởi tạo embedding token của ``protocol`` và kiểm tra khớp vocabulary.
+
+    Mỗi protocol có vocabulary riêng nên cần một tệp riêng. Tệp tự khai báo protocol của nó,
+    vì vậy một tệp dành cho protocol khác sẽ bị từ chối thay vì được dùng nhầm.
+    """
+    if isinstance(paths, (str, Path)):
+        paths = [Path(paths)]
+    payloads = [(path, torch.load(path, map_location="cpu", weights_only=True)) for path in paths]
+    matching = [(path, p) for path, p in payloads if p["protocol"] == protocol]
+    if len(matching) != 1:
+        available = sorted(p["protocol"] for _, p in payloads)
+        raise ValueError(f"Cần đúng một tệp token init cho protocol {protocol!r}, đang có {available}")
+    path, payload = matching[0]
     matrix = payload["matrix"]
-    if payload["protocol"] != protocol:
-        raise ValueError(f"Token init dành cho protocol {payload['protocol']!r}, không phải {protocol!r}")
     if tuple(matrix.shape) != (n_tokens, dim):
         raise ValueError(f"Token init có dạng {tuple(matrix.shape)}, cần {(n_tokens, dim)}")
-    print(f"Token init: {payload['model_name']} -> {tuple(matrix.shape)}")
+    print(f"Token init {protocol}: {payload['model_name']} -> {tuple(matrix.shape)}")
     return matrix
 
 
@@ -130,7 +149,7 @@ def main() -> int:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Thiết bị: {device}; torch {torch.__version__}")
 
-    metadata = {"arguments": {k: str(v) if isinstance(v, Path) else v for k, v in vars(a).items()},
+    metadata = {"arguments": {k: _plain(v) for k, v in vars(a).items()},
                 "code": code_identity(ROOT), "environment": environment(),
                 "schema_sha256": digest(a.schema), "inputs": {}, "runs": []}
     if frozen:
@@ -144,7 +163,9 @@ def main() -> int:
         n_types, n_tokens = len(vocab["node_type"]), len(vocab["token"])
         token_init = load_token_init(a.token_init, protocol, n_tokens, a.dim) if a.token_init else None
         if token_init is not None:
-            metadata["token_init"] = {"path": str(a.token_init), "sha256": digest(a.token_init)}
+            metadata.setdefault("token_init", {})[protocol] = {
+                "paths": [str(p) for p in a.token_init],
+                "sha256": {str(p): digest(p) for p in a.token_init}}
         for graph in a.graphs:
             splits = ("test",) if frozen else (("train", "validation") if a.validation_only else SPLITS)
             parts = {s: torch.load(a.processed_dir / protocol / f"{graph}_{s}.pt", weights_only=True) for s in splits}

@@ -36,6 +36,11 @@
 ## Riêng từng task
 - 4.1b, 4.1c: GCN bỏ qua loại cạnh. 4.1c dùng đúng cấu hình đã chọn ở 4.1b.
 - 4.2: so GGNN-B với GCN-A, GCN-B sau tinh chỉnh, với mặc định và với baseline token.
-- 4.3: chỉ mở khi validation của 4.2 lộ lỗi cụ thể. Giữ nguyên split và 23 CWE, ghi giả thuyết trước khi chạy.
+- 4.3: thử nghiệm theo bài báo, **thiết kế khác 4.1b và 4.2**. Đây là bài toán đo tác động, không phải chọn cấu hình: ba nhánh C0, P1, P2 được đăng ký trước cùng giả thuyết trong `src/training/paper_experiments.py`, mỗi nhánh chạy ba seed, và test được báo cáo cho **cả ba** nhánh. Không nhánh nào được chọn làm mô hình của nhóm dựa trên điểm test, và không thêm bớt nhánh sau khi đã thấy kết quả.
+  - C0 là nhóm đối chứng, dùng cấu hình L1 đã cố định ở 4.2 và **phải chạy lại trong cùng phiên** với P1 và P2. Lý do: 4.2 cho thấy cùng cấu hình B0, cùng seed, cùng phiên bản torch nhưng chạy ở hai phiên khác nhau lệch tới 0,011 Macro-F1, ngang với mọi chênh lệch cần đo. Số của 4.1a, 4.1b và 4.2 chỉ dùng làm tham chiếu lịch sử.
+  - P1 đổi đúng một yếu tố: khởi tạo embedding token bằng CodeBERT, qua `scripts/export_token_embeddings.py` rồi `--token-init`. Mỗi protocol có vocabulary riêng nên cần một tệp khởi tạo riêng.
+  - P2 đổi đúng một yếu tố: `--loss adaptive`, label smoothing cho nhóm lớp đầu và focal cho nhóm lớp đuôi, cường độ tăng dần theo epoch.
+  - Giữ nguyên split, 23 CWE, seed 42, 43, 44 và hai protocol. Ghi cả kết quả không tốt hơn. Kết luận "có tác động" chỉ đưa ra khi trị tuyệt đối của chênh lệch với C0 vượt độ lệch chuẩn lớn hơn giữa hai nhóm.
+  - Riêng với P2, phải kiểm tra F1 theo nhóm lớp đầu, giữa, đuôi, vì giả thuyết của nó nói về lớp ít mẫu chứ không chỉ về Macro-F1 tổng.
 - 5.2, 5.3: dùng kết quả và cấu hình đã chốt ở 4.2, không chạy lại với cấu hình khác mà không ghi lý do.
 - 5.3: bỏ CFG hoặc DATA_DEP bằng `--edge-types` (ví dụ `--edge-types 0 2` bỏ CFG, `--edge-types 0 1` bỏ DATA_DEP) trên Graph B, so với GGNN đủ ba loại cạnh ở 4.2.

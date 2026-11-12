@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -138,37 +139,41 @@ def processed(tmp_path):
     return root
 
 
-def run_arm(monkeypatch, processed, out: Path, arm: str, token_init: Path | None = None):
+def run_arm(monkeypatch, processed, out: Path, arm: str, token_init: list[Path] | None = None):
     monkeypatch.setattr(sys, "argv", [
         "train_gnn.py", "--processed-dir", str(processed), "--out-dir", str(out),
         "--models", arms.SCOPE[0], "--graphs", arms.SCOPE[1],
         "--protocols", *arms.PROTOCOLS, "--seeds", *map(str, arms.SEEDS),
-        "--config-id", arm, *arms.arm_arguments(arm, str(token_init) if token_init else None)])
+        "--config-id", arm, *arms.arm_arguments(arm, token_init)])
     assert cli.main() == 0
     return arms.validate_arm(out, arm)
 
 
+def token_init_files(tmp_path, dim=128, n_tokens=4):
+    paths = []
+    for protocol in arms.PROTOCOLS:
+        path = tmp_path / f"{protocol}.pt"
+        torch.save({"model_name": "test", "protocol": protocol, "dim": dim, "n_tokens": n_tokens,
+                    "matrix": torch.randn(n_tokens, dim)}, path)
+        paths.append(path)
+    return paths
+
+
 def test_all_three_arms_run_end_to_end_and_validate(monkeypatch, processed, tmp_path):
-    init_path = tmp_path / "pw.pt"
-    torch.save({"model_name": "test", "protocol": "project_wise", "dim": 128, "n_tokens": 4,
-                "matrix": torch.randn(4, 128)}, init_path)
-    metas = {}
-    for arm in ("C0", "P2"):
-        metas[arm] = run_arm(monkeypatch, processed, tmp_path / arm, arm)
+    init_paths = token_init_files(tmp_path)
+    metas = {arm: run_arm(monkeypatch, processed, tmp_path / arm, arm,
+                          init_paths if arm == "P1" else None)
+             for arm in ("C0", "P1", "P2")}
     assert metas["C0"]["arguments"]["loss"] == "weighted_ce"
     assert metas["P2"]["arguments"]["loss"] == "adaptive"
+    assert not metas["C0"]["arguments"]["token_init"]
+    # Nhánh P1 phải ghi lại dấu vân tay tệp khởi tạo cho từng protocol.
+    assert set(metas["P1"]["token_init"]) == set(arms.PROTOCOLS)
+    assert all(entry["sha256"] for entry in metas["P1"]["token_init"].values())
     with (tmp_path / "C0" / "results.csv").open() as handle:
         rows = list(csv.DictReader(handle))
     assert {r["split"] for r in rows} == {"validation", "test"}
     assert {(r["model"], r["graph"]) for r in rows} == {arms.SCOPE}
-    # Nhánh P1 dùng khởi tạo token: metadata phải ghi lại dấu vân tay của tệp.
-    monkeypatch.setattr(sys, "argv", [
-        "train_gnn.py", "--processed-dir", str(processed), "--out-dir", str(tmp_path / "P1"),
-        "--models", "ggnn", "--graphs", "graph_b", "--protocols", "project_wise",
-        "--seeds", "42", "--config-id", "P1", *arms.arm_arguments("P1", str(init_path))])
-    assert cli.main() == 0
-    meta = json.loads((tmp_path / "P1" / "metadata.json").read_text())
-    assert meta["token_init"]["sha256"] and meta["token_init"]["path"] == str(init_path)
 
 
 def test_validate_arm_rejects_mislabelled_or_incomplete_results(monkeypatch, processed, tmp_path):
@@ -183,15 +188,16 @@ def test_validate_arm_rejects_mislabelled_or_incomplete_results(monkeypatch, pro
         arms.validate_arm(out, "C0")
 
 
-def test_token_init_must_match_protocol_and_shape(tmp_path):
-    path = tmp_path / "init.pt"
-    torch.save({"model_name": "t", "protocol": "project_wise", "dim": 4, "n_tokens": 5,
-                "matrix": torch.randn(5, 4)}, path)
-    assert cli.load_token_init(path, "project_wise", 5, 4).shape == (5, 4)
-    with pytest.raises(ValueError, match="protocol"):
-        cli.load_token_init(path, "seen_project", 5, 4)
+def test_token_init_is_selected_per_protocol_and_shape_checked(tmp_path):
+    paths = token_init_files(tmp_path, dim=4, n_tokens=5)
+    for protocol in arms.PROTOCOLS:
+        chosen = cli.load_token_init(paths, protocol, 5, 4)
+        expected = torch.load(tmp_path / f"{protocol}.pt", weights_only=True)["matrix"]
+        assert torch.equal(chosen, expected)  # không lấy nhầm tệp của protocol khác
+    with pytest.raises(ValueError, match="đúng một tệp"):
+        cli.load_token_init([paths[0]], "seen_project", 5, 4)
     with pytest.raises(ValueError, match="dạng"):
-        cli.load_token_init(path, "project_wise", 6, 4)
+        cli.load_token_init(paths, "project_wise", 6, 4)
 
 
 def test_cli_rejects_incompatible_option_combinations(monkeypatch, tmp_path):
@@ -219,3 +225,86 @@ def test_default_path_is_unchanged_by_the_new_options():
     second = run_training(data, data, [], loss="weighted_ce", token_init=None, **common)
     assert first["history"] == second["history"]
     assert first["loss"] == "weighted_ce"
+
+
+NOTEBOOK = ROOT / "notebooks/4_3_paper_experiments.ipynb"
+
+
+def notebook_cells():
+    payload = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
+    return ["".join(c["source"]) for c in payload["cells"] if c["cell_type"] == "code"]
+
+
+def test_notebook_is_valid_unexecuted_and_pinned():
+    import ast
+    import nbformat
+    notebook = nbformat.read(NOTEBOOK, as_version=4)
+    nbformat.validate(notebook)
+    for cell in notebook.cells:
+        if cell.cell_type == "code":
+            assert cell.execution_count is None and not cell.outputs
+            ast.parse(cell.source)
+    text = "\n".join(notebook_cells())
+    assert 'APPROVED_BRANCH = "feature/4_3_paper_experiments"' in text
+    assert "scripts/train_gnn.py" in text and "scripts/export_token_embeddings.py" in text
+    assert "arms.arm_arguments" in text, "Notebook phải lấy cấu hình từ mã nguồn, không tự viết lại"
+    assert "class GNNClassifier" not in text and "def run_training" not in text
+    assert re.search(r'APPROVED_COMMIT = "[0-9a-f]{40}"', text)
+
+
+def test_notebook_disabled_stages_touch_nothing(monkeypatch):
+    def forbidden(*args, **kwargs):
+        pytest.fail("Khi tắt, notebook không được chạm vào Git, GPU, dữ liệu hay subprocess")
+    for name in ("run", "Popen", "check_output"):
+        monkeypatch.setattr(__import__("subprocess"), name, forbidden)
+    namespace = {}
+    for source in notebook_cells():
+        exec(compile(source.replace("RUN_EXPERIMENTS = True", "RUN_EXPERIMENTS = False"),
+                     "<notebook>", "exec"), namespace)
+    assert not namespace["ACTIVE"] and not namespace["RUN_EXPERIMENTS"]
+
+
+def test_notebook_experiment_and_plot_cells_produce_every_figure(monkeypatch, processed, tmp_path):
+    """Chạy các ô thực nghiệm và vẽ biểu đồ trên dữ liệu giả, đảm bảo không ô nào lỗi."""
+    import matplotlib
+    matplotlib.use("Agg")
+    out = tmp_path / "results"
+    init_paths = token_init_files(tmp_path, dim=128, n_tokens=4)
+    token_init = dict(zip(arms.PROTOCOLS, init_paths))
+    vocab = {p: json.loads((processed / p / "vocab.json").read_text()) for p in arms.PROTOCOLS}
+
+    def run_script(script, arguments, log_path):
+        assert script == "scripts/train_gnn.py"
+        monkeypatch.setattr(sys, "argv", ["train_gnn.py", *arguments])
+        assert cli.main() == 0
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        log_path.write_text("stub", encoding="utf-8")
+
+    from src.graph.processed import ids_hash, load_schema
+    from src.training.gcn_tuning import code_identity
+    namespace = dict(ACTIVE=False, RUN_EXPERIMENTS=True, SAVED_RESULTS_ROOT=None,
+                     OUT_DIR=out, READ_ROOT=out, INIT_DIR=tmp_path / "init",
+                     FIG_DIR=tmp_path / "figures", SUBMISSION_DIR=tmp_path / "submission",
+                     TOKEN_INIT=token_init, PROCESSED=processed, REPO_DIR=ROOT, VOCAB=vocab,
+                     APPROVED_ARMS=["C0", "P1", "P2"], DATASET_ID="unspecified",
+                     CODEBERT_NAME="test", arms=arms, torch=torch, json=json, csv=csv,
+                     shutil=__import__("shutil"), Path=Path, ids_hash=ids_hash,
+                     load_schema=load_schema, code_identity=code_identity, run_script=run_script)
+    (tmp_path / "init").mkdir()
+    for source in notebook_cells()[2:]:
+        exec(compile(source, "<notebook>", "exec"), namespace)
+
+    figures = {p.name for p in (tmp_path / "figures").iterdir()}
+    assert {"arm_summary.csv", "effect_vs_control.csv", "effect_test_macro_f1.png",
+            "per_cwe_groups.csv", "per_cwe_by_arm.png", "learning_curves.png",
+            "history_comparison.csv", "history_comparison.png",
+            "confusion_matrices.png"} <= figures
+    effects = list(csv.DictReader((tmp_path / "figures/effect_vs_control.csv").open()))
+    assert {row["protocol"] for row in effects} == set(arms.PROTOCOLS)
+    assert all(row["kết luận"] for row in effects)
+    submission = tmp_path / "submission"
+    assert not list(submission.rglob("*.pt")), "Gói nộp không được chứa tensor nặng"
+    assert (submission / "arms/C0/results.csv").is_file()
+    assert (submission / "arms/experiment_plan.json").is_file()
+    assert {p.stem for p in (submission / "token_init").glob("*.json")} == set(arms.PROTOCOLS)
+    assert (tmp_path / "submission.zip").is_file()

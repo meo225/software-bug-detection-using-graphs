@@ -43,8 +43,11 @@ def arm_configuration(arm: str) -> dict:
     return {**base, **ARMS[arm]}
 
 
-def arm_arguments(arm: str, token_init_path: str | None = None) -> list[str]:
-    """Tham số dòng lệnh riêng của nhánh, để ghép vào lệnh gọi ``scripts/train_gnn.py``."""
+def arm_arguments(arm: str, token_init_paths: list[str] | None = None) -> list[str]:
+    """Tham số dòng lệnh riêng của nhánh, để ghép vào lệnh gọi ``scripts/train_gnn.py``.
+
+    ``token_init_paths`` là danh sách tệp khởi tạo embedding token, mỗi protocol một tệp.
+    """
     configuration = arm_configuration(arm)
     arguments: list[str] = []
     for name in BASELINE:
@@ -54,10 +57,10 @@ def arm_arguments(arm: str, token_init_path: str | None = None) -> list[str]:
     if configuration["loss"] != "weighted_ce":
         arguments += ["--loss", configuration["loss"]]
     if configuration["token_init"]:
-        if not token_init_path:
-            raise ValueError("Nhánh P1 cần đường dẫn tệp khởi tạo embedding token")
-        arguments += ["--token-init", token_init_path]
-    elif token_init_path:
+        if not token_init_paths:
+            raise ValueError("Nhánh P1 cần tệp khởi tạo embedding token cho mỗi protocol")
+        arguments += ["--token-init", *map(str, token_init_paths)]
+    elif token_init_paths:
         raise ValueError(f"Nhánh {arm} không dùng khởi tạo embedding token")
     return arguments
 
