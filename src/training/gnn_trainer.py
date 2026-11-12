@@ -5,7 +5,6 @@ from __future__ import annotations
 import copy
 import random
 import time
-from collections import Counter
 from typing import Any
 
 import numpy as np
@@ -14,17 +13,10 @@ from torch import nn
 
 from src.evaluation.metrics import classification_report
 from src.models.gnn import GNNClassifier, collate, count_parameters, filter_edge_types, truncate_graph
+from src.training.losses import balanced_class_weights, build_loss
 
-
-def balanced_class_weights(train_y: list[int], n_classes: int) -> torch.Tensor:
-    """w_c = n / (C_present * n_c) cho lớp có mặt trong train, 0 cho lớp vắng mặt."""
-    counts = Counter(train_y)
-    present = len(counts)
-    n = len(train_y)
-    w = torch.zeros(n_classes)
-    for c, k in counts.items():
-        w[c] = n / (present * k)
-    return w
+__all__ = ["balanced_class_weights", "build_loss", "run_training", "evaluate_saved",
+           "seed_everything", "predict", "validation_loss"]
 
 
 def seed_everything(seed: int) -> None:
@@ -85,10 +77,15 @@ def run_training(
     device: torch.device | None = None, log=print,
     *, early_stopping: str = "macro_f1", evaluate_test: bool = True,
     return_state: bool = False, edge_types: tuple[int, ...] | None = None,
+    loss: str = "weighted_ce", token_init: torch.Tensor | None = None,
+    focal_gamma: float = 2.0, label_smoothing: float = 0.1, head_fraction: float = 0.5,
 ) -> dict[str, Any]:
     """Huấn luyện một cấu hình với một seed. Chọn epoch tốt nhất theo Macro-F1 trên validation."""
     if early_stopping not in {"macro_f1", "val_loss"}:
         raise ValueError("early_stopping must be macro_f1 or val_loss")
+    if loss != "weighted_ce" and early_stopping == "val_loss":
+        # Validation loss luôn tính bằng cross-entropy có trọng số, nên sẽ không khớp mục tiêu train.
+        raise ValueError("Dừng sớm theo validation loss chỉ dùng được với loss weighted_ce")
     if not train or not val or (evaluate_test and not test):
         raise ValueError("Required splits must be nonempty")
     if max_epochs < 1 or patience < 1 or batch_size < 1 or num_layers < 1:
@@ -109,9 +106,12 @@ def run_training(
     rng = random.Random(seed)
     n_classes = len(labels)
 
-    model = GNNClassifier(kind, n_types, n_tokens, n_classes, dim, num_layers, dropout).to(device)
-    weights = balanced_class_weights([int(g["y"]) for g in train], n_classes).to(device)
-    loss_fn = nn.CrossEntropyLoss(weight=weights)
+    model = GNNClassifier(kind, n_types, n_tokens, n_classes, dim, num_layers, dropout,
+                          token_init=token_init).to(device)
+    train_y = [int(g["y"]) for g in train]
+    loss_fn, weights = build_loss(loss, train_y, n_classes, max_epochs,
+                                  focal_gamma, label_smoothing, head_fraction)
+    loss_fn, weights = loss_fn.to(device), weights.to(device)
     optim = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     if device.type == "cuda":
@@ -120,15 +120,18 @@ def run_training(
     best_f1, best_state, best_epoch, history, bad = -1.0, None, 0, [], 0
     best_signal = float("inf") if early_stopping == "val_loss" else -1.0
     for epoch in range(1, max_epochs + 1):
+        set_epoch = getattr(loss_fn, "set_epoch", None)
+        if set_epoch is not None:
+            set_epoch(epoch)
         model.train()
         total, seen = 0.0, 0
         for batch in iterate(train, batch_size, True, rng, add_reverse, device):
             optim.zero_grad()
-            loss = loss_fn(model(batch), batch["y"])
-            loss.backward()
+            batch_loss = loss_fn(model(batch), batch["y"])
+            batch_loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), 5.0)
             optim.step()
-            total += float(loss.detach()) * batch["y"].shape[0]
+            total += float(batch_loss.detach()) * batch["y"].shape[0]
             seen += batch["y"].shape[0]
         yt, yp = predict(model, val, batch_size, add_reverse, device)
         f1 = classification_report(yt, yp, labels)["macro_f1"]
@@ -161,6 +164,7 @@ def run_training(
         reports[name] = classification_report(yt, yp, labels)
     peak_mb = torch.cuda.max_memory_allocated() / 2**20 if device.type == "cuda" else None
     result = {"reports": reports, "best_epoch": best_epoch, "epochs_run": len(history),
+            "loss": loss,
             "history": history, "n_params": count_parameters(model),
             "train_seconds": train_seconds, "peak_gpu_mb": peak_mb}
 

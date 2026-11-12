@@ -54,6 +54,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--edge-types", type=int, nargs="+", choices=[0, 1, 2], default=None,
                    help="Chỉ giữ các loại cạnh này (0 = AST, 1 = CFG, 2 = DATA_DEP). Mặc định: giữ tất cả")
     p.add_argument("--early-stopping", choices=["macro_f1", "val_loss"], default="macro_f1")
+    p.add_argument("--loss", choices=["weighted_ce", "adaptive"], default="weighted_ce",
+                   help="adaptive: label smoothing cho lớp đầu, focal cho lớp đuôi, tăng dần theo epoch")
+    p.add_argument("--focal-gamma", type=float, default=2.0, help="Chỉ dùng với --loss adaptive")
+    p.add_argument("--label-smoothing", type=float, default=0.1, help="Chỉ dùng với --loss adaptive")
+    p.add_argument("--head-fraction", type=float, default=0.5,
+                   help="Tỷ lệ mẫu train cộng dồn xác định nhóm lớp đầu, chỉ dùng với --loss adaptive")
+    p.add_argument("--token-init", type=Path, default=None,
+                   help="Tệp .pt sinh bởi scripts/export_token_embeddings.py, đặt khởi tạo cho embedding token")
     p.add_argument("--validation-only", action="store_true", help="Never load or evaluate test tensors")
     p.add_argument("--save-checkpoints", action="store_true")
     p.add_argument("--config-id", default="B0")
@@ -68,6 +76,10 @@ def parse_args() -> argparse.Namespace:
         p.error("Frozen evaluation cannot use --validation-only or --limit")
     if args.sensitivity_config and not args.frozen_selection:
         p.error("--sensitivity-config requires --frozen-selection")
+    if (args.loss != "weighted_ce" or args.token_init) and args.frozen_selection:
+        p.error("--loss và --token-init chưa dùng được với --frozen-selection")
+    if args.focal_gamma < 0 or not 0 <= args.label_smoothing < 1 or not 0 < args.head_fraction < 1:
+        p.error("focal gamma, label smoothing hoặc head fraction không hợp lệ")
     if args.edge_types and (args.frozen_selection or args.save_checkpoints):
         p.error("--edge-types chưa dùng được với --frozen-selection hoặc --save-checkpoints")
     if min(args.dim, args.num_layers, args.batch_size, args.max_epochs, args.patience) < 1:
@@ -75,6 +87,18 @@ def parse_args() -> argparse.Namespace:
     if not 0 <= args.dropout < 1 or (args.max_nodes is not None and args.max_nodes < 1):
         p.error("Invalid dropout or node cap")
     return args
+
+
+def load_token_init(path: Path, protocol: str, n_tokens: int, dim: int) -> torch.Tensor:
+    """Nạp bảng khởi tạo embedding token và kiểm tra khớp vocabulary của protocol."""
+    payload = torch.load(path, map_location="cpu", weights_only=True)
+    matrix = payload["matrix"]
+    if payload["protocol"] != protocol:
+        raise ValueError(f"Token init dành cho protocol {payload['protocol']!r}, không phải {protocol!r}")
+    if tuple(matrix.shape) != (n_tokens, dim):
+        raise ValueError(f"Token init có dạng {tuple(matrix.shape)}, cần {(n_tokens, dim)}")
+    print(f"Token init: {payload['model_name']} -> {tuple(matrix.shape)}")
+    return matrix
 
 
 def write_csv(path: Path, rows: list[dict]) -> None:
@@ -118,6 +142,9 @@ def main() -> int:
     for protocol in a.protocols:
         vocab = json.loads((a.processed_dir / protocol / "vocab.json").read_text(encoding="utf-8"))
         n_types, n_tokens = len(vocab["node_type"]), len(vocab["token"])
+        token_init = load_token_init(a.token_init, protocol, n_tokens, a.dim) if a.token_init else None
+        if token_init is not None:
+            metadata["token_init"] = {"path": str(a.token_init), "sha256": digest(a.token_init)}
         for graph in a.graphs:
             splits = ("test",) if frozen else (("train", "validation") if a.validation_only else SPLITS)
             parts = {s: torch.load(a.processed_dir / protocol / f"{graph}_{s}.pt", weights_only=True) for s in splits}
@@ -150,7 +177,9 @@ def main() -> int:
                             a.batch_size, a.max_epochs, a.patience, True, a.max_nodes, device,
                             early_stopping=a.early_stopping, evaluate_test=not a.validation_only,
                             edge_types=tuple(a.edge_types) if a.edge_types else None,
-                            return_state=a.save_checkpoints)
+                            return_state=a.save_checkpoints, loss=a.loss, token_init=token_init,
+                            focal_gamma=a.focal_gamma, label_smoothing=a.label_smoothing,
+                            head_fraction=a.head_fraction)
                         if a.save_checkpoints:
                             checkpoint = f"{protocol}_{graph}_{kind}_{seed}.pt"
                             state = out.pop("state_dict")
