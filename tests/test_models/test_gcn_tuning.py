@@ -1,6 +1,7 @@
 """Focused synthetic-data checks for the shared 4.1b tuning workflow."""
 import copy
 import csv
+import re
 import json
 import subprocess
 import sys
@@ -504,3 +505,74 @@ def test_notebook_requires_only_shared_training_pipeline():
                 assert "preflight" not in (node.module or "")
             if isinstance(node, ast.Import):
                 assert all("preflight" not in item.name for item in node.names)
+
+
+def nb42_cells():
+    nb = json.loads((ROOT / "notebooks/4_2_ggnn_tuning.ipynb").read_text(encoding="utf-8"))
+    return ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"]
+
+
+def test_notebook_42_is_valid_and_pinned():
+    import ast
+    import nbformat
+    notebook = nbformat.read(ROOT / "notebooks/4_2_ggnn_tuning.ipynb", as_version=4)
+    nbformat.validate(notebook)
+    for cell in notebook.cells:
+        if cell.cell_type == "code":
+            assert cell.execution_count is None and not cell.outputs
+            ast.parse(cell.source)
+    text = "\n".join(nb42_cells())
+    assert 'APPROVED_BRANCH = "feature/4_2_ggnn_tuning"' in text
+    assert "scripts/train_gnn.py" in text and "--frozen-selection" in text and "--validation-only" in text
+    assert '"--models", SCOPE[0], "--graphs", SCOPE[1]' in text
+    assert "class GNNClassifier" not in text and "def run_training" not in text
+    sha = re.search(r'APPROVED_COMMIT = "([0-9a-f]{40})"', text)
+    assert sha, "Notebook must pin a full commit SHA"
+
+
+def test_notebook_42_all_stages_disabled_is_clean(monkeypatch):
+    def forbidden(*args, **kwargs):
+        pytest.fail("Disabled stages must not access Git, GPU, data or subprocesses")
+    monkeypatch.setattr(subprocess, "run", forbidden)
+    monkeypatch.setattr(subprocess, "Popen", forbidden)
+    monkeypatch.setattr(subprocess, "check_output", forbidden)
+    namespace = {}
+    for source in nb42_cells():
+        source = source.replace("RUN_TUNING = True", "RUN_TUNING = False").replace(
+            "RUN_FINAL_TEST = True", "RUN_FINAL_TEST = False")
+        exec(compile(source, "<notebook>", "exec"), namespace)
+    assert not namespace["ACTIVE"]
+
+
+def test_notebook_42_full_flow_writes_figures_and_light_submission(monkeypatch, processed, tmp_path):
+    import matplotlib
+    matplotlib.use("Agg")
+    out = tmp_path / "tuning"
+    synthetic_candidates(monkeypatch, processed, out, model="ggnn", graph_name="graph_b")
+    for protocol in tuning.PROTOCOLS:
+        torch.save([graph(0), graph(1)], processed / protocol / "graph_b_test.pt")
+    namespace = {name: getattr(tuning, name) for name in (
+        "BASELINE", "CANDIDATES", "GGNN_HYPOTHESES", "GGNN_B", "PROTOCOLS", "SEEDS", "configuration",
+        "code_identity", "environment", "freeze_winner", "reuse_candidate", "read_frozen",
+        "validate_context", "validate_final")}
+    import shutil
+    namespace.update(ACTIVE=False, RUN_TUNING=True, RUN_FINAL_TEST=True, OUT_DIR=out, READ_ROOT=out,
+                     FINAL_OUT_DIR=tmp_path / "final", FIG_DIR=tmp_path / "figures",
+                     SUBMISSION_DIR=tmp_path / "submission", APPROVED_CONFIG_IDS=["B0", "H1"],
+                     PROCESSED=processed, REPO_DIR=ROOT, DATASET_ID="unspecified", SCOPE=tuning.GGNN_B,
+                     json=json, csv=csv, shutil=shutil, Path=Path)
+    def evaluate(arguments, *unused):
+        monkeypatch.setattr(sys, "argv", ["train_gnn.py", *arguments])
+        cli.main()
+    for source in nb42_cells()[1:]:
+        exec(compile(source, "<notebook>", "exec"), namespace)
+        namespace["run_script"] = evaluate  # the notebook helper would spawn a subprocess
+    figures = {p.name for p in (tmp_path / "figures").iterdir()}
+    assert {"validation_macro_f1.png", "learning_curves.png", "cost.png", "test_macro_f1.png",
+            "per_cwe_f1.png", "confusion_matrix.png", "validation_ranking.csv",
+            "test_comparison.csv"} <= figures
+    submission = tmp_path / "submission"
+    assert not list(submission.rglob("*.pt"))
+    assert (submission / "tuning/frozen_selection.json").is_file()
+    assert (submission / "final/results.csv").is_file()
+    assert (tmp_path / "submission.zip").is_file()
