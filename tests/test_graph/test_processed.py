@@ -180,3 +180,25 @@ def test_real_pilot_graphs_convert(dataset) -> None:
     assert result["count_mismatches_vs_json"] == []
     loaded = torch.load(out / "pilot" / "graph_b.pt")
     assert all(int(g["y"]) == -1 for g in loaded)
+
+
+def test_train_script_edge_types_option(dataset) -> None:
+    """--edge-types chạy được trên Graph B và được ghi trong metadata."""
+    import subprocess
+    import sys
+
+    root, manifest = dataset
+    out = root / "proc_e"
+    build_processed(root, manifest, SCHEMA, out)
+    script = Path(__file__).resolve().parents[2] / "scripts" / "train_gnn.py"
+    base = [sys.executable, str(script), "--processed-dir", str(out), "--protocols", "project_wise",
+            "--graphs", "graph_b", "--models", "ggnn", "--seeds", "1", "--max-epochs", "1", "--dim", "8",
+            "--batch-size", "4"]
+    ok = subprocess.run(base + ["--out-dir", str(root / "res_e"), "--edge-types", "0", "1"],
+                        capture_output=True, text=True)
+    assert ok.returncode == 0, ok.stderr[-2000:]
+    meta = json.loads((root / "res_e" / "metadata.json").read_text())
+    assert meta["arguments"]["edge_types"] == [0, 1]
+    bad = subprocess.run(base + ["--out-dir", str(root / "res_f"), "--edge-types", "0", "--save-checkpoints"],
+                         capture_output=True, text=True)
+    assert bad.returncode != 0

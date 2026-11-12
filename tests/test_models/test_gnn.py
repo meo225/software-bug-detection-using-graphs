@@ -6,7 +6,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from src.models.gnn import GNNClassifier, collate, truncate_graph  # noqa: E402
+from src.models.gnn import GNNClassifier, collate, filter_edge_types, truncate_graph  # noqa: E402
 from src.training.gnn_trainer import balanced_class_weights, run_training  # noqa: E402
 
 
@@ -63,3 +63,25 @@ def test_training_learns_separable_toy_task(kind: str) -> None:
                        device=torch.device("cpu"))
     assert out["reports"]["test"]["accuracy"] >= 0.9
     assert out["history"][-1]["train_loss"] < out["history"][0]["train_loss"]
+
+
+def test_filter_edge_types_keeps_nodes_and_selected_types() -> None:
+    item = _item(7, 0, (0, 1, 2), 3)
+    out = filter_edge_types(item, (0, 2))
+    assert set(out["edge_type"].tolist()) == {0, 2}
+    assert out["edge_index"].shape[1] == out["edge_type"].shape[0] == 4
+    assert torch.equal(out["x_type"], item["x_type"]) and torch.equal(out["x_tok"], item["x_tok"])
+    assert filter_edge_types(item, (0, 1, 2))["edge_index"].shape == item["edge_index"].shape
+
+
+def test_run_training_edge_types_default_unchanged_and_filter_applied() -> None:
+    data = [_item(6, i % 2, (0, 1, 2), i) for i in range(48)]
+    kwargs = dict(kind="ggnn", n_types=6, n_tokens=9, labels=["a", "b"], seed=0, dim=8,
+                  max_epochs=2, patience=2, batch_size=16, log=lambda *_: None,
+                  device=torch.device("cpu"))
+    base = run_training(data[:32], data[32:40], data[40:], **kwargs)
+    same = run_training(data[:32], data[32:40], data[40:], edge_types=None, **kwargs)
+    full = run_training(data[:32], data[32:40], data[40:], edge_types=(0, 1, 2), **kwargs)
+    assert base["history"] == same["history"] == full["history"]
+    only_ast = run_training(data[:32], data[32:40], data[40:], edge_types=(0,), **kwargs)
+    assert only_ast["history"] != base["history"] and only_ast["n_params"] == base["n_params"]

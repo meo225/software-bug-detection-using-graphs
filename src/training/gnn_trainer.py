@@ -13,7 +13,7 @@ import torch
 from torch import nn
 
 from src.evaluation.metrics import classification_report
-from src.models.gnn import GNNClassifier, collate, count_parameters, truncate_graph
+from src.models.gnn import GNNClassifier, collate, count_parameters, filter_edge_types, truncate_graph
 
 
 def balanced_class_weights(train_y: list[int], n_classes: int) -> torch.Tensor:
@@ -84,7 +84,7 @@ def run_training(
     patience: int = 8, add_reverse: bool = True, max_nodes: int | None = None,
     device: torch.device | None = None, log=print,
     *, early_stopping: str = "macro_f1", evaluate_test: bool = True,
-    return_state: bool = False,
+    return_state: bool = False, edge_types: tuple[int, ...] | None = None,
 ) -> dict[str, Any]:
     """Huấn luyện một cấu hình với một seed. Chọn epoch tốt nhất theo Macro-F1 trên validation."""
     if early_stopping not in {"macro_f1", "val_loss"}:
@@ -99,6 +99,12 @@ def run_training(
         val = [truncate_graph(g, max_nodes) for g in val]
         if evaluate_test:
             test = [truncate_graph(g, max_nodes) for g in test]
+    if edge_types:
+        # Ablation loại cạnh: áp dụng giống nhau cho mọi split; None giữ nguyên mọi cạnh.
+        train = [filter_edge_types(g, edge_types) for g in train]
+        val = [filter_edge_types(g, edge_types) for g in val]
+        if evaluate_test:
+            test = [filter_edge_types(g, edge_types) for g in test]
     seed_everything(seed)
     rng = random.Random(seed)
     n_classes = len(labels)

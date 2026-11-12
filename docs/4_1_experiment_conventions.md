@@ -38,3 +38,4 @@
 - 4.2: so GGNN-B với GCN-A, GCN-B sau tinh chỉnh, với mặc định và với baseline token.
 - 4.3: chỉ mở khi validation của 4.2 lộ lỗi cụ thể. Giữ nguyên split và 23 CWE, ghi giả thuyết trước khi chạy.
 - 5.2, 5.3: dùng kết quả và cấu hình đã chốt ở 4.2, không chạy lại với cấu hình khác mà không ghi lý do.
+- 5.3: bỏ CFG hoặc DATA_DEP bằng `--edge-types` (ví dụ `--edge-types 0 2` bỏ CFG, `--edge-types 0 1` bỏ DATA_DEP) trên Graph B, so với GGNN đủ ba loại cạnh ở 4.2.

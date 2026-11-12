@@ -58,6 +58,7 @@ Việc đáng thử, đổi một thứ mỗi lần để biết thay đổi nà
 3. `--max-nodes` (ví dụ ngưỡng quanh P95 là 1.239 node) và so sánh giữ, cắt graph quá lớn như plan 4.0 yêu cầu.
 4. Số lớp hoặc số bước, và cách đọc ra (mean, max, tổng).
 5. Dùng loại cạnh cho GCN hoặc để GGNN học riêng ba loại cạnh, nhằm tách tác động của graph khỏi tác động của mô hình.
+   Tham số `--edge-types` của `scripts/train_gnn.py` chỉ giữ các loại cạnh chọn (0 AST, 1 CFG, 2 DATA_DEP), ví dụ `--edge-types 0 1` bỏ DATA_DEP. Mặc định giữ tất cả, kết quả 4.1a không đổi. Chưa dùng được cùng `--frozen-selection` hoặc `--save-checkpoints`.
 6. Sửa biểu diễn node: mặc định là trung bình embedding token, có thể thử trọng số theo loại node.
 7. Tùy chọn: CodeBERT làm baseline văn bản mạnh.
 

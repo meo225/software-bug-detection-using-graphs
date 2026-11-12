@@ -50,6 +50,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--max-nodes", type=int, default=None,
                    help="Cắt graph lớn hơn ngưỡng này (mặc định: giữ nguyên)")
     p.add_argument("--limit", type=int, default=None, help="Chỉ lấy N mẫu đầu mỗi split (chạy thử)")
+    p.add_argument("--edge-types", type=int, nargs="+", choices=[0, 1, 2], default=None,
+                   help="Chỉ giữ các loại cạnh này (0 = AST, 1 = CFG, 2 = DATA_DEP). Mặc định: giữ tất cả")
     p.add_argument("--early-stopping", choices=["macro_f1", "val_loss"], default="macro_f1")
     p.add_argument("--validation-only", action="store_true", help="Never load or evaluate test tensors")
     p.add_argument("--save-checkpoints", action="store_true")
@@ -60,6 +62,8 @@ def parse_args() -> argparse.Namespace:
     args = p.parse_args()
     if args.frozen_selection and (args.validation_only or args.limit):
         p.error("Frozen evaluation cannot use --validation-only or --limit")
+    if args.edge_types and (args.frozen_selection or args.save_checkpoints):
+        p.error("--edge-types chưa dùng được với --frozen-selection hoặc --save-checkpoints")
     if min(args.dim, args.num_layers, args.batch_size, args.max_epochs, args.patience) < 1:
         p.error("Dimension, layers, batch size, epochs and patience must be positive")
     if not 0 <= args.dropout < 1 or (args.max_nodes is not None and args.max_nodes < 1):
@@ -132,6 +136,7 @@ def main() -> int:
                             labels, seed, a.dim, a.num_layers, a.dropout, a.lr, a.weight_decay,
                             a.batch_size, a.max_epochs, a.patience, True, a.max_nodes, device,
                             early_stopping=a.early_stopping, evaluate_test=not a.validation_only,
+                            edge_types=tuple(a.edge_types) if a.edge_types else None,
                             return_state=a.save_checkpoints)
                         if a.save_checkpoints:
                             checkpoint = f"{protocol}_{graph}_{kind}_{seed}.pt"

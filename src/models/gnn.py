@@ -57,6 +57,12 @@ def truncate_graph(item: dict[str, Any], max_nodes: int) -> dict[str, Any]:
             "edge_type": item["edge_type"][keep]}
 
 
+def filter_edge_types(item: dict[str, Any], keep: tuple[int, ...]) -> dict[str, Any]:
+    """Chỉ giữ cạnh có loại thuộc ``keep`` (0 = AST, 1 = CFG, 2 = DATA_DEP); node không đổi."""
+    mask = torch.isin(item["edge_type"], torch.tensor(sorted(set(keep)), dtype=item["edge_type"].dtype))
+    return {**item, "edge_index": item["edge_index"][:, mask], "edge_type": item["edge_type"][mask]}
+
+
 class NodeEmbedding(nn.Module):
     """Loại node + trung bình embedding token (bỏ đệm) + vị trí tương đối trong hàm."""
 
