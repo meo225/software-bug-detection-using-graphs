@@ -44,6 +44,21 @@ Bảy cấu hình thực nghiệm được xác định trước khi tiến hàn
 | L1 | Số lớp GCN: 3 → 2 |
 | N1 | `max_nodes`: không giới hạn → 1.000 |
 
+### Số graph bị cắt bởi N1
+
+N1 cắt graph có hơn 1.000 node. Số liệu đếm trên `graph_a_{train,validation,test}.pt` của dataset Processed Graph Data version 1. Graph A và Graph B có cùng số node. Các số này khớp với số graph quá lớn của Graph A trong [báo cáo 4.0](4_0_processed_data.md), vì trần kích thước ở Task 3.1 và 3.3 cũng là 1.000 node: N1 chỉ cắt đúng các graph đã gắn cờ `OVERSIZED_GRAPH`.
+
+| Protocol | Tập | Số graph | Graph bị cắt | % |
+| :--- | :--- | ---: | ---: | ---: |
+| project_wise | train | 6.101 | 420 | 6,9 |
+| project_wise | validation | 762 | 32 | 4,2 |
+| project_wise | test | 936 | 102 | 10,9 |
+| seen_project | train | 6.272 | 445 | 7,1 |
+| seen_project | validation | 764 | 61 | 8,0 |
+| seen_project | test | 763 | 48 | 6,3 |
+
+Trên project_wise, validation bị cắt ít nhất (4,2%) còn test bị cắt nhiều nhất (10,9%), nên kết quả validation của N1 phản ánh tác động của việc cắt ít hơn so với test. Giai đoạn tinh chỉnh chỉ đánh giá validation, nên việc cắt chỉ áp dụng cho train và validation.
+
 ## 2. Kết quả
 
 Các bảng metric trình bày **trung bình ± độ lệch chuẩn tổng thể** trên ba seed, được tính từ CSV chưa làm tròn bằng `statistics.mean` và `statistics.pstdev` (ddof = 0). Macro-F1 là trung bình F1 trên đủ 23 nhãn; F1 của lớp không có dự đoán đúng được tính bằng 0. F1 và accuracy có miền giá trị [0, 1], còn MCC có miền [-1, 1]. Các bảng metric tổng hợp được làm tròn đến bốn chữ số thập phân; việc lựa chọn cấu hình sử dụng giá trị chưa làm tròn.
