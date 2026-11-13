@@ -1,0 +1,6 @@
+{
+  "model_name": "microsoft/codebert-base",
+  "dim": 128,
+  "n_tokens": 25151,
+  "sha256": "9d2a9720c9f07c9b2c5288bb1cfaf59664b1f21e027095f0a45ab954e097f778"
+}

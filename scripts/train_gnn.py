@@ -54,6 +54,15 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--edge-types", type=int, nargs="+", choices=[0, 1, 2], default=None,
                    help="Chỉ giữ các loại cạnh này (0 = AST, 1 = CFG, 2 = DATA_DEP). Mặc định: giữ tất cả")
     p.add_argument("--early-stopping", choices=["macro_f1", "val_loss"], default="macro_f1")
+    p.add_argument("--loss", choices=["weighted_ce", "adaptive"], default="weighted_ce",
+                   help="adaptive: label smoothing cho lớp đầu, focal cho lớp đuôi, tăng dần theo epoch")
+    p.add_argument("--focal-gamma", type=float, default=2.0, help="Chỉ dùng với --loss adaptive")
+    p.add_argument("--label-smoothing", type=float, default=0.1, help="Chỉ dùng với --loss adaptive")
+    p.add_argument("--head-fraction", type=float, default=0.5,
+                   help="Tỷ lệ mẫu train cộng dồn xác định nhóm lớp đầu, chỉ dùng với --loss adaptive")
+    p.add_argument("--token-init", type=Path, nargs="+", default=None,
+                   help="Một tệp .pt cho mỗi protocol, sinh bởi scripts/export_token_embeddings.py. "
+                        "Mỗi tệp tự khai báo protocol của nó, nên thứ tự không quan trọng")
     p.add_argument("--validation-only", action="store_true", help="Never load or evaluate test tensors")
     p.add_argument("--save-checkpoints", action="store_true")
     p.add_argument("--config-id", default="B0")
@@ -68,6 +77,10 @@ def parse_args() -> argparse.Namespace:
         p.error("Frozen evaluation cannot use --validation-only or --limit")
     if args.sensitivity_config and not args.frozen_selection:
         p.error("--sensitivity-config requires --frozen-selection")
+    if (args.loss != "weighted_ce" or args.token_init) and args.frozen_selection:
+        p.error("--loss và --token-init chưa dùng được với --frozen-selection")
+    if args.focal_gamma < 0 or not 0 <= args.label_smoothing < 1 or not 0 < args.head_fraction < 1:
+        p.error("focal gamma, label smoothing hoặc head fraction không hợp lệ")
     if args.edge_types and (args.frozen_selection or args.save_checkpoints):
         p.error("--edge-types chưa dùng được với --frozen-selection hoặc --save-checkpoints")
     if min(args.dim, args.num_layers, args.batch_size, args.max_epochs, args.patience) < 1:
@@ -75,6 +88,36 @@ def parse_args() -> argparse.Namespace:
     if not 0 <= args.dropout < 1 or (args.max_nodes is not None and args.max_nodes < 1):
         p.error("Invalid dropout or node cap")
     return args
+
+
+def _plain(value):
+    """Chuyển Path thành chuỗi để ghi vào metadata JSON."""
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, list):
+        return [_plain(item) for item in value]
+    return value
+
+
+def load_token_init(paths: list[Path], protocol: str, n_tokens: int, dim: int) -> torch.Tensor:
+    """Chọn tệp khởi tạo embedding token của ``protocol`` và kiểm tra khớp vocabulary.
+
+    Mỗi protocol có vocabulary riêng nên cần một tệp riêng. Tệp tự khai báo protocol của nó,
+    vì vậy một tệp dành cho protocol khác sẽ bị từ chối thay vì được dùng nhầm.
+    """
+    if isinstance(paths, (str, Path)):
+        paths = [Path(paths)]
+    payloads = [(path, torch.load(path, map_location="cpu", weights_only=True)) for path in paths]
+    matching = [(path, p) for path, p in payloads if p["protocol"] == protocol]
+    if len(matching) != 1:
+        available = sorted(p["protocol"] for _, p in payloads)
+        raise ValueError(f"Cần đúng một tệp token init cho protocol {protocol!r}, đang có {available}")
+    path, payload = matching[0]
+    matrix = payload["matrix"]
+    if tuple(matrix.shape) != (n_tokens, dim):
+        raise ValueError(f"Token init có dạng {tuple(matrix.shape)}, cần {(n_tokens, dim)}")
+    print(f"Token init {protocol}: {payload['model_name']} -> {tuple(matrix.shape)}")
+    return matrix
 
 
 def write_csv(path: Path, rows: list[dict]) -> None:
@@ -106,7 +149,7 @@ def main() -> int:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Thiết bị: {device}; torch {torch.__version__}")
 
-    metadata = {"arguments": {k: str(v) if isinstance(v, Path) else v for k, v in vars(a).items()},
+    metadata = {"arguments": {k: _plain(v) for k, v in vars(a).items()},
                 "code": code_identity(ROOT), "environment": environment(),
                 "schema_sha256": digest(a.schema), "inputs": {}, "runs": []}
     if frozen:
@@ -118,6 +161,11 @@ def main() -> int:
     for protocol in a.protocols:
         vocab = json.loads((a.processed_dir / protocol / "vocab.json").read_text(encoding="utf-8"))
         n_types, n_tokens = len(vocab["node_type"]), len(vocab["token"])
+        token_init = load_token_init(a.token_init, protocol, n_tokens, a.dim) if a.token_init else None
+        if token_init is not None:
+            metadata.setdefault("token_init", {})[protocol] = {
+                "paths": [str(p) for p in a.token_init],
+                "sha256": {str(p): digest(p) for p in a.token_init}}
         for graph in a.graphs:
             splits = ("test",) if frozen else (("train", "validation") if a.validation_only else SPLITS)
             parts = {s: torch.load(a.processed_dir / protocol / f"{graph}_{s}.pt", weights_only=True) for s in splits}
@@ -150,7 +198,9 @@ def main() -> int:
                             a.batch_size, a.max_epochs, a.patience, True, a.max_nodes, device,
                             early_stopping=a.early_stopping, evaluate_test=not a.validation_only,
                             edge_types=tuple(a.edge_types) if a.edge_types else None,
-                            return_state=a.save_checkpoints)
+                            return_state=a.save_checkpoints, loss=a.loss, token_init=token_init,
+                            focal_gamma=a.focal_gamma, label_smoothing=a.label_smoothing,
+                            head_fraction=a.head_fraction)
                         if a.save_checkpoints:
                             checkpoint = f"{protocol}_{graph}_{kind}_{seed}.pt"
                             state = out.pop("state_dict")
@@ -192,8 +242,7 @@ def main() -> int:
     groups: dict[tuple, list[dict]] = {}
     for r in rows:
         groups.setdefault((r["protocol"], r["graph"], r["model"], r["split"]), []).append(r)
-    title = (f"# Kết quả {'/'.join(a.models).upper()} {'/'.join(a.graphs)} (cấu hình {a.config_id})"
-             if a.validation_only or frozen else "# Kết quả GNN (Task 4.1a)")
+    title = f"# Kết quả {'/'.join(a.models).upper()} {'/'.join(a.graphs)} (cấu hình {a.config_id})"
     if sensitivity:
         title += ", độ nhạy trên test, không dùng để chọn cấu hình"
     lines = [title, "", "Trung bình ± độ lệch chuẩn theo seed.", "",

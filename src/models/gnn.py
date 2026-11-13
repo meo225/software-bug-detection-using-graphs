@@ -66,16 +66,33 @@ def filter_edge_types(item: dict[str, Any], keep: tuple[int, ...]) -> dict[str, 
 class NodeEmbedding(nn.Module):
     """Loại node + trung bình embedding token (bỏ đệm) + vị trí tương đối trong hàm."""
 
-    def __init__(self, n_types: int, n_tokens: int, dim: int) -> None:
+    def __init__(self, n_types: int, n_tokens: int, dim: int, token_init: Tensor | None = None) -> None:
         super().__init__()
         self.type_emb = nn.Embedding(n_types, dim, padding_idx=0)
         self.tok_emb = nn.Embedding(n_tokens, dim, padding_idx=0)
         self.rel = nn.Linear(1, dim)
+        if token_init is not None:
+            set_token_init(self.tok_emb, token_init)
 
     def forward(self, b: dict[str, Tensor]) -> Tensor:
         mask = (b["x_tok"] != 0).unsqueeze(-1).float()
         tok = (self.tok_emb(b["x_tok"]) * mask).sum(1) / mask.sum(1).clamp(min=1.0)
         return self.type_emb(b["x_type"]) + tok + self.rel(b["x_rel"].unsqueeze(-1))
+
+
+def set_token_init(embedding: nn.Embedding, matrix: Tensor) -> None:
+    """Thay khởi tạo ngẫu nhiên của bảng embedding token bằng ``matrix``.
+
+    Kiến trúc không đổi: chỉ giá trị khởi tạo khác, bảng vẫn được huấn luyện tiếp.
+    Hàng đệm (chỉ số 0) luôn bị đặt về 0 để giữ đúng ngữ nghĩa ``padding_idx``.
+    """
+    if matrix.shape != embedding.weight.shape:
+        raise ValueError(f"Token init phải có dạng {tuple(embedding.weight.shape)}, nhận {tuple(matrix.shape)}")
+    if not torch.isfinite(matrix).all():
+        raise ValueError("Token init chứa giá trị không hữu hạn")
+    with torch.no_grad():
+        embedding.weight.copy_(matrix.to(embedding.weight.dtype))
+        embedding.weight[embedding.padding_idx].zero_()
 
 
 def _degree_norm(src: Tensor, dst: Tensor, n: int) -> Tensor:
@@ -121,12 +138,13 @@ class GNNClassifier(nn.Module):
     """Embedding node, ``num_layers`` lớp GCN hoặc ``steps`` bước GGNN, readout mean+max, MLP."""
 
     def __init__(self, kind: str, n_types: int, n_tokens: int, n_classes: int,
-                 dim: int = 128, num_layers: int = 3, dropout: float = 0.2) -> None:
+                 dim: int = 128, num_layers: int = 3, dropout: float = 0.2,
+                 token_init: Tensor | None = None) -> None:
         super().__init__()
         if kind not in {"gcn", "ggnn"}:
             raise ValueError(f"kind không hợp lệ: {kind!r}")
         self.kind = kind
-        self.embed = NodeEmbedding(n_types, n_tokens, dim)
+        self.embed = NodeEmbedding(n_types, n_tokens, dim, token_init)
         if kind == "gcn":
             self.layers = nn.ModuleList(GCNLayer(dim) for _ in range(num_layers))
         else:  # GGNN dùng chung tham số giữa các bước theo bài báo gốc

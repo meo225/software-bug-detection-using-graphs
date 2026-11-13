@@ -1,0 +1,11 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 14545.54it/s]
+25151 token, 0 token không có sub-token nào
+project_wise: (25151, 128) -> /kaggle/working/token_init_4_3/project_wise_dim128.pt
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 10745.07it/s]
+25750 token, 0 token không có sub-token nào
+seen_project: (25750, 128) -> /kaggle/working/token_init_4_3/seen_project_dim128.pt
