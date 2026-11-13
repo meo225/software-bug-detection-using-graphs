@@ -1,0 +1,90 @@
+{
+  "arguments": {
+    "processed_dir": "/kaggle/input/datasets/vtnmai/diversevul-9077-processed-graph-data/processed",
+    "schema": "/tmp/g43/793411a7326d4fff5eaaaacc1f4e177788d28455/configs/graph/schema_spec.yaml",
+    "out_dir": "/kaggle/working/results_4_3/C0",
+    "protocols": [
+      "project_wise",
+      "seen_project"
+    ],
+    "graphs": [
+      "graph_b"
+    ],
+    "models": [
+      "ggnn"
+    ],
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "dim": 128,
+    "num_layers": 2,
+    "dropout": 0.2,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 32,
+    "max_epochs": 40,
+    "patience": 8,
+    "max_nodes": null,
+    "limit": null,
+    "edge_types": null,
+    "early_stopping": "macro_f1",
+    "loss": "weighted_ce",
+    "focal_gamma": 2.0,
+    "label_smoothing": 0.1,
+    "head_fraction": 0.5,
+    "token_init": null,
+    "validation_only": false,
+    "save_checkpoints": false,
+    "config_id": "C0",
+    "dataset_id": "vtnmai/diversevul-9077-processed-graph-data/versions/1",
+    "frozen_selection": null,
+    "results_root": null,
+    "sensitivity_config": null
+  },
+  "code": {
+    "commit": "793411a7326d4fff5eaaaacc1f4e177788d28455",
+    "dirty": false,
+    "source_sha256": {
+      "src/models/gnn.py": "640360dbff8efcc272e109d8f149caed811987d8caa8ab9fffb753876001e77a",
+      "src/training/gnn_trainer.py": "68b30487ad4d213b8df45392c51e88ce1245d00b7a28e3830d940698df297194",
+      "src/training/gcn_tuning.py": "cfd71cca88606ecc3df60e491429ad4ab39d25082083670bd43f8ac47f38cda3",
+      "src/evaluation/metrics.py": "56b295671f2a4d90ef416355aac488019799529531705d8311ad0eefc4c00e65",
+      "scripts/train_gnn.py": "02b5fdceab15aa427683b9b01e119588c9be567128f7e30de61cdd5bcb55a27c"
+    }
+  },
+  "environment": {
+    "python": "3.13.16",
+    "torch": "2.11.0+cu130",
+    "numpy": "2.1.3",
+    "sklearn": "1.6.1",
+    "cuda": "13.0",
+    "gpu": "Tesla T4"
+  },
+  "schema_sha256": "d4a7cddc5205fa7435d41f324e335bf70bf20551cfffe44a8ee876c98f11a0c9",
+  "inputs": {
+    "project_wise/graph_b": {
+      "project_wise/vocab.json": "9266628bdbe65d113b1008ec03ec2012b1c76c7c6d3e25cbbd66b705cc2d5c6b",
+      "project_wise/graph_b_train.pt": "a2f59c0161b064a073df5bfe31a5d7a5fc76b6a70cd8b5f2d3cd20ece587c9dc",
+      "project_wise/graph_b_validation.pt": "211e71b2fad02bc71392b6e2969a84faa796679a4f619962400a62ba8a66d8b0",
+      "metadata.json": "3813f72c20865545faeeb8b90bbb7d069df6f740441c9e81c245f7f7d9a212d7",
+      "project_wise/manifest.csv": "6348faac79a0857018167c14fa60be2ec728e6bdcfdd96da94f45056d8ed1e70"
+    },
+    "seen_project/graph_b": {
+      "seen_project/vocab.json": "63d518ee917909861c1d2c6c6ddb2236eea0d3195191ac28c1522befc8debc1d",
+      "seen_project/graph_b_train.pt": "a417de35882ed238137208435237c2d4c76a9970e8d1806df69699dffad8315c",
+      "seen_project/graph_b_validation.pt": "82b35b39fcd7f96e2f626e2a0db65b6c6b1ee741684b5524eca49ee37cebf52f",
+      "metadata.json": "3813f72c20865545faeeb8b90bbb7d069df6f740441c9e81c245f7f7d9a212d7",
+      "seen_project/manifest.csv": "a2f99846b541b4d21cd90e0ed3de3199d036fb09b62d41d1145879c077d6862a"
+    }
+  },
+  "runs": [],
+  "artifacts_sha256": {
+    "results.csv": "8a607d606f45a0795a7477db142d9f10b85ceb10239f010776829f66c26e05bf",
+    "per_class.csv": "fec2a04c059f61b0c1e46e38691ebd1f69f98d03d01a2449412f5b254ca60f63",
+    "confusion_matrices.json": "050158dbc93441cd39bf697f8ca8e8768a3d5699a7c9be65d6624c5674755583",
+    "training_history.json": "c3f20c7aee2764e24b5ba91d118c762845c38d7a8e099fa8864a5046f7533e42",
+    "summary.md": "f940f7cbfdfff3cf6e0801ced643fc9720cf0bc5dd99ad0db40e22c103e71d65"
+  }
+}

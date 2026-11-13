@@ -1,0 +1,76 @@
+{
+  "code": {
+    "commit": "793411a7326d4fff5eaaaacc1f4e177788d28455",
+    "dirty": false,
+    "source_sha256": {
+      "src/models/gnn.py": "640360dbff8efcc272e109d8f149caed811987d8caa8ab9fffb753876001e77a",
+      "src/training/gnn_trainer.py": "68b30487ad4d213b8df45392c51e88ce1245d00b7a28e3830d940698df297194",
+      "src/training/gcn_tuning.py": "cfd71cca88606ecc3df60e491429ad4ab39d25082083670bd43f8ac47f38cda3",
+      "src/evaluation/metrics.py": "56b295671f2a4d90ef416355aac488019799529531705d8311ad0eefc4c00e65",
+      "scripts/train_gnn.py": "02b5fdceab15aa427683b9b01e119588c9be567128f7e30de61cdd5bcb55a27c"
+    }
+  },
+  "dataset_id": "vtnmai/diversevul-9077-processed-graph-data/versions/1",
+  "model": "ggnn",
+  "graph": "graph_b",
+  "base_config_id": "L1",
+  "arms": {
+    "C0": {
+      "dim": 128,
+      "num_layers": 2,
+      "dropout": 0.2,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": null,
+      "early_stopping": "macro_f1",
+      "loss": "weighted_ce",
+      "token_init": false
+    },
+    "P1": {
+      "dim": 128,
+      "num_layers": 2,
+      "dropout": 0.2,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": null,
+      "early_stopping": "macro_f1",
+      "loss": "weighted_ce",
+      "token_init": true
+    },
+    "P2": {
+      "dim": 128,
+      "num_layers": 2,
+      "dropout": 0.2,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 32,
+      "max_epochs": 40,
+      "patience": 8,
+      "max_nodes": null,
+      "early_stopping": "macro_f1",
+      "loss": "adaptive",
+      "token_init": false
+    }
+  },
+  "hypotheses": {
+    "C0": "Nhóm đối chứng: cấu hình L1 của Task 4.2, huấn luyện lại trong cùng phiên.",
+    "P1": "Khởi tạo embedding token bằng CodeBERT cấp ngữ nghĩa mã nguồn mà vocabulary tự học không có, theo hướng của Vul-LMGNNs.",
+    "P2": "Loss thích nghi kiểu LIVABLE nâng F1 của các lớp CWE ít mẫu, nhờ đó nâng Macro-F1."
+  },
+  "protocols": [
+    "project_wise",
+    "seen_project"
+  ],
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "design": "pre-registered arms; test reported for every arm; no selection by test"
+}

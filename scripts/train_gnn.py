@@ -242,8 +242,7 @@ def main() -> int:
     groups: dict[tuple, list[dict]] = {}
     for r in rows:
         groups.setdefault((r["protocol"], r["graph"], r["model"], r["split"]), []).append(r)
-    title = (f"# Kết quả {'/'.join(a.models).upper()} {'/'.join(a.graphs)} (cấu hình {a.config_id})"
-             if a.validation_only or frozen else "# Kết quả GNN (Task 4.1a)")
+    title = f"# Kết quả {'/'.join(a.models).upper()} {'/'.join(a.graphs)} (cấu hình {a.config_id})"
     if sensitivity:
         title += ", độ nhạy trên test, không dùng để chọn cấu hình"
     lines = [title, "", "Trung bình ± độ lệch chuẩn theo seed.", "",

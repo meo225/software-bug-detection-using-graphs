@@ -1,0 +1,5 @@
+protocol,nhánh,Macro-F1 test,C0,Δ,độ lệch chuẩn lớn hơn,kết luận
+project_wise,P1 khởi tạo CodeBERT,0.0532,0.052,0.0012,0.0099,trong độ lệch chuẩn
+project_wise,P2 loss thích nghi,0.0532,0.052,0.0012,0.0099,trong độ lệch chuẩn
+seen_project,P1 khởi tạo CodeBERT,0.1188,0.1026,0.0162,0.0155,cao hơn C0
+seen_project,P2 loss thích nghi,0.1045,0.1026,0.0019,0.0065,trong độ lệch chuẩn
