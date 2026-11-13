@@ -1,4 +1,4 @@
-# Quy ước cho 4.1b, 4.1c, 4.2, 4.3 (và 5.x dùng lại kết quả)
+# Quy ước cho 4.1b, 4.1c, 4.2, 4.3, 4.5 (và 5.x dùng lại kết quả)
 
 Đọc trước khi chạy, theo thứ tự:
 1. `docs/4_0_data_interface_spec.md` (v1.2): định dạng dữ liệu.
@@ -42,5 +42,11 @@
   - P2 đổi đúng một yếu tố: `--loss adaptive`, label smoothing cho nhóm lớp đầu và focal cho nhóm lớp đuôi, cường độ tăng dần theo epoch.
   - Giữ nguyên split, 23 CWE, seed 42, 43, 44 và hai protocol. Ghi cả kết quả không tốt hơn. Kết luận "có tác động" chỉ đưa ra khi trị tuyệt đối của chênh lệch với C0 vượt độ lệch chuẩn lớn hơn giữa hai nhóm.
   - Riêng với P2, phải kiểm tra F1 theo nhóm lớp đầu, giữa, đuôi, vì giả thuyết của nó nói về lớp ít mẫu chứ không chỉ về Macro-F1 tổng.
+- 4.5: baseline mô hình text pretrained, **thiết kế khác mọi task trước**. Không dò siêu tham số và không có nhóm đối chứng: cấu hình được chốt một lần từ bài báo trong `src/training/text_experiments.py`, chạy đủ hai protocol với ba seed, test được báo cáo cho đúng cấu hình đó. Mục đích là trả lời "mô hình text pretrained mạnh tới đâu trên split của nhóm", không phải tìm cấu hình text tốt nhất.
+  - **Dữ liệu khác mọi task trước.** Mô hình text cần mã nguồn gốc, mà Kaggle Dataset `DiverseVul 9077 - Processed Graph Data` chỉ chứa id token theo vocabulary tự học. Chạy `scripts/build_text_dataset.py` để ghép jsonl DiverseVul thô, manifest split của 2.3 và danh sách mẫu lỗi của 3.3 thành một tệp `.jsonl.gz`, rồi đẩy tệp đó lên Kaggle làm input. Script dừng nếu số mẫu từng split lệch khỏi dữ liệu đã xử lý của 4.0, vì khi đó số của 4.5 không đặt cạnh số của 4.1 đến 4.3 được.
+  - Hàm dài hơn 512 token được cắt thành nhiều đoạn 512 rồi max-pooling, theo EMNLP 2024. Bài báo cắt làm hai đoạn nên `max_chunks` mặc định là 2. Phải báo cáo tỷ lệ hàm bị cắt bỏ một phần cùng tỷ lệ token giữ lại, vì đây là giới hạn của baseline này.
+  - Learning rate 2e-5 và tối đa 10 epoch lấy từ PrimeVul. Bài EMNLP 2024 không công bố learning rate, batch size hay optimizer, nên những giá trị còn lại là thông lệ fine-tune transformer và phải ghi rõ là thông lệ chứ không phải trích từ bài báo.
+  - Giữ class-weighted cross-entropy, 23 CWE, seed 42, 43, 44 và hai protocol như mọi task trước. Metric chính vẫn là Macro-F1. Bài EMNLP 2024 báo accuracy và weighted-F1 trên dataset khác với split ngẫu nhiên, nên **không so trực tiếp con số của họ với con số của nhóm**.
+  - Mốc phải đặt cạnh: baseline token của 4.1a, GNN mặc định của 4.1a, GCN-A tinh chỉnh của 4.1b, GGNN-B tinh chỉnh của 4.2 và ba nhánh của 4.3. Notebook đọc thẳng các số này từ tệp kết quả đã commit qua `text_experiments.reference_results`, không chép tay.
 - 5.2, 5.3: dùng kết quả và cấu hình đã chốt ở 4.2, không chạy lại với cấu hình khác mà không ghi lý do.
 - 5.3: bỏ CFG hoặc DATA_DEP bằng `--edge-types` (ví dụ `--edge-types 0 2` bỏ CFG, `--edge-types 0 1` bỏ DATA_DEP) trên Graph B, so với GGNN đủ ba loại cạnh ở 4.2.
