@@ -462,3 +462,91 @@ def test_parameter_groups_on_a_real_transformer_exempt_only_norms_and_biases():
     assert exempt, "phải có tham số được miễn weight decay"
     assert all("LayerNorm" in name or name.endswith("bias") for name in exempt)
     assert len(groups[0]["params"]) + len(exempt) == len(list(model.parameters()))
+
+
+# --- notebook -------------------------------------------------------------
+
+NOTEBOOK = ROOT / "notebooks" / "4_5_text_baseline.ipynb"
+
+
+def notebook_cells() -> list[str]:
+    payload = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
+    return ["".join(c["source"]) for c in payload["cells"] if c["cell_type"] == "code"]
+
+
+def test_notebook_is_valid_unexecuted_and_pinned():
+    import ast
+    import re
+    nbformat = pytest.importorskip("nbformat")
+    notebook = nbformat.read(NOTEBOOK, as_version=4)
+    nbformat.validate(notebook)
+    for cell in notebook.cells:
+        if cell.cell_type == "code":
+            assert cell.execution_count is None and not cell.outputs
+            ast.parse(cell.source)
+    text = "\n".join(notebook_cells())
+    assert 'APPROVED_BRANCH = "feature/4_5_text_baseline"' in text
+    assert re.search(r'APPROVED_COMMIT = "[0-9a-f]{40}"', text)
+    assert "scripts/train_text.py" in text
+    assert "tx.arguments" in text, "Notebook phải lấy cấu hình từ mã nguồn, không tự viết lại"
+    assert "tx.reference_results" in text, "Mốc so sánh phải đọc từ kết quả đã commit"
+    assert "class ChunkedTextClassifier" not in text and "def run_text_training" not in text
+
+
+def test_notebook_disabled_stages_touch_nothing(monkeypatch):
+    import subprocess
+    def forbidden(*args, **kwargs):
+        pytest.fail("Khi tắt, notebook không được chạm vào Git, GPU, dữ liệu hay subprocess")
+    for name in ("run", "Popen", "check_output"):
+        monkeypatch.setattr(subprocess, name, forbidden)
+    namespace: dict = {}
+    for source in notebook_cells():
+        exec(compile(source.replace("RUN_EXPERIMENTS = True", "RUN_EXPERIMENTS = False"),
+                     "<notebook>", "exec"), namespace)
+    assert not namespace["ACTIVE"] and not namespace["RUN_EXPERIMENTS"]
+
+
+def test_notebook_analysis_cells_produce_every_figure(tmp_path, monkeypatch):
+    """Chạy các ô thống kê, huấn luyện và vẽ biểu đồ trên dữ liệu giả."""
+    matplotlib = pytest.importorskip("matplotlib")
+    pytest.importorskip("pandas")
+    matplotlib.use("Agg")
+    import src.models.text_encoder as encoder_module
+
+    dataset, schema = tmp_path / "t.jsonl.gz", tmp_path / "schema.yaml"
+    write_tiny_dataset(dataset, schema)
+    monkeypatch.setattr(encoder_module, "build_tokenizer", lambda *a, **k: StubTokenizer())
+    monkeypatch.setattr(cli, "build_tokenizer", lambda *a, **k: StubTokenizer())
+    monkeypatch.setattr(cli, "build_encoder", lambda *a, **k: StubEncoder())
+    monkeypatch.setattr(tx, "BASELINE", {**tx.BASELINE, "max_length": 6, "max_chunks": 2,
+                                         "max_epochs": 1, "batch_size": 4})
+
+    def run_script(script, arguments, log_path):
+        assert script == "scripts/train_text.py"
+        monkeypatch.setattr(sys, "argv", ["train_text.py", *arguments,
+                                          "--schema", str(schema), "--no-amp"])
+        assert cli.main() == 0
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        log_path.write_text("stub", encoding="utf-8")
+
+    out, figures = tmp_path / "results", tmp_path / "figures"
+    namespace = dict(ACTIVE=True, RUN_EXPERIMENTS=True, SAVED_RESULTS_ROOT=None,
+                     MODEL="codebert", SECOND_MODEL=None, MODELS_RUN=["codebert"],
+                     OUT_DIR=out, READ_ROOT=out, FIG_DIR=figures,
+                     SUBMISSION_DIR=tmp_path / "submission", TEXT_DATASET=dataset,
+                     REPO_DIR=ROOT, samples=td.load_text_dataset(dataset), tx=tx,
+                     json=json, csv=csv, shutil=__import__("shutil"), Path=Path,
+                     display=lambda *a, **k: None, run_script=run_script)
+    # Ô 0 là cấu hình chỉ chạy được trên Kaggle, ô 1 là clone, ô 2 là kiểm tra dữ liệu.
+    for source in notebook_cells()[3:]:
+        exec(compile(source, "<notebook>", "exec"), namespace)
+
+    produced = {p.name for p in figures.iterdir()}
+    assert {"length_budget.csv", "length_budget.png", "comparison_all_tasks.csv",
+            "comparison_all_tasks.png", "per_cwe_groups.csv", "per_cwe.csv", "per_cwe.png",
+            "learning_curves.png", "learning_curves.csv",
+            "confusion_matrices.png"} <= produced, produced
+    assert (tmp_path / "submission" / "runs" / "codebert" / "results.csv").is_file()
+    assert (tmp_path / "submission.zip").is_file(), "Ô đóng gói phải tạo tệp zip"
+    assert namespace["comparison"].label.str.contains(r"\(4\.5\)").any(), \
+        "Bảng so sánh phải có dòng của chính Task 4.5"
