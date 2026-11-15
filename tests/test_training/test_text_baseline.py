@@ -550,3 +550,13 @@ def test_notebook_analysis_cells_produce_every_figure(tmp_path, monkeypatch):
     assert (tmp_path / "submission.zip").is_file(), "Ô đóng gói phải tạo tệp zip"
     assert namespace["comparison"].label.str.contains(r"\(4\.5\)").any(), \
         "Bảng so sánh phải có dòng của chính Task 4.5"
+
+
+def test_dataset_reads_a_file_that_was_decompressed_by_the_host(tmp_path):
+    """Kaggle có thể tự giải nén tệp upload, lúc đó phần mở rộng không còn đúng."""
+    import gzip
+    packed = tmp_path / "text.jsonl.gz"
+    td.write_text_dataset(packed, [sample(1, 3, 0), sample(2, 4, 1)])
+    plain_path = tmp_path / "text_plain.jsonl.gz"  # tên còn .gz nhưng nội dung đã bung
+    plain_path.write_bytes(gzip.decompress(packed.read_bytes()))
+    assert td.load_text_dataset(plain_path) == td.load_text_dataset(packed)

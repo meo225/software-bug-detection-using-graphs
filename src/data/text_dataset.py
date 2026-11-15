@@ -68,9 +68,21 @@ def write_text_dataset(path: Path, samples: Iterable[dict[str, Any]]) -> int:
     return written
 
 
+def open_text_dataset(path: Path):
+    """Mở tệp dù còn nén hay đã bị giải nén.
+
+    Kaggle có thể tự giải nén tệp lúc tạo dataset, nên không tin vào phần mở rộng
+    mà đọc hai byte đầu: ``1f 8b`` là gzip.
+    """
+    with open(path, "rb") as probe:
+        packed = probe.read(2) == b"\x1f\x8b"
+    opener = gzip.open if packed else open
+    return opener(path, "rt", encoding="utf-8")
+
+
 def iter_text_dataset(path: Path) -> Iterator[dict[str, Any]]:
     """Đọc từng mẫu, không giữ cả tệp trong bộ nhớ."""
-    with gzip.open(path, "rt", encoding="utf-8") as handle:
+    with open_text_dataset(path) as handle:
         for number, line in enumerate(handle, start=1):
             line = line.strip()
             if not line:
