@@ -604,3 +604,25 @@ def test_find_text_dataset_refuses_to_guess_between_two_files(tmp_path):
 def test_find_text_dataset_reports_a_missing_root(tmp_path):
     with pytest.raises(FileNotFoundError, match="Không có thư mục input"):
         td.find_text_dataset(tmp_path / "khong-ton-tai")
+
+
+def test_length_statistics_recompute_coverage_for_any_budget():
+    """Gọi với max_chunks khác lúc mã hóa vẫn phải ra độ phủ đúng."""
+    encoded = tokenize_samples([sample(i, n, 0) for i, n in enumerate([3, 20])],
+                               StubTokenizer(), max_length=5, max_chunks=2)
+    one = length_statistics(encoded, 5, 1)
+    two = length_statistics(encoded, 5, 2)
+    four = length_statistics(encoded, 5, 4)
+    assert one["token_coverage"] < two["token_coverage"] < four["token_coverage"]
+    assert one["token_coverage"] == pytest.approx((3 + 3) / 23)  # sức chứa 3 token
+    assert two["token_coverage"] == pytest.approx((3 + 6) / 23)
+    assert four["token_coverage"] == pytest.approx((3 + 12) / 23)
+
+
+def test_length_statistics_agree_with_the_tokenised_budget():
+    encoded = tokenize_samples([sample(i, n, 0) for i, n in enumerate([2, 9, 40])],
+                               StubTokenizer(), max_length=6, max_chunks=2)
+    stats = length_statistics(encoded, 6, 2)
+    used = sum(item["n_used_tokens"] for item in encoded)
+    body = sum(item["n_body_tokens"] for item in encoded)
+    assert stats["token_coverage"] == pytest.approx(used / body)

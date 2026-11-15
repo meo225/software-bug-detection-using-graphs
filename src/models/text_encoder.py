@@ -160,7 +160,9 @@ def length_statistics(encoded: Sequence[dict[str, Any]], max_length: int,
     lengths = sorted(item["n_body_tokens"] for item in encoded)
     capacity = (max_length - 2) * max_chunks
     body = sum(lengths)
-    used = sum(item["n_used_tokens"] for item in encoded)
+    # Tính lại theo sức chứa thay vì lấy "n_used_tokens" đã gắn vào mẫu lúc mã hóa,
+    # để gọi được hàm này với mọi max_chunks trên cùng một lần mã hóa.
+    used = sum(min(length, capacity) for length in lengths)
 
     def percentile(fraction: float) -> int:
         index = min(len(lengths) - 1, max(0, round(fraction * (len(lengths) - 1))))
