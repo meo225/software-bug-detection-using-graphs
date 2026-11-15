@@ -84,4 +84,15 @@ Mọi CWE dưới 100 mẫu đều ra khỏi thí nghiệm chính.
 
 Chuẩn hóa source chỉ đổi line ending, xóa khoảng trắng cuối dòng và dòng trống ở biên. Đây là quy ước của EDA. Conflict là các nhóm source đó không thống nhất nhãn vulnerable, hoặc không thống nhất tập CWE. Có 737 hash rơi vào ít nhất một trong hai loại. Đó là 459 nhóm lệch vulnerable và 299 nhóm lệch CWE.
 
-Tập đưa vào task 2.3 là **9.077 function, 23 CWE**.
+## Kết luận
+
+Task 2.2 chốt phạm vi nhãn cho toàn bộ đồ án: **9.077 function, 23 CWE, mỗi function đúng một nhãn**. Đây là tập đưa sang Task 2.3 để chia split, và là định nghĩa bài toán mà mọi model từ Task 4.1a trở đi phải tuân theo.
+
+Ba quyết định đáng nhớ, vì chúng ràng buộc cách đọc kết quả về sau:
+
+- **Chọn single-label, không multi-label, không phân cấp.** Hệ quả là 4.215 function có từ hai CWE bị loại cả function chứ không lấy CWE đầu và không nhân thành nhiều dòng. Cách làm này tránh rò rỉ nhãn nhưng cũng bỏ đi phần dữ liệu khó nhất.
+- **Giữ nguyên mã CWE rộng.** CWE-119, CWE-787 và CWE-125 là ba lớp riêng dù cùng họ lỗi bộ nhớ; CWE-189, CWE-264, CWE-399 và CWE-703 cũng rộng và được giữ nguyên. Nhầm lẫn trong cùng họ vì thế sẽ bị tính là lỗi, và Task 5.2 phải gom theo họ mới thấy được bức tranh thật.
+- **Loại 316 function có nhãn mâu thuẫn** trong nhóm source trùng nhau, trên tổng 9.393 ứng viên. Phần còn lại vẫn mang nhiễu nhãn vốn có của DiverseVul, mức mà PrimeVul ước lượng chỉ khoảng 60% hàm được gán đúng.
+
+Tập 23 lớp này rất mất cân bằng, từ hơn 1.000 mẫu xuống dưới 100 mẫu mỗi lớp. Đó là lý do metric chính là Macro-F1 chứ không phải accuracy, và là lý do Task 4.3 thử loss thích nghi cho các lớp đuôi.
+
