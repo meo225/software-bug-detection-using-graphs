@@ -64,3 +64,17 @@ Protocol chính project_wise không bị ảnh hưởng. Với seen_project cầ
 ## 6. Tái tạo
 
 Chạy `notebooks/4_0_build_processed.ipynb` trên Kaggle (CPU, bật Internet) với Input là dataset graph gốc. Notebook tự kiểm các giá trị kỳ vọng 7.799, 554 và 997.
+
+## 7. Kết luận
+
+Task 4.0 bàn giao dữ liệu đầu vào dùng chung cho toàn bộ Phase 4 và Phase 5: **7.799 mẫu hợp lệ** đã chuyển từ JSON đồ thị sang tensor, đúng đặc tả `docs/4_0_data_interface_spec.md` phiên bản 1.2, lưu thành Kaggle Dataset `vtnmai/diversevul-9077-processed-graph-data` version 1.
+
+Kết quả nghiệm thu: 26 kiểm tra tự động đều đạt, số mẫu và số graph quá lớn khớp báo cáo 3.3, không mẫu nào nằm ở hai split, vocabulary chỉ fit trên train, Graph A và Graph B dùng chung tập node. Đối chiếu tay mẫu `row-3` khớp hoàn toàn với JSON gốc.
+
+Mọi task từ 4.1a đến 4.3 đọc đúng dataset version 1 này, nên kết quả giữa các task đặt cạnh nhau so sánh được trực tiếp. Riêng Task 4.5 không dùng được dữ liệu này, vì mô hình text cần mã nguồn gốc còn ở đây chỉ có id token theo vocabulary tự học; tập văn bản cho 4.5 được dựng riêng từ cùng 7.799 mẫu đó.
+
+Ba giới hạn cần mang theo khi diễn giải mọi kết quả sau:
+
+- **1.278 mẫu bị loại** ở Task 3.3 không nằm trong bất kỳ thực nghiệm nào. Tỷ lệ loại không đều giữa các CWE, nên phân bố lớp của tập thực nghiệm lệch nhẹ so với tập 9.077 ban đầu.
+- **`seen_project` có 5 mẫu validation và 6 mẫu test trùng input với train.** Đây là hệ quả của việc protocol này cho phép project lặp lại, không phải lỗi chia split. Mọi con số `seen_project` phải đọc kèm điểm này.
+- **Graph quá lớn vẫn được giữ nguyên**, 554 mẫu ở Graph A và 997 ở Graph B chỉ bị đánh dấu `is_oversized`. Việc cắt hay giữ để các task sau quyết định, và cấu hình N1 của 4.1b với 4.2 là nơi thử cắt.

@@ -263,7 +263,21 @@ Cả hai graph dùng L1. Bảng trình bày trung bình ± độ lệch chuẩn 
 
 Graph B có Macro-F1 test trung bình cao hơn Graph A khoảng **0,0098** trên `project_wise` và **0,0026** trên `seen_project`. Chênh lệch `project_wise` lớn hơn độ lệch chuẩn của từng nhóm nhưng không chứng minh ý nghĩa thống kê; chênh lệch `seen_project` nhỏ hơn độ lệch chuẩn Graph B (0,0161), nên chưa đủ bằng chứng kết luận Graph B tốt hơn.
 
+Cần đọc chênh lệch `project_wise` cùng với một quan sát nữa: **một phần của nó đến từ việc Graph A tụt, không phải Graph B khá lên.** So với cấu hình mặc định của Task 4.1a, GCN-A giảm từ 0,0664 xuống 0,0552 (−0,0112) khi chuyển sang L1, trong khi GCN-B tăng từ 0,0551 lên 0,0650 (+0,0099). Mà L1 lại là cấu hình được chọn bằng Macro-F1 validation **trên chính Graph A**, rồi cho test Graph A thấp hơn cả mặc định. Nói cách khác, lợi thế của Graph B chỉ quan sát được tại một cấu hình mà tín hiệu validation của Graph A không chuyển được sang test. Đây là cùng một hiện tượng mà phân tích độ nhạy của Task 4.2 đã ghi nhận.
+
 Thời gian huấn luyện trung bình của Graph B cao hơn lần lượt 56,7 giây/seed (76,7%) và 45,4 giây/seed (32,8%); đỉnh CUDA cấp phát cao hơn 589,5 MiB và 349,5 MiB theo thứ tự hai protocol. Thời gian phụ thuộc số epoch thực tế, không phải so sánh với ngân sách epoch cố định.
+
+F1 trung bình ba seed trên test `project_wise`, chia nhóm theo số mẫu test giống Task 4.3:
+
+| Nhóm lớp | Số CWE | GCN-A | GCN-B | Δ |
+| :--- | ---: | ---: | ---: | ---: |
+| đầu (≥50 mẫu) | 7 | 0,1272 | 0,1217 | −0,0055 |
+| giữa (16-49 mẫu) | 5 | 0,0273 | 0,0482 | **+0,0208** |
+| đuôi (≤15 mẫu) | 11 | 0,0221 | 0,0365 | **+0,0144** |
+
+Graph B nâng F1 của nhóm giữa và nhóm đuôi, đổi lại hạ nhẹ nhóm đầu. Đây chính là lý do Macro-F1 tăng, vì nó tính đều 23 lớp, trong khi weighted-F1, MCC và accuracy giảm, vì ba chỉ số đó do các lớp nhiều mẫu chi phối.
+
+Chiều dịch chuyển này **ngược hẳn với Task 4.3**, nơi khởi tạo CodeBERT và loss thích nghi đều đẩy năng lực dự đoán về lớp đầu và làm F1 nhóm đuôi giảm từ 0,0350 xuống 0,0248. Hai quan sát trái chiều này nên được đặt cạnh nhau ở Task 5.2 khi phân tích mất cân bằng lớp.
 
 Với L1, bổ sung CFG/DATA_DEP cho Macro-F1 trung bình quan sát được cao hơn nhưng tốn thời gian hơn; Weighted-F1, MCC và Accuracy thấp hơn. Chỉ có ba seed và một split cố định mỗi protocol, nên chưa thể kết luận Graph B cải thiện GCN một cách ổn định hoặc phổ quát. Giới hạn dữ liệu Task 4.0 vẫn áp dụng, gồm 5 mẫu validation và 6 mẫu test của `seen_project` trùng input với train.
 

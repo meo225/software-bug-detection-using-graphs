@@ -138,7 +138,18 @@ Hệ quả cho báo cáo chung: không thể khẳng định cấu hình nào l�
 
 **RQ1 — GGNN có hơn GCN không?** Không có bằng chứng. GGNN-B tinh chỉnh (0,0579) so với GCN-A tinh chỉnh (0,0552) chênh +0,0027 ở project_wise và −0,0070 ở seen_project, cả hai đều nằm trong độ lệch chuẩn. Ở cấu hình mặc định của Task 4.1a, GGNN-B (0,0712) có nhỉnh hơn GCN-A (0,0664) nhưng chênh lệch 0,0048 vẫn nhỏ hơn độ lệch chuẩn 0,0088 của GCN-A.
 
-**RQ2 — Graph B (thêm CFG, DATA_DEP) có hơn Graph A không?** Không có bằng chứng. Ở cấu hình mặc định, GGNN-B (0,0712) so với GGNN-A (0,0663) chênh +0,0049, nhỏ hơn độ lệch chuẩn 0,0075 của GGNN-A; GCN-B (0,0551) lại thấp hơn GCN-A (0,0664). Hai chiều trái ngược nhau cho thấy việc thêm cạnh ngữ nghĩa không mang lại cải thiện ổn định, dù chi phí cao hơn đáng kể.
+**RQ2 — Graph B (thêm CFG, DATA_DEP) có hơn Graph A không?** Không có cải thiện ổn định, và **chiều của hiệu ứng phụ thuộc cấu hình**. Ở cấu hình mặc định, GGNN-B (0,0712) so với GGNN-A (0,0663) chênh +0,0049, nhỏ hơn độ lệch chuẩn 0,0075 của GGNN-A; GCN-B (0,0551) lại thấp hơn GCN-A (0,0664).
+
+Task 4.1c, hợp nhất sau khi task này hoàn thành, cấp nốt ô còn thiếu và **làm đổi chiều kết quả của GCN**:
+
+| Cấu hình | GCN-A | GCN-B | Δ | Độ lệch chuẩn lớn hơn | Kết luận |
+| :--- | ---: | ---: | ---: | ---: | :--- |
+| Mặc định (4.1a) | 0,0664 | 0,0551 | −0,0113 | 0,0121 | trong độ lệch chuẩn |
+| L1 tinh chỉnh (4.1b, 4.1c) | 0,0552 | 0,0650 | **+0,0098** | 0,0051 | **cao hơn** |
+
+Ở L1, chênh lệch của GCN vượt độ lệch chuẩn, tức là tín hiệu dương duy nhất cho Graph B trong toàn Phase 4. Nhưng nó đi kèm hai cảnh báo khiến chưa thể kết luận Graph B tốt hơn: **một phần chênh lệch đến từ việc Graph A tụt**, từ 0,0664 ở mặc định xuống 0,0552 ở L1, mà L1 lại được chọn bằng validation trên chính Graph A; và **Graph B chỉ tăng Macro-F1 trong khi weighted-F1, MCC và accuracy đều giảm**, nghĩa là nó đổi lớp đầu lấy lớp đuôi chứ không mạnh hơn toàn cục. Chi tiết ở mục 6 của [báo cáo 4.1b](4_1b_gcn_tuning.md).
+
+Tổng hợp lại: bốn phép so sánh Graph A với Graph B cho ba kết quả nằm trong nhiễu và một kết quả dương ở cấu hình mà chính Graph A hoạt động kém nhất. Chưa đủ để nói cạnh ngữ nghĩa giúp ích một cách ổn định, trong khi chi phí thì cao hơn rõ rệt.
 
 **So với baseline không dùng graph.** Tất cả cấu hình GNN đều thua baseline token ở cả hai protocol với khoảng cách vượt xa độ lệch chuẩn: −0,0421 so với token_nodes ở project_wise và −0,0771 so với token_method ở seen_project. Mọi cấu hình GNN đều cao hơn random, nên mô hình có học được tín hiệu, nhưng tín hiệu đó yếu hơn so với việc chỉ dùng túi token.
 
@@ -181,7 +192,7 @@ So với Graph A ở Task 4.1b, GGNN trên Graph B tốn hơn đáng kể: VRAM 
 - Tiêu chí lựa chọn chỉ dựa trên validation của một protocol, trong khi phân tích độ nhạy cho thấy tiêu chí này tương quan yếu với test. Kết quả chính thức của task vẫn là cấu hình L1, nhưng không nên diễn giải là cấu hình tốt nhất.
 - Ngân sách tinh chỉnh là 7 cấu hình, mỗi cấu hình chỉ đổi một yếu tố. Không khảo sát tương tác giữa các yếu tố, không tinh chỉnh learning rate hay batch size.
 - Mỗi cấu hình chỉ có 3 seed, nên độ lệch chuẩn ước lượng thô và chưa có kiểm định thống kê hay khoảng tin cậy bootstrap. Phần này để sang Task 5.1.
-- Chưa so sánh với GCN-B đã tinh chỉnh, vì Task 4.1c chưa được hợp nhất vào repo. Bảng so sánh hiện chỉ có GCN-B ở cấu hình mặc định.
+- Bảng so sánh trong thân báo cáo chỉ có GCN-B ở cấu hình mặc định, vì Task 4.1c chưa được hợp nhất khi task này chạy. Số của GCN-B tinh chỉnh đã được bổ sung vào phần trả lời RQ2 sau khi 4.1c merge, và nó làm đổi chiều kết luận cho GCN.
 - Nhãn của DiverseVul có nhiễu, theo PrimeVul chỉ khoảng 60% hàm được gán nhãn đúng trong mẫu kiểm tra thủ công. Phần kiểm tra trùng lặp đã chuẩn hóa để sang Task 4.4.
 - Các số liệu của task này không so trực tiếp được với các bài báo chia tập ngẫu nhiên và báo accuracy hoặc weighted-F1 trên tập CWE khác.
 
@@ -193,7 +204,7 @@ Kết quả là **âm tính và nhất quán**:
 
 1. Tinh chỉnh một yếu tố không cải thiện Macro-F1 test. L1 (0,0579) thấp hơn GGNN-B mặc định (0,0712) ở project_wise.
 2. Phân tích độ nhạy cho thấy nguyên nhân là tiêu chí lựa chọn: tương quan hạng validation-test chỉ 0,36, và cấu hình được chọn đứng thứ 5 trên 7 ở test.
-3. GGNN không hơn GCN, Graph B không hơn Graph A, cả hai chênh lệch đều nằm trong độ lệch chuẩn.
+3. GGNN không hơn GCN, chênh lệch nằm trong độ lệch chuẩn. Graph B không hơn Graph A một cách ổn định: ba trong bốn phép so sánh nằm trong nhiễu, riêng GCN ở cấu hình L1 có Graph B cao hơn 0,0098 và vượt độ lệch chuẩn, nhưng kèm hai cảnh báo nêu ở phần RQ2.
 4. Mọi cấu hình GNN đều thua baseline token với khoảng cách vượt độ lệch chuẩn, nhưng đều hơn random.
 
 Kết luận này cùng chiều với các nghiên cứu đã đọc: LIVABLE ghi nhận nhánh token đóng góp nhiều hơn nhánh graph, Vul-LMGNNs ghi nhận CodeBERT một mình hơn Devign và ReVeal trên DiverseVul, còn PrimeVul cho thấy điểm số rơi mạnh khi chia tập nghiêm ngặt.

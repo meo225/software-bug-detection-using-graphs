@@ -112,3 +112,28 @@ Kiểm tra leakage cho kết quả 0 nhóm, 0 commit và 0 mẫu trùng bị c�
 | CWE-770 | 89 | 72 | 8 | 9 |
 
 Không có chronological split. DiverseVul local không có timestamp đủ tin cậy. Task 1.4 đã khóa điểm này.
+
+## Kết luận
+
+Task 2.3 bàn giao hai bộ split dùng chung cho mọi mô hình của đồ án, trên 9.077 function và 23 CWE đã chốt ở Task 2.2.
+
+| Protocol | Train | Validation | Test | Ý đồ |
+| :--- | ---: | ---: | ---: | :--- |
+| project_wise | 6.983 | 1.047 | 1.047 | Không project nào xuất hiện ở hai split. Đo khả năng tổng quát sang mã nguồn chưa từng thấy |
+| seen_project | 7.272 | 902 | 903 | Cho phép project xuất hiện ở nhiều split. Đo trong điều kiện dễ hơn, gần với cách chia của phần lớn bài báo |
+
+Trước khi chia, mẫu được gom nhóm theo ba khóa: hash source đã chuẩn hóa, `commit_id`, và mã CVE. Kết quả gom được 6 nhóm source trùng, 1.342 nhóm commit và 877 nhóm CVE. Cả nhóm phải nằm trọn trong một split.
+
+Kiểm tra rò rỉ sau khi chia cho kết quả sạch ở cả hai protocol:
+
+| Kiểm tra | project_wise | seen_project |
+| :--- | ---: | ---: |
+| Nhóm source trùng cắt qua split | 0 | 0 |
+| Nhóm commit cắt qua split | 0 | 0 |
+| group_id cắt qua split | 0 | 0 |
+| Project cắt qua split | 0 | 174 (đúng thiết kế) |
+
+Hai điểm cần nhớ khi diễn giải kết quả của các task sau:
+
+- **Phép chuẩn hóa source ở đây là bảo thủ.** Nó chỉ đổi line ending, cắt khoảng trắng cuối dòng và bỏ dòng trống ở hai biên, cố ý giữ nguyên khoảng trắng bên trong để không làm hỏng string literal, preprocessor directive hay ranh giới token trong C/C++. Hai hàm giống hệt nhau nhưng khác cách thụt lề sẽ ra hai hash khác nhau và không bị gom. Task 4.4 kiểm lại bằng phép chuẩn hóa chặt hơn theo PrimeVul, bỏ toàn bộ khoảng trắng trước khi hash.
+- **Không có chronological split.** Bản DiverseVul local không có timestamp đủ tin cậy. Task 1.4 đã khóa điểm này.
