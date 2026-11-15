@@ -1,0 +1,130 @@
+{
+  "arguments": {
+    "dataset": "/kaggle/input/datasets/vtnmai/diversevul-7799-function-text/diversevul_text.jsonl",
+    "out_dir": "/kaggle/working/results_4_5/codebert",
+    "schema": "/tmp/g45/b18dfa31cff17355cd26887557432a3454b6223a/configs/graph/schema_spec.yaml",
+    "model": "codebert",
+    "protocols": [
+      "project_wise",
+      "seen_project"
+    ],
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "dataset_id": "diversevul-7799-function-text",
+    "max_length": 512,
+    "max_chunks": 2,
+    "pooling": "max",
+    "dropout": 0.1,
+    "lr": 2e-05,
+    "weight_decay": 0.01,
+    "batch_size": 8,
+    "max_epochs": 10,
+    "patience": 3,
+    "warmup_ratio": 0.1,
+    "grad_clip": 1.0,
+    "limit": 0,
+    "no_amp": false,
+    "local_files_only": false,
+    "validation_only": false
+  },
+  "code": {
+    "commit": "b18dfa31cff17355cd26887557432a3454b6223a",
+    "dirty": false,
+    "source_sha256": {
+      "src/models/gnn.py": "640360dbff8efcc272e109d8f149caed811987d8caa8ab9fffb753876001e77a",
+      "src/training/gnn_trainer.py": "68b30487ad4d213b8df45392c51e88ce1245d00b7a28e3830d940698df297194",
+      "src/training/gcn_tuning.py": "cfd71cca88606ecc3df60e491429ad4ab39d25082083670bd43f8ac47f38cda3",
+      "src/evaluation/metrics.py": "56b295671f2a4d90ef416355aac488019799529531705d8311ad0eefc4c00e65",
+      "scripts/train_gnn.py": "8ec780e74e1460e1d81ccda24f2e9222fdaae7edf5817fd5ec8f7b2c7497e748"
+    }
+  },
+  "environment": {
+    "python": "3.13.16",
+    "torch": "2.11.0+cu130",
+    "numpy": "2.1.3",
+    "sklearn": "1.6.1",
+    "cuda": "13.0",
+    "gpu": "Tesla T4"
+  },
+  "schema_sha256": "d4a7cddc5205fa7435d41f324e335bf70bf20551cfffe44a8ee876c98f11a0c9",
+  "inputs": {
+    "dataset": "/kaggle/input/datasets/vtnmai/diversevul-7799-function-text/diversevul_text.jsonl",
+    "dataset_sha256": "482043dcd912341a95e42f29188d5134f473320581598b5e23cef25cba7db598",
+    "dataset_id": "diversevul-7799-function-text",
+    "model_name": "microsoft/codebert-base",
+    "n_samples": 7799,
+    "split_sizes": {
+      "project_wise": {
+        "train": 6101,
+        "validation": 762,
+        "test": 936
+      },
+      "seen_project": {
+        "train": 6272,
+        "validation": 764,
+        "test": 763
+      }
+    },
+    "split_size_problems": [],
+    "length_statistics": {
+      "n_samples": 7799,
+      "mean_tokens": 1710.4910886011028,
+      "median_tokens": 673,
+      "p90_tokens": 3805,
+      "p99_tokens": 17032,
+      "max_tokens": 77521,
+      "capacity_tokens": 1020,
+      "share_over_one_chunk": 0.5841774586485446,
+      "share_truncated": 0.3799205026285421,
+      "token_coverage": 0.3739677004404758
+    }
+  },
+  "runs": [
+    {
+      "protocol": "project_wise",
+      "seed": 42,
+      "best_epoch": 4,
+      "epochs_run": 7
+    },
+    {
+      "protocol": "project_wise",
+      "seed": 43,
+      "best_epoch": 5,
+      "epochs_run": 8
+    },
+    {
+      "protocol": "project_wise",
+      "seed": 44,
+      "best_epoch": 1,
+      "epochs_run": 4
+    },
+    {
+      "protocol": "seen_project",
+      "seed": 42,
+      "best_epoch": 5,
+      "epochs_run": 8
+    },
+    {
+      "protocol": "seen_project",
+      "seed": 43,
+      "best_epoch": 5,
+      "epochs_run": 8
+    },
+    {
+      "protocol": "seen_project",
+      "seed": 44,
+      "best_epoch": 6,
+      "epochs_run": 9
+    }
+  ],
+  "artifacts_sha256": {
+    "results.csv": "e2e092e783e2b038c90c8325457cd30fa234c1020442047f8ef50552c2ef806f",
+    "per_class.csv": "5de16dc9b90bc6ee8599357a5d215599e53398a09722fcb670bd581dbc0b87a4",
+    "confusion_matrices.json": "299b3483cf50b68f3cd1b97bdece2b6a1b50144f3f2621a80f27bcb08c011f98",
+    "training_history.json": "fd10dd638fe7f0e642d21a3454641d06294120743d5340f36692901b2a59cd21",
+    "summary.md": "4e7d3f735604e88fa1614357c2c8b306862e7bd41d639f7fd386c5e088e1efb0"
+  }
+}
