@@ -79,13 +79,21 @@ def main() -> int:
     dropped = {row["sample_id"] for row in read_csv_rows(a.failed)}
     print(f"Manifest {len(manifest)} mẫu, Task 3.3 loại {len(dropped)} mẫu")
 
+    # Chỉ giữ mã nguồn của những mẫu thực sự cần. Tệp thô có hơn 330 nghìn hàm, giữ hết
+    # thì tốn thêm vài trăm MB bộ nhớ mà 7.799 mẫu mới được dùng.
+    needed = {row["sample_id"] for row in manifest} - dropped
     loaded = load_dataset("diversevul", a.raw_dir, a.dataset_file)
     fields = resolve_fields(loaded.frame, {"code_field": "func", "label_field": "target",
                                            "cwe_field": "cwe", "project_field": "project",
                                            "commit_field": "commit_id", "hash_field": "hash"})
     records = canonicalize(loaded.frame, fields)
-    source_by_id = dict(zip(records["sample_id"], records["source_code"], strict=True))
-    print(f"Dữ liệu thô {len(source_by_id)} dòng, tệp {loaded.source_file.name}")
+    n_raw, source_file = len(records), loaded.source_file
+    source_by_id = {sample_id: source
+                    for sample_id, source in zip(records["sample_id"], records["source_code"])
+                    if sample_id in needed}
+    del records, loaded  # nhả khung dữ liệu thô trước khi dựng tệp kết quả
+    print(f"Dữ liệu thô {n_raw} dòng, tệp {source_file.name}")
+    print(f"Giữ lại mã nguồn của {len(source_by_id)} trên {len(needed)} mẫu cần dùng")
 
     samples, missing_source, empty_source, unknown_cwe = [], [], [], []
     for row in manifest:
@@ -135,7 +143,7 @@ def main() -> int:
         "n_samples": written,
         "split_sizes": sizes,
         "n_classes": len(cwe_mapping),
-        "source_file": loaded.source_file.name,
+        "source_file": source_file.name,
         "manifest_sha256": digest(a.manifest),
         "failed_sha256": digest(a.failed),
         "schema_sha256": digest(a.schema),
