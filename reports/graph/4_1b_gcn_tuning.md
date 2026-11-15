@@ -236,3 +236,35 @@ Trên project_wise, loss train ban đầu của L1 xấp xỉ 3,13; giá trị �
 Trong bảy cấu hình được đánh giá, L1 (GCN-A **2 lớp**, dim 128, dropout 0,2, không giới hạn số node) được lựa chọn vì đạt Macro-F1 validation trung bình cao nhất trên project_wise: **0,0696 ± 0,0092**, so với **0,0545 ± 0,0081** của B0 trong cùng môi trường. Cấu hình được lựa chọn trong Version 2 đã được cố định trước lần đánh giá test cuối ở Version 3 và được giữ nguyên cho Task 4.1c.
 
 Trên test, L1 đạt Macro-F1 **0,0552 ± 0,0051** trên project_wise và **0,1000 ± 0,0054** trên seen_project. Các giá trị này thấp hơn kết quả tương ứng của GCN-A và các baseline token trong Task 4.1a. Riêng đối với `seen_project`, chênh lệch Macro-F1 giữa L1 và GCN-A của Task 4.1a nhỏ hơn độ lệch chuẩn giữa các seed, nên chưa đủ cơ sở để kết luận về sự khác biệt hiệu quả một cách ổn định. Việc lựa chọn L1 tuân thủ tiêu chí validation đã định trong phạm vi bảy cấu hình; tuy nhiên, kết quả test không cho thấy sự cải thiện khả năng tổng quát hóa. Cấu hình L1 được giữ nguyên để đánh giá Graph B trong Task 4.1c, với các giới hạn về dữ liệu và provenance tiếp tục được xem xét khi diễn giải.
+## 6. Task 4.1c — Đánh giá GCN trên Graph B
+
+### 6.1. Thiết lập thực nghiệm
+
+Graph A chỉ có cạnh AST; Graph B bổ sung cạnh luồng điều khiển (CFG) và phụ thuộc dữ liệu (`DATA_DEP`) trên cùng tập node và đặc trưng. GCN đối xứng hóa cạnh, thêm self-loop và không phân biệt loại cạnh.
+
+Giữ nguyên L1 đã chọn bằng Macro-F1 validation trung bình của `project_wise` trên Graph A trong Task 4.1b: dim 128, 2 lớp GCN, dropout 0,2, AdamW với learning rate 1e-3, weight decay 1e-4, batch size 32, tối đa 40 epoch và patience 8. Dùng cùng dataset processed version 1, vocabulary, split, 23 nhãn CWE và seed 42/43/44 cho hai protocol; giữ loss có trọng số lớp, gradient clipping 5,0, tổng hợp mean+max và không giới hạn mẫu/node.
+
+Sáu mô hình Graph B được khởi tạo mới và huấn luyện từ đầu, không dùng trọng số Graph A hoặc tìm kiếm lại cấu hình. Early stopping theo Macro-F1 validation; chọn checkpoint có giá trị chưa làm tròn cao nhất, giữ epoch sớm nhất nếu bằng nhau. Mỗi mô hình được đánh giá test sau khi chọn checkpoint, không dùng test để chọn cấu hình hoặc epoch.
+
+### 6.2. Kết quả và so sánh Graph A/B
+
+Cả hai graph dùng L1. Bảng trình bày trung bình ± độ lệch chuẩn tổng thể trên ba seed (`ddof = 0`), tính từ CSV chưa làm tròn; Macro-F1 bao gồm đủ 23 nhãn CWE.
+
+| Protocol | Graph | Macro-F1 test | Thời gian huấn luyện (giây/seed) | CUDA cấp phát tối đa (MiB) |
+| :--- | :--- | ---: | ---: | ---: |
+| project_wise | A | 0,0552 ± 0,0051 | 74,0 ± 5,3 | 772,6 ± 35,9 |
+| project_wise | B | 0,0650 ± 0,0049 | 130,7 ± 9,6 | 1362,0 ± 60,7 |
+| seen_project | A | 0,1000 ± 0,0054 | 138,5 ± 4,9 | 907,0 ± 53,0 |
+| seen_project | B | 0,1026 ± 0,0161 | 183,9 ± 18,1 | 1256,5 ± 46,3 |
+
+`train_seconds` gồm train và validation theo epoch, không gồm đánh giá cuối; `peak_gpu_mb` đo đỉnh CUDA cấp phát, không phải toàn bộ VRAM. Graph A ghi đỉnh bộ nhớ trong lần train chỉ có validation, còn Graph B ghi sau train và đánh giá validation/test, nên chênh lệch bộ nhớ không tách riêng chi phí huấn luyện.
+
+### 6.3. Nhận xét và kết luận
+
+Graph B có Macro-F1 test trung bình cao hơn Graph A khoảng **0,0098** trên `project_wise` và **0,0026** trên `seen_project`. Chênh lệch `project_wise` lớn hơn độ lệch chuẩn của từng nhóm nhưng không chứng minh ý nghĩa thống kê; chênh lệch `seen_project` nhỏ hơn độ lệch chuẩn Graph B (0,0161), nên chưa đủ bằng chứng kết luận Graph B tốt hơn.
+
+Thời gian huấn luyện trung bình của Graph B cao hơn lần lượt 56,7 giây/seed (76,7%) và 45,4 giây/seed (32,8%); đỉnh CUDA cấp phát cao hơn 589,5 MiB và 349,5 MiB theo thứ tự hai protocol. Thời gian phụ thuộc số epoch thực tế, không phải so sánh với ngân sách epoch cố định.
+
+Với L1, bổ sung CFG/DATA_DEP cho Macro-F1 trung bình quan sát được cao hơn nhưng tốn thời gian hơn; Weighted-F1, MCC và Accuracy thấp hơn. Chỉ có ba seed và một split cố định mỗi protocol, nên chưa thể kết luận Graph B cải thiện GCN một cách ổn định hoặc phổ quát. Giới hạn dữ liệu Task 4.0 vẫn áp dụng, gồm 5 mẫu validation và 6 mẫu test của `seen_project` trùng input với train.
+
+Bằng chứng: Graph A — [notebook tuning](4_1b_gcn_tuning_run.ipynb), [log tuning](4_1b_results/tuning/4-1b-gcn-tuning.log), [notebook test](4_1b_gcn_final_run.ipynb), [log test](4_1b_results/final/4-1b-gcn-tuning.log), [CSV](4_1b_results/final/results.csv); Graph B — [notebook đã chạy](4_1c_gcn_graph_b_run.ipynb), [log](4_1c_results/graph_b.log), [CSV](4_1c_results/L1/results.csv).

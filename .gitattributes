@@ -1,0 +1,10 @@
+# Keep the shared source notebook consistent with its LF parent.
+/notebooks/4_1b_gcn_tuning.ipynb text eol=lf
+
+# Preserve immutable Kaggle evidence byte-for-byte on add and checkout.
+/reports/graph/4_1c_results/** -text
+/reports/graph/4_1c_gcn_graph_b_run.ipynb -text
+
+# Native CSV CRLF terminators are not trailing whitespace.
+/reports/graph/4_1c_results/L1/results.csv whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_1c_results/L1/per_class.csv whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
