@@ -39,6 +39,28 @@ EXPECTED_SPLIT_SIZES = {
 EXPECTED_TOTAL = 7799
 
 
+def find_text_dataset(root: Path) -> Path:
+    """Tìm tệp dữ liệu văn bản dưới một thư mục input.
+
+    Quét đệ quy vì Kaggle gắn dataset ở độ sâu khác nhau tùy phiên bản giao diện,
+    có lúc ``/kaggle/input/<slug>/``, có lúc ``/kaggle/input/datasets/<owner>/<slug>/``.
+    Tệp ``.meta.json`` đi kèm không bị nhầm vì nó không có đuôi ``.jsonl``.
+    """
+    root = Path(root)
+    if not root.is_dir():
+        raise FileNotFoundError(f"Không có thư mục input: {root}")
+    found = sorted({path for pattern in ("*.jsonl", "*.jsonl.gz")
+                    for path in root.rglob(pattern) if path.is_file()})
+    if not found:
+        raise FileNotFoundError(
+            f"Không thấy tệp .jsonl hay .jsonl.gz nào trong {root}. "
+            "Chạy scripts/build_text_dataset.py rồi gắn kết quả làm Kaggle Dataset.")
+    if len(found) > 1:
+        listed = "\n  ".join(str(path) for path in found)
+        raise RuntimeError(f"Có nhiều hơn một tệp dữ liệu, chọn thủ công:\n  {listed}")
+    return found[0]
+
+
 def load_cwe_mapping(schema_path: Path) -> dict[str, int]:
     """Đọc ánh xạ CWE sang chỉ số lớp từ ``schema_spec.yaml``."""
     with open(schema_path, "r", encoding="utf-8") as handle:

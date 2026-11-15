@@ -560,3 +560,47 @@ def test_dataset_reads_a_file_that_was_decompressed_by_the_host(tmp_path):
     plain_path = tmp_path / "text_plain.jsonl.gz"  # tên còn .gz nhưng nội dung đã bung
     plain_path.write_bytes(gzip.decompress(packed.read_bytes()))
     assert td.load_text_dataset(plain_path) == td.load_text_dataset(packed)
+
+
+# --- dò tệp dữ liệu trong thư mục input ----------------------------------
+
+def test_find_text_dataset_handles_the_nested_kaggle_layout(tmp_path):
+    """Kaggle gắn dataset ở /kaggle/input/datasets/<owner>/<slug>/ trên giao diện mới."""
+    nested = tmp_path / "datasets" / "vtnmai" / "diversevul-7799-function-text"
+    nested.mkdir(parents=True)
+    td.write_text_dataset(nested / "diversevul_text.jsonl.gz", [sample(1, 3, 0)])
+    assert td.find_text_dataset(tmp_path).name == "diversevul_text.jsonl.gz"
+
+
+def test_find_text_dataset_handles_the_flat_layout(tmp_path):
+    flat = tmp_path / "diversevul-7799-function-text"
+    flat.mkdir()
+    td.write_text_dataset(flat / "diversevul_text.jsonl", [sample(1, 3, 0)])
+    assert td.find_text_dataset(tmp_path).name == "diversevul_text.jsonl"
+
+
+def test_find_text_dataset_ignores_the_fingerprint_file(tmp_path):
+    folder = tmp_path / "d"
+    folder.mkdir()
+    td.write_text_dataset(folder / "diversevul_text.jsonl", [sample(1, 3, 0)])
+    (folder / "diversevul_text.jsonl.gz.meta.json").write_text("{}", encoding="utf-8")
+    assert td.find_text_dataset(tmp_path).name == "diversevul_text.jsonl"
+
+
+def test_find_text_dataset_reports_an_empty_input(tmp_path):
+    with pytest.raises(FileNotFoundError, match="Không thấy tệp"):
+        td.find_text_dataset(tmp_path)
+
+
+def test_find_text_dataset_refuses_to_guess_between_two_files(tmp_path):
+    for name in ("a", "b"):
+        folder = tmp_path / name
+        folder.mkdir()
+        td.write_text_dataset(folder / "text.jsonl", [sample(1, 3, 0)])
+    with pytest.raises(RuntimeError, match="nhiều hơn một"):
+        td.find_text_dataset(tmp_path)
+
+
+def test_find_text_dataset_reports_a_missing_root(tmp_path):
+    with pytest.raises(FileNotFoundError, match="Không có thư mục input"):
+        td.find_text_dataset(tmp_path / "khong-ton-tai")
