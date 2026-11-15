@@ -532,6 +532,8 @@ def test_notebook_analysis_cells_produce_every_figure(tmp_path, monkeypatch):
     out, figures = tmp_path / "results", tmp_path / "figures"
     namespace = dict(ACTIVE=True, RUN_EXPERIMENTS=True, SAVED_RESULTS_ROOT=None,
                      MODEL="codebert", SECOND_MODEL=None, MODELS_RUN=["codebert"],
+                     RUN_NAMES=["codebert"],
+                     RUN_SPECS=[{"name": "codebert", "model": "codebert", "overrides": {}}],
                      OUT_DIR=out, READ_ROOT=out, FIG_DIR=figures,
                      SUBMISSION_DIR=tmp_path / "submission", TEXT_DATASET=dataset,
                      REPO_DIR=ROOT, samples=td.load_text_dataset(dataset), tx=tx,
@@ -626,3 +628,21 @@ def test_length_statistics_agree_with_the_tokenised_budget():
     used = sum(item["n_used_tokens"] for item in encoded)
     body = sum(item["n_body_tokens"] for item in encoded)
     assert stats["token_coverage"] == pytest.approx(used / body)
+
+
+def test_notebook_sensitivity_knob_adds_a_second_run_without_touching_the_first():
+    """Cờ độ nhạy phải tạo thư mục riêng, không đụng vào cấu hình đã đăng ký."""
+    source = notebook_cells()[0]
+    namespace = {"Path": Path, "re": __import__("re")}
+    base = source.replace("RUN_EXPERIMENTS = True", "RUN_EXPERIMENTS = False")
+    exec(compile(base, "<notebook>", "exec"), namespace)
+    assert namespace["RUN_NAMES"] == ["codebert"]
+
+    namespace = {"Path": Path, "re": __import__("re")}
+    exec(compile(base.replace("SENSITIVITY_MAX_CHUNKS = None", "SENSITIVITY_MAX_CHUNKS = 4"),
+                 "<notebook>", "exec"), namespace)
+    assert namespace["RUN_NAMES"] == ["codebert", "codebert_chunks4"]
+    specs = {s["name"]: s for s in namespace["RUN_SPECS"]}
+    assert specs["codebert"]["overrides"] == {}
+    assert specs["codebert_chunks4"]["overrides"] == {"max_chunks": 4}
+    assert tx.configuration(**{"model": "codebert", **specs["codebert_chunks4"]["overrides"]})["max_chunks"] == 4
