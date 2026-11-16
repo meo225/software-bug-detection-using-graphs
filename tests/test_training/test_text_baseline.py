@@ -532,7 +532,7 @@ def test_notebook_analysis_cells_produce_every_figure(tmp_path, monkeypatch):
     out, figures = tmp_path / "results", tmp_path / "figures"
     namespace = dict(ACTIVE=True, RUN_EXPERIMENTS=True, SAVED_RESULTS_ROOT=None,
                      MODEL="codebert", SECOND_MODEL=None, MODELS_RUN=["codebert"],
-                     RUN_NAMES=["codebert"],
+                     RUN_NAMES=["codebert"], REUSE_COMMITTED_RUNS=False,
                      RUN_SPECS=[{"name": "codebert", "model": "codebert", "overrides": {}}],
                      OUT_DIR=out, READ_ROOT=out, FIG_DIR=figures,
                      SUBMISSION_DIR=tmp_path / "submission", TEXT_DATASET=dataset,
@@ -646,3 +646,29 @@ def test_notebook_sensitivity_knob_adds_a_second_run_without_touching_the_first(
     assert specs["codebert"]["overrides"] == {}
     assert specs["codebert_chunks4"]["overrides"] == {"max_chunks": 4}
     assert tx.configuration(**{"model": "codebert", **specs["codebert_chunks4"]["overrides"]})["max_chunks"] == 4
+
+
+def test_notebook_reuses_committed_runs_instead_of_retraining(tmp_path, monkeypatch):
+    """Lần chạy độ nhạy không được huấn luyện lại cấu hình đã có kết quả trong repo."""
+    pytest.importorskip("pandas")
+    source = notebook_cells()[4]  # ô huấn luyện
+    committed = tmp_path / "repo" / "reports" / "graph" / "4_5_results" / "runs" / "codebert"
+    committed.mkdir(parents=True)
+    (committed / "results.csv").write_text("protocol\n", encoding="utf-8")
+    (committed.parent / "codebert.log").write_text("cũ", encoding="utf-8")
+
+    trained = []
+    namespace = dict(
+        RUN_EXPERIMENTS=True, REUSE_COMMITTED_RUNS=True, OUT_DIR=tmp_path / "out",
+        REPO_DIR=tmp_path / "repo", TEXT_DATASET=tmp_path / "t.jsonl.gz", tx=tx,
+        Path=Path, shutil=__import__("shutil"),
+        RUN_SPECS=[{"name": "codebert", "model": "codebert", "overrides": {}},
+                   {"name": "codebert_chunks4", "model": "codebert", "overrides": {"max_chunks": 4}}],
+        run_script=lambda script, arguments, log_path: trained.append(arguments))
+    exec(compile(source, "<notebook>", "exec"), namespace)
+
+    assert len(trained) == 1, "chỉ được huấn luyện cấu hình chưa có kết quả"
+    assert "--max-chunks" in trained[0]
+    assert trained[0][trained[0].index("--max-chunks") + 1] == "4"
+    assert (tmp_path / "out" / "codebert" / "results.csv").is_file()
+    assert (tmp_path / "out" / "codebert.log").is_file()
