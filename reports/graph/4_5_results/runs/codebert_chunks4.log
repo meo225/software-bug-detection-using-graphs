@@ -1,0 +1,99 @@
+Thiết bị: cuda; torch 2.11.0+cu130
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (900 > 512). Running this sequence through the model will result in indexing errors
+Độ dài hàm theo token: trung vị 673, p90 3805, tối đa 77521
+Hàm cần nhiều hơn một đoạn: 58.4%; bị cắt bỏ một phần: 20.8%; giữ được 54.1% số token
+project_wise: train=6101, validation=762, test=936
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 7769.76it/s]
+/tmp/g45/158e02e3bbfe31d5e66ecfd8af7481c7b1fc6bd7/src/training/text_trainer.py:152: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  scheduler.step()
+  [codebert seed=42] epoch 01 loss=3.0892 val_macro_f1=0.0386
+  [codebert seed=42] epoch 02 loss=2.3015 val_macro_f1=0.0570
+  [codebert seed=42] epoch 03 loss=1.6104 val_macro_f1=0.0556
+  [codebert seed=42] epoch 04 loss=1.1459 val_macro_f1=0.0861
+  [codebert seed=42] epoch 05 loss=0.8101 val_macro_f1=0.0729
+  [codebert seed=42] epoch 06 loss=0.5730 val_macro_f1=0.0519
+  [codebert seed=42] epoch 07 loss=0.4173 val_macro_f1=0.0599
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 7086.48it/s]
+/tmp/g45/158e02e3bbfe31d5e66ecfd8af7481c7b1fc6bd7/src/training/text_trainer.py:152: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  scheduler.step()
+  [codebert seed=43] epoch 01 loss=3.0699 val_macro_f1=0.0466
+  [codebert seed=43] epoch 02 loss=2.2875 val_macro_f1=0.0498
+  [codebert seed=43] epoch 03 loss=1.6078 val_macro_f1=0.0595
+  [codebert seed=43] epoch 04 loss=1.1385 val_macro_f1=0.0636
+  [codebert seed=43] epoch 05 loss=0.8366 val_macro_f1=0.0567
+  [codebert seed=43] epoch 06 loss=0.5847 val_macro_f1=0.0579
+  [codebert seed=43] epoch 07 loss=0.4203 val_macro_f1=0.0535
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 7501.54it/s]
+/tmp/g45/158e02e3bbfe31d5e66ecfd8af7481c7b1fc6bd7/src/training/text_trainer.py:152: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  scheduler.step()
+  [codebert seed=44] epoch 01 loss=3.0673 val_macro_f1=0.0305
+  [codebert seed=44] epoch 02 loss=2.3166 val_macro_f1=0.0469
+  [codebert seed=44] epoch 03 loss=1.6779 val_macro_f1=0.0526
+  [codebert seed=44] epoch 04 loss=1.2091 val_macro_f1=0.0525
+  [codebert seed=44] epoch 05 loss=0.8946 val_macro_f1=0.0561
+  [codebert seed=44] epoch 06 loss=0.6315 val_macro_f1=0.0579
+  [codebert seed=44] epoch 07 loss=0.4596 val_macro_f1=0.0596
+  [codebert seed=44] epoch 08 loss=0.3426 val_macro_f1=0.0603
+  [codebert seed=44] epoch 09 loss=0.2583 val_macro_f1=0.0615
+  [codebert seed=44] epoch 10 loss=0.2109 val_macro_f1=0.0629
+seen_project: train=6272, validation=764, test=763
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 7494.81it/s]
+/tmp/g45/158e02e3bbfe31d5e66ecfd8af7481c7b1fc6bd7/src/training/text_trainer.py:152: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  scheduler.step()
+  [codebert seed=42] epoch 01 loss=3.0891 val_macro_f1=0.0779
+  [codebert seed=42] epoch 02 loss=2.2505 val_macro_f1=0.1346
+  [codebert seed=42] epoch 03 loss=1.5432 val_macro_f1=0.1607
+  [codebert seed=42] epoch 04 loss=1.0938 val_macro_f1=0.1771
+  [codebert seed=42] epoch 05 loss=0.7714 val_macro_f1=0.1799
+  [codebert seed=42] epoch 06 loss=0.5406 val_macro_f1=0.1874
+  [codebert seed=42] epoch 07 loss=0.3816 val_macro_f1=0.2109
+  [codebert seed=42] epoch 08 loss=0.2754 val_macro_f1=0.1884
+  [codebert seed=42] epoch 09 loss=0.1997 val_macro_f1=0.1943
+  [codebert seed=42] epoch 10 loss=0.1598 val_macro_f1=0.1882
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 8572.02it/s]
+/tmp/g45/158e02e3bbfe31d5e66ecfd8af7481c7b1fc6bd7/src/training/text_trainer.py:152: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  scheduler.step()
+  [codebert seed=43] epoch 01 loss=3.0783 val_macro_f1=0.0841
+  [codebert seed=43] epoch 02 loss=2.2916 val_macro_f1=0.1376
+  [codebert seed=43] epoch 03 loss=1.5843 val_macro_f1=0.1729
+  [codebert seed=43] epoch 04 loss=1.1279 val_macro_f1=0.1621
+  [codebert seed=43] epoch 05 loss=0.7848 val_macro_f1=0.1766
+  [codebert seed=43] epoch 06 loss=0.5488 val_macro_f1=0.1669
+  [codebert seed=43] epoch 07 loss=0.3921 val_macro_f1=0.1897
+  [codebert seed=43] epoch 08 loss=0.2719 val_macro_f1=0.1840
+  [codebert seed=43] epoch 09 loss=0.1975 val_macro_f1=0.1948
+  [codebert seed=43] epoch 10 loss=0.1518 val_macro_f1=0.1867
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 7479.83it/s]
+/tmp/g45/158e02e3bbfe31d5e66ecfd8af7481c7b1fc6bd7/src/training/text_trainer.py:152: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  scheduler.step()
+  [codebert seed=44] epoch 01 loss=3.0985 val_macro_f1=0.0647
+  [codebert seed=44] epoch 02 loss=2.2883 val_macro_f1=0.1261
+  [codebert seed=44] epoch 03 loss=1.5742 val_macro_f1=0.1589
+  [codebert seed=44] epoch 04 loss=1.1350 val_macro_f1=0.1822
+  [codebert seed=44] epoch 05 loss=0.8199 val_macro_f1=0.2055
+  [codebert seed=44] epoch 06 loss=0.5719 val_macro_f1=0.1777
+  [codebert seed=44] epoch 07 loss=0.4173 val_macro_f1=0.1777
+  [codebert seed=44] epoch 08 loss=0.2985 val_macro_f1=0.1863
+# Kết quả codebert trên văn bản hàm (Task 4.5)
+
+Trung bình ± độ lệch chuẩn theo seed.
+
+| Protocol | Model | Split | Macro-F1 | Weighted-F1 | MCC | Accuracy | Tham số | Giây/seed |
+| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| project_wise | codebert | test | 0.1008 ± 0.0042 | 0.1637 ± 0.0195 | 0.0930 ± 0.0210 | 0.1788 ± 0.0202 | 124663319 | 2823 |
+| project_wise | codebert | validation | 0.0709 ± 0.0108 | 0.1697 ± 0.0384 | 0.0590 ± 0.0309 | 0.1662 ± 0.0335 | 124663319 | 2823 |
+| seen_project | codebert | test | 0.1358 ± 0.0038 | 0.1915 ± 0.0071 | 0.1293 ± 0.0034 | 0.1970 ± 0.0038 | 124663319 | 3424 |
+| seen_project | codebert | validation | 0.2037 ± 0.0067 | 0.2546 ± 0.0063 | 0.1889 ± 0.0062 | 0.2531 ± 0.0043 | 124663319 | 3424 |

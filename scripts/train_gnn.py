@@ -8,11 +8,9 @@ Ví dụ:
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import sys
 from pathlib import Path
-from statistics import mean, pstdev
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -27,6 +25,7 @@ from src.training.gcn_tuning import (  # noqa: E402
     BASELINE, code_identity, environment, data_identity, digest, read_frozen, write_json, checkpoint_path, ARTIFACTS,
     sensitivity_target,
 )
+from src.training.run_artifacts import plain as _plain, summary_lines, write_csv  # noqa: E402
 
 SCALARS = ("accuracy", "macro_precision", "macro_recall", "macro_f1", "weighted_f1", "mcc")
 
@@ -90,15 +89,6 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def _plain(value):
-    """Chuyển Path thành chuỗi để ghi vào metadata JSON."""
-    if isinstance(value, Path):
-        return str(value)
-    if isinstance(value, list):
-        return [_plain(item) for item in value]
-    return value
-
-
 def load_token_init(paths: list[Path], protocol: str, n_tokens: int, dim: int) -> torch.Tensor:
     """Chọn tệp khởi tạo embedding token của ``protocol`` và kiểm tra khớp vocabulary.
 
@@ -118,14 +108,6 @@ def load_token_init(paths: list[Path], protocol: str, n_tokens: int, dim: int) -
         raise ValueError(f"Token init có dạng {tuple(matrix.shape)}, cần {(n_tokens, dim)}")
     print(f"Token init {protocol}: {payload['model_name']} -> {tuple(matrix.shape)}")
     return matrix
-
-
-def write_csv(path: Path, rows: list[dict]) -> None:
-    if rows:
-        with open(path, "w", encoding="utf-8", newline="") as h:
-            w = csv.DictWriter(h, fieldnames=list(rows[0]))
-            w.writeheader()
-            w.writerows(rows)
 
 
 def main() -> int:
@@ -239,22 +221,10 @@ def main() -> int:
 
     (a.out_dir / "confusion_matrices.json").write_text(json.dumps(matrices), encoding="utf-8")
     (a.out_dir / "training_history.json").write_text(json.dumps(histories), encoding="utf-8")
-    groups: dict[tuple, list[dict]] = {}
-    for r in rows:
-        groups.setdefault((r["protocol"], r["graph"], r["model"], r["split"]), []).append(r)
     title = f"# Kết quả {'/'.join(a.models).upper()} {'/'.join(a.graphs)} (cấu hình {a.config_id})"
     if sensitivity:
         title += ", độ nhạy trên test, không dùng để chọn cấu hình"
-    lines = [title, "", "Trung bình ± độ lệch chuẩn theo seed.", "",
-             "| Protocol | Graph | Model | Split | Macro-F1 | Weighted-F1 | MCC | Accuracy | Tham số | Giây/seed |",
-             "| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |"]
-    for key, items in sorted(groups.items()):
-        def cell(m: str) -> str:
-            v = [i[m] for i in items]
-            return f"{mean(v):.4f} ± {pstdev(v):.4f}"
-        lines.append(f"| {' | '.join(key)} | {cell('macro_f1')} | {cell('weighted_f1')} | {cell('mcc')} | "
-                     f"{cell('accuracy')} | {items[0]['n_params']} | "
-                     f"{mean(i['train_seconds'] for i in items):.0f} |")
+    lines = summary_lines(title, rows, ("protocol", "graph", "model", "split"))
     (a.out_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     metadata["artifacts_sha256"] = {name: digest(a.out_dir / name) for name in ARTIFACTS}
     write_json(a.out_dir / "metadata.json", metadata)
