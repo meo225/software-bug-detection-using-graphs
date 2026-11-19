@@ -1,0 +1,28 @@
+{
+  "status": "FAIL",
+  "manifest": 9077,
+  "failed": 1278,
+  "valid": 7799,
+  "missing_failed_ids": 0,
+  "metadata_mismatches": 0,
+  "split_counts": {
+    "project_wise": {
+      "train": 6101,
+      "validation": 762,
+      "test": 936
+    },
+    "seen_project": {
+      "train": 6272,
+      "test": 763,
+      "validation": 764
+    }
+  },
+  "raw_records": 330492,
+  "blank_lines": 0,
+  "joined": 9077,
+  "missing_source_ids": 0,
+  "audit_execution": "PASS",
+  "review_status": "COMPLETE",
+  "conclusion": "Confirmed formatting-only source duplicate between seen_project validation and test; no train-held-out source matches under this normalization",
+  "final_conclusion": "LEAKAGE DETECTED"
+}

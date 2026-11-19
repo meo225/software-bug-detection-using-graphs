@@ -1,0 +1,73 @@
+{
+  "status": "LEAKAGE DETECTED",
+  "audit_execution": "PASS",
+  "review": "COMPLETE",
+  "tests": {
+    "command": "python -m pytest tests/test_data -ra",
+    "passed": 61,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 6.76
+  },
+  "checks": {
+    "sample_hash_rows": 9077,
+    "included_rows": 7799,
+    "md5_sha256_grouping_equivalent": true,
+    "pair_accounting": true,
+    "tracked_input_changes": false,
+    "dataset_git_ignored": true
+  },
+  "files": {
+    "cross_split_leakage.csv": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\cross_split_leakage.csv",
+      "bytes": 2985,
+      "sha256": "c35e35a7014f5fce7b76a3174af5b664eac1764382345f27e62071e185395b6b"
+    },
+    "cross_split_review.csv": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\cross_split_review.csv",
+      "bytes": 443,
+      "sha256": "ade0d639a62c1e1c14214a724c888660a8f61d9b405de84d57867367098260be"
+    },
+    "duplicate_groups.csv": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\duplicate_groups.csv",
+      "bytes": 2422,
+      "sha256": "c0261a843a22ccdc3f044b031f3b00b94b1e550bd660e801a6ba364ef9dd315a"
+    },
+    "duplicate_members.csv": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\duplicate_members.csv",
+      "bytes": 5798,
+      "sha256": "5018b0148cf0eab5f93042cd9fad8a05d5bbc8416a17b096a61f3a476daf30d1"
+    },
+    "duplicate_summary.csv": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\duplicate_summary.csv",
+      "bytes": 2159,
+      "sha256": "174475d8267b992ff7fd9a2a530ea02dd1cbdfb26e71aab7a541ef4822fd706a"
+    },
+    "input_validation.json": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\input_validation.json",
+      "bytes": 725,
+      "sha256": "dc68183f89f9616f8e8ae74d0e657854ecd23181fa90f94a22f65bc0e8e81ff0"
+    },
+    "legacy_comparison.csv": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\legacy_comparison.csv",
+      "bytes": 589,
+      "sha256": "68b904682649362b83fad261df6121557fa236c202bcc958af89dba0e5291fd5"
+    },
+    "provenance.json": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\provenance.json",
+      "bytes": 3623,
+      "sha256": "deb7ed3dbb5bcefb1bcb6e08513d271092dd2c22a479e07617ae2619d6c6c6be"
+    },
+    "sample_hashes.csv": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\sample_hashes.csv",
+      "bytes": 3160881,
+      "sha256": "f01fad75b63658b30a2a2a82804ec3b4e9487bb80e5b41eb4b0929737e925b8d"
+    },
+    "source_review_evidence.json": {
+      "path": "reports\\graph\\4_4_leakage_audit_full\\source_review_evidence.json",
+      "bytes": 1245,
+      "sha256": "1a70ae5d9ff69cae6250b5fb89a920ab9dec5be9c14c94c4fec0daf17b07c2b0"
+    }
+  },
+  "note": "Historical BLOCKED evidence is retained privately and excluded from the public delivery. Audit results, inputs and splits are unchanged."
+}
