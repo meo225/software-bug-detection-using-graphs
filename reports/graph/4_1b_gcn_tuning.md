@@ -227,6 +227,7 @@ Trên project_wise, loss train ban đầu của L1 xấp xỉ 3,13; giá trị �
 
 ## 4. Giới hạn
 
+- **Rò rỉ giữa validation và test của `seen_project`.** Task 4.4 kiểm tra trùng lặp theo cách chuẩn hóa của PrimeVul và tìm được một cặp hàm trùng nhau nằm ở hai tập, gồm `row-4156` ở validation và `row-4152` ở test, cùng nhãn CWE-125 và chỉ khác cách thụt lề. Tương đương 1 trên 763 mẫu test, tức 0,13 phần trăm. Protocol `project_wise` không bị ảnh hưởng. Nhóm giữ nguyên kết quả đã chạy và ghi nhận đây là giới hạn. Chi tiết ở mục 8 của [báo cáo Task 4.0](4_0_processed_data.md).
 - **Validation và test:** L1 đạt Macro-F1 validation trung bình cao nhất trên project_wise, nhưng có Macro-F1 test thấp hơn GCN-A trong Task 4.1a. Chỉ cấu hình đã lựa chọn và cố định được đánh giá test; kết quả test không được dùng để xếp hạng lại các ứng viên.
 - **Ngân sách và bất định:** thí nghiệm gồm bảy cấu hình, ba seed và một cách phân chia dữ liệu cố định cho mỗi protocol. Chưa có kiểm định ý nghĩa thống kê hoặc khoảng tin cậy. Việc lựa chọn trên cùng tập validation có thể dẫn đến đánh giá lạc quan; chênh lệch nhỏ so với dao động giữa các seed chưa đủ để kết luận về sự cải thiện ổn định.
 - **Dữ liệu và phạm vi:** mất cân bằng lớp, lớp hiếm, lệch phân bố trên project_wise và dữ liệu đầu vào trùng trên seen_project có thể ảnh hưởng đến kết quả. Task này chỉ đánh giá Graph A; Graph B được dành cho Task 4.1c. Thí nghiệm chưa xét mô hình văn bản mạnh hoặc kết hợp các thay đổi siêu tham số, nên chưa đủ bằng chứng để kết luận về việc biểu diễn graph không mang lại lợi ích.

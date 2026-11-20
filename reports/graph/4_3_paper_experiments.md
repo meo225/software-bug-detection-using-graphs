@@ -166,6 +166,7 @@ Mỗi nhánh chỉ lệch C0 một yếu tố, test được báo cáo cho cả 
 
 ## 5. Giới hạn
 
+- **Rò rỉ giữa validation và test của `seen_project`.** Task 4.4 kiểm tra trùng lặp theo cách chuẩn hóa của PrimeVul và tìm được một cặp hàm trùng nhau nằm ở hai tập, gồm `row-4156` ở validation và `row-4152` ở test, cùng nhãn CWE-125 và chỉ khác cách thụt lề. Tương đương 1 trên 763 mẫu test, tức 0,13 phần trăm. Protocol `project_wise` không bị ảnh hưởng. Nhóm giữ nguyên kết quả đã chạy và ghi nhận đây là giới hạn. Chi tiết ở mục 8 của [báo cáo Task 4.0](4_0_processed_data.md).
 - Ba seed cho mỗi ô là quá ít để kiểm định thống kê. Các kết luận ở đây là so sánh mô tả, không phải kiểm định giả thuyết.
 - P1 chỉ dùng embedding tĩnh của CodeBERT, không dùng biểu diễn có ngữ cảnh, nên không đại diện cho Vul-LMGNNs đầy đủ.
 - P2 là cách diễn giải LIVABLE theo mô tả trong bài báo, các tham số `gamma` 2,0, smoothing 0,1 và ngưỡng đầu/đuôi 50% không được tinh chỉnh.

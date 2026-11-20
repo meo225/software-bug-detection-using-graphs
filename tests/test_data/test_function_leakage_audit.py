@@ -132,7 +132,8 @@ def test_cli_end_to_end_synthetic(tmp_path, monkeypatch, leaking):
     args=['--dataset-file',str(raw),'--manifest',str(manifest),'--failed-samples',str(failed),'--output-dir',str(out)]
     assert cli.main(args) == int(leaking)
     result=json.loads((out/'input_validation.json').read_text())
-    assert result['status'] == ('FAIL' if leaking else 'PASS')
+    assert result['leakage_verdict'] == ('FAIL' if leaking else 'PASS')
+    assert result['input_validation'] == 'PASS'
     assert (out/'duplicate_groups.csv').exists()
     assert cli.main(args) == 2  # no overwrite
 
@@ -142,4 +143,5 @@ def test_cli_missing_raw_retains_count_evidence(tmp_path):
     out=tmp_path/'blocked'
     assert main(['--dataset-file',str(tmp_path/'missing.jsonl'),'--output-dir',str(out)]) == 2
     result=json.loads((out/'input_validation.json').read_text())
-    assert result['valid'] == 7799 and result['status'] == 'BLOCKED'
+    assert result['valid'] == 7799 and result['leakage_verdict'] == 'BLOCKED'
+    assert result['input_validation'] == 'BLOCKED'

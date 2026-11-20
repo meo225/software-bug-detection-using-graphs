@@ -34,6 +34,7 @@ Mã chạy từ `main`, commit f7e0629. GPU Tesla T4, tổng thời gian train k
 
 ## 4. Giới hạn của kết luận
 
+- **Rò rỉ giữa validation và test của `seen_project`.** Task 4.4 kiểm tra trùng lặp theo cách chuẩn hóa của PrimeVul và tìm được một cặp hàm trùng nhau nằm ở hai tập, gồm `row-4156` ở validation và `row-4152` ở test, cùng nhãn CWE-125 và chỉ khác cách thụt lề. Tương đương 1 trên 763 mẫu test, tức 0,13 phần trăm. Protocol `project_wise` không bị ảnh hưởng. Nhóm giữ nguyên kết quả đã chạy và ghi nhận đây là giới hạn. Chi tiết ở mục 8 của [báo cáo Task 4.0](4_0_processed_data.md).
 - Chưa thể kết luận graph không giúp ích: mới chạy một cấu hình mặc định, chưa tinh chỉnh.
 - Early stopping theo Macro-F1 validation nhiễu, kết quả từng seed lệch nhau nhiều.
 - Chưa có thí nghiệm giữ so với bỏ hoặc cắt graph quá lớn.
