@@ -119,7 +119,7 @@ Trên **7.799 mẫu hợp lệ**, hai protocol dùng cùng tập source:
 | Legacy | 3 / 6 / 3 | 3 / 6 / 3 |
 | PrimeVul | 6 / 12 / 6 | 6 / 12 / 6 |
 
-Sáu nhóm PrimeVul đều có hai thành viên, tổng 6 mẫu dư, không xung đột CWE; so Legacy tăng 3 nhóm/6 mẫu/3 cặp. Có **3 nhóm `legacy_subgroups=2`**: mỗi nhóm chứa hai lớp source Legacy riêng biệt, mỗi lớp có một mẫu, không phải hợp nhất hai nhóm duplicate Legacy. Trên manifest **9.077 mẫu**, Legacy có 6 nhóm/12 mẫu/6 cặp, khớp Task 2.3 và không xuyên split; PrimeVul có 10 nhóm/20 mẫu/10 cặp.
+Sáu nhóm PrimeVul đều có hai thành viên, tổng 6 mẫu dư, không xung đột CWE; so Legacy tăng 3 nhóm/6 mẫu/3 cặp. Có **3 nhóm `legacy_subgroups=2`**: mỗi nhóm chứa hai lớp source Legacy riêng biệt, mỗi lớp có một mẫu, không phải hợp nhất hai nhóm duplicate Legacy. Trên manifest **9.077 mẫu**, Legacy có 6 nhóm/12 mẫu/6 cặp, khớp Task 2.3 và không xuyên split; PrimeVul có 10 nhóm/20 mẫu/10 cặp, trong đó có **hai nhóm xuyên split ở seen_project**, một cặp train–validation và một cặp validation–test. Nhóm train–validation không còn ở cohort 7.799 mẫu vì một thành viên bị loại ở Task 3.3, nên không mẫu nào của nhóm đó từng vào thực nghiệm.
 
 | Protocol / loại cặp PrimeVul | Nhóm xuyên split | Mẫu ảnh hưởng | Cặp |
 | --- | ---: | ---: | ---: |
@@ -230,4 +230,6 @@ python scripts/audit_function_leakage.py --output-dir reports/graph/4_4_leakage_
 python -m pytest tests/test_data -ra
 ```
 
-Mã thoát CLI: **0** không có cặp xuyên split theo phép đo; **1** có cặp PrimeVul xuyên split; **2** BLOCKED, không kết luận sạch. File có trước lỗi chỉ là kết quả trung gian; luôn đọc trạng thái cuối trong `input_validation.json`. Source review là bước riêng sau phát hiện tự động. Không ghi đè bộ artifact đã nghiệm thu.
+Mã thoát CLI: **0** không có cặp xuyên split theo phép đo; **1** có cặp PrimeVul xuyên split; **2** BLOCKED, không kết luận sạch. File có trước lỗi chỉ là kết quả trung gian; luôn đọc trạng thái cuối trong `input_validation.json`.
+
+Lưu ý khi đọc artifact đã nghiệm thu: trong bản đã lưu, trường `status` mang kết luận về rò rỉ chứ không phải kết quả kiểm tra đầu vào. Phần kiểm tra đầu vào của lần chạy đó đạt hoàn toàn, thể hiện ở `missing_failed_ids` bằng 0, `metadata_mismatches` bằng 0 và các số split khớp manifest. Để tránh hiểu nhầm, CLI nay ghi hai trường riêng là `leakage_verdict` và `input_validation`. Bộ artifact cũ giữ nguyên từng byte vì acceptance.json đã ghi sha256 của chúng. Source review là bước riêng sau phát hiện tự động. Không ghi đè bộ artifact đã nghiệm thu.

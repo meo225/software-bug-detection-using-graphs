@@ -171,6 +171,7 @@ Không có bước nào chọn cấu hình hay chọn epoch theo test. Lần ch�
 
 ## 8. Giới hạn
 
+- **Rò rỉ giữa validation và test của `seen_project`.** Task 4.4 kiểm tra trùng lặp theo cách chuẩn hóa của PrimeVul và tìm được một cặp hàm trùng nhau nằm ở hai tập, gồm `row-4156` ở validation và `row-4152` ở test, cùng nhãn CWE-125 và chỉ khác cách thụt lề. Tương đương 1 trên 763 mẫu test, tức 0,13 phần trăm. Protocol `project_wise` không bị ảnh hưởng. Nhóm giữ nguyên kết quả đã chạy và ghi nhận đây là giới hạn. Chi tiết ở mục 8 của [báo cáo Task 4.0](4_0_processed_data.md).
 - **Vẫn chỉ đọc 54,1% lượng token** ở bản tốt nhất. So sánh với baseline token, vốn đọc toàn bộ hàm, vì thế vẫn chưa hoàn toàn công bằng. Đường cong độ phủ cho thấy phải lên 6 đoạn mới đạt khoảng 87% số hàm không bị cắt.
 - **Ba seed là quá ít.** Mọi kết luận ở đây là mô tả, không phải kiểm định thống kê.
 - **Ngân sách epoch chặn bản 4 đoạn.** Nhiều lần chạy chạm trần 10 epoch mà validation vẫn đang lên, nên 0,1008 là chặn dưới chứ chưa phải trần của cấu hình này.

@@ -189,6 +189,7 @@ So với Graph A ở Task 4.1b, GGNN trên Graph B tốn hơn đáng kể: VRAM 
 
 ## 4. Giới hạn
 
+- **Rò rỉ giữa validation và test của `seen_project`.** Task 4.4 kiểm tra trùng lặp theo cách chuẩn hóa của PrimeVul và tìm được một cặp hàm trùng nhau nằm ở hai tập, gồm `row-4156` ở validation và `row-4152` ở test, cùng nhãn CWE-125 và chỉ khác cách thụt lề. Tương đương 1 trên 763 mẫu test, tức 0,13 phần trăm. Protocol `project_wise` không bị ảnh hưởng. Nhóm giữ nguyên kết quả đã chạy và ghi nhận đây là giới hạn. Chi tiết ở mục 8 của [báo cáo Task 4.0](4_0_processed_data.md).
 - Tiêu chí lựa chọn chỉ dựa trên validation của một protocol, trong khi phân tích độ nhạy cho thấy tiêu chí này tương quan yếu với test. Kết quả chính thức của task vẫn là cấu hình L1, nhưng không nên diễn giải là cấu hình tốt nhất.
 - Ngân sách tinh chỉnh là 7 cấu hình, mỗi cấu hình chỉ đổi một yếu tố. Không khảo sát tương tác giữa các yếu tố, không tinh chỉnh learning rate hay batch size.
 - Mỗi cấu hình chỉ có 3 seed, nên độ lệch chuẩn ước lượng thô và chưa có kiểm định thống kê hay khoảng tin cậy bootstrap. Phần này để sang Task 5.1.

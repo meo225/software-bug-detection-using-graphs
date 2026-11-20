@@ -38,7 +38,9 @@ def main(argv: list[str] | None = None) -> int:
     def save(name: str, payload: dict) -> None:
         (out/name).write_text(json.dumps(payload, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
 
-    validation = {'status': 'BLOCKED'}
+    # 'leakage_verdict' là kết luận về rò rỉ, 'input_validation' là kết quả kiểm tra đầu vào.
+    # Hai việc khác nhau, nên tách hẳn thay vì gộp vào một trường 'status' chung.
+    validation = {'leakage_verdict': 'BLOCKED', 'input_validation': 'BLOCKED'}
     provenance = {'python': platform.python_version(), 'normalization': 'delete ASCII space, TAB, LF, CR only',
                   'row_id': 'zero-based nonblank JSON object index',
                   'paper': 'https://arxiv.org/html/2403.18624v2#S3.SS1', 'inputs': {}}
@@ -93,12 +95,14 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError('legacy cross-split result differs from Task 2.3')
         leaking = any(r['duplicate_pairs'] for r in tables['cross_split_leakage']
                       if r['cohort'] == 'valid' and r['method'] == 'primevul' and r['split_pair'] == 'all_cross_split')
-        validation.update(status='FAIL' if leaking else 'PASS', audit_execution='PASS',
+        validation.update(leakage_verdict='FAIL' if leaking else 'PASS',
+                          input_validation='PASS', audit_execution='PASS',
                           review_status='PENDING' if leaking else 'NOT_REQUIRED',
                           conclusion='Cross-split normalized matches require source review' if leaking else 'No cross-split matches under this normalization')
         code = 1 if leaking else 0
     except (OSError, ValueError, KeyError, UnicodeError) as error:
-        validation.update(status='BLOCKED', error=str(error), conclusion='No full-audit conclusion')
+        validation.update(leakage_verdict='BLOCKED', input_validation='BLOCKED',
+                          error=str(error), conclusion='No full-audit conclusion')
         code = 2
     save('provenance.json', provenance)
     save('input_validation.json', validation)
