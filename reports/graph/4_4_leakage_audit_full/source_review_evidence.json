@@ -1,0 +1,32 @@
+{
+  "classification": "confirmed_formatting_only_duplicate",
+  "review_method": "Read both complete sources and unified line diff; verify equality after leading ASCII space/TAB removal on each corresponding line",
+  "line_count": 56,
+  "different_lines": 37,
+  "same_after_leading_indent_removal": true,
+  "samples": [
+    {
+      "sample_id": "row-4152",
+      "physical_line": 4153,
+      "function": "_gdContributionsCalc",
+      "project": "libgd",
+      "commit_id": "4f65a3e4eedaffa1efcf9ee1eb08f0b504fbc31a",
+      "cwe": [
+        "CWE-125"
+      ],
+      "raw_source_sha256": "d56277de25034ba6636d47ec71ad146e802d91f1277a3f518b4083eea58e57c1"
+    },
+    {
+      "sample_id": "row-4156",
+      "physical_line": 4157,
+      "function": "_gdContributionsCalc",
+      "project": "php-src",
+      "commit_id": "7a1aac3343af85b4af4df5f8844946eaa27394ab",
+      "cwe": [
+        "CWE-125"
+      ],
+      "raw_source_sha256": "1c1fe25c016f77fb4232cff881e427c46b2f4ad84c706aff67e7c8c6c8df4fcb"
+    }
+  ],
+  "port_evidence": "The raw row-4156 commit message says the fix was ported from libgd commit 4f65a3e4eedaffa1efcf9ee1eb08f0b504fbc31a; this is local dataset metadata, not independently verified upstream."
+}

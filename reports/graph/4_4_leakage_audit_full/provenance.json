@@ -1,0 +1,87 @@
+{
+  "python": "3.14.5",
+  "normalization": "delete ASCII space, TAB, LF, CR only",
+  "row_id": "zero-based nonblank JSON object index",
+  "paper": "https://arxiv.org/html/2403.18624v2#S3.SS1",
+  "inputs": {
+    "manifest": {
+      "path": "data/splits/diversevul_experiment_manifest.csv",
+      "bytes": 938231,
+      "sha256": "115ac99154e23262b628f69d604aefdff9206cfc6a335ac254f1a6ae070de56f"
+    },
+    "failed": {
+      "path": "reports/graph/3_3_failed_samples.csv",
+      "bytes": 327696,
+      "sha256": "f5becc16aec2e222b269be21849df58e8c8b7664ef989a4e963ed9ba048a3f5f"
+    },
+    "project_wise/train": {
+      "path": "data/splits/diversevul_project_wise/train.txt",
+      "bytes": 65233,
+      "sha256": "7ea7b76dfbe898c4ab8b9d9276bf3708358be6123afba69c9a03dbffae314197"
+    },
+    "project_wise/validation": {
+      "path": "data/splits/diversevul_project_wise/validation.txt",
+      "bytes": 9811,
+      "sha256": "ad365c2f9677ab98cae68c0dd95c3e6c8624782c624e4c710feda41a3a935505"
+    },
+    "project_wise/test": {
+      "path": "data/splits/diversevul_project_wise/test.txt",
+      "bytes": 9894,
+      "sha256": "f13de9da3046122a058d110fefd10b191035b99dac8adb9a44f0bfbb053335a8"
+    },
+    "seen_project/train": {
+      "path": "data/splits/diversevul_seen_project/train.txt",
+      "bytes": 67964,
+      "sha256": "9039fe57ca2a19e9f808dd4c75bc537eecb7e12321e740b8112259b8df8a17ea"
+    },
+    "seen_project/validation": {
+      "path": "data/splits/diversevul_seen_project/validation.txt",
+      "bytes": 8431,
+      "sha256": "fc1bf73d0f465fd87691a86b8ffd98f1e027f091036e90884b3fb52401730a40"
+    },
+    "seen_project/test": {
+      "path": "data/splits/diversevul_seen_project/test.txt",
+      "bytes": 8543,
+      "sha256": "e3d62be486e4ca048b7a2ea6629c69aa40b1c3f2ae61fe0e2de58152e9acb091"
+    },
+    "dataset": {
+      "path": "data/raw/diversevul/diversevul.jsonl",
+      "bytes": 736915162,
+      "sha256": "7937c26003c4c24a396747432487e8abdd1c4622b5547ae93855bee15266bd57"
+    },
+    "raw_reference": {
+      "path": "reports/dataset/tables/audit_status.json",
+      "bytes": 608,
+      "sha256": "72078ae2b5293fb2f3a8387f55dd75859fb2914456f3bce324b943042c4baa55"
+    },
+    "legacy_reference": {
+      "path": "data/splits/diversevul_split_report.json",
+      "bytes": 13651,
+      "sha256": "4c90bde0f8e6a977cb92d21d829fe74950f2de83516b78b798db3e8af8c0c5ae"
+    }
+  },
+  "git_sha": "2f2638a6e7328c8d5ff67417bf9464d0e080a7be",
+  "audit_code": {
+    "scripts\\audit_function_leakage.py": {
+      "path": "scripts\\audit_function_leakage.py",
+      "bytes": 6431,
+      "sha256": "4497fe3f43ebfff0d24274fa019003bbd071a07c42c748c956756f4fb7246905"
+    },
+    "src\\data\\function_leakage_audit.py": {
+      "path": "src\\data\\function_leakage_audit.py",
+      "bytes": 10219,
+      "sha256": "6f3cc54e7ad556db5a8e58fc04715b35f52ba89a4dc263b3eaf4523150fe65d3"
+    },
+    "src\\data\\preprocessing.py": {
+      "path": "src\\data\\preprocessing.py",
+      "bytes": 1224,
+      "sha256": "89823c80182e6664d48675c1391db67377e43f4c0019a3b6a35427393976441a"
+    },
+    "tests\\test_data\\test_function_leakage_audit.py": {
+      "path": "tests\\test_data\\test_function_leakage_audit.py",
+      "bytes": 7311,
+      "sha256": "400804a9ef5ec3ff6231a6e091cee15109c3f58c203839cfa72382c94c222586"
+    }
+  },
+  "execution_note": "CLI exit code 1 means normalized leakage detected, audit_execution PASS. cross_split_review and input_validation review fields finalized after local source review; mechanical counts unchanged."
+}

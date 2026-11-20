@@ -1,0 +1,13 @@
+cohort,method,protocol,split,duplicate_groups,affected_samples,excess_samples,duplicate_pairs
+manifest,raw,project_wise,all,0,0,0,0
+manifest,raw,seen_project,all,0,0,0,0
+manifest,legacy,project_wise,all,6,12,6,6
+manifest,legacy,seen_project,all,6,12,6,6
+manifest,primevul,project_wise,all,10,20,10,10
+manifest,primevul,seen_project,all,10,20,10,10
+valid,raw,project_wise,all,0,0,0,0
+valid,raw,seen_project,all,0,0,0,0
+valid,legacy,project_wise,all,3,6,3,3
+valid,legacy,seen_project,all,3,6,3,3
+valid,primevul,project_wise,all,6,12,6,6
+valid,primevul,seen_project,all,6,12,6,6

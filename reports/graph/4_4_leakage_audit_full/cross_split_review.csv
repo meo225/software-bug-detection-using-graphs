@@ -1,0 +1,2 @@
+protocol,group_hash,sample_ids,classification,reason
+seen_project,9ba58fa85fe03bfd8a5abadbb2dc46d953f4aefbe5e41a84dae1ff7a617f0655,row-4152|row-4156,confirmed_formatting_only_duplicate,"Manual source diff reviewed: all 56 corresponding lines identical after removing leading space/TAB only; no literal/token/comment changes. Raw php-src commit message identifies a libgd port. seen_project validation=row-4156, test=row-4152; same CWE-125."

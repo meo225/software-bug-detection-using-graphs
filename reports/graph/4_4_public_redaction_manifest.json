@@ -1,0 +1,157 @@
+{
+  "schema_version": "task44-public-redaction-v1",
+  "scope": "Public derivatives with path redaction, exact historical-source recovery metadata and omission of historical BLOCKED files. No audit, preprocessing, training or scientific-result modification.",
+  "original_evidence": "Original bytes are retained privately outside every repository/worktree; originals are not included in this public snapshot.",
+  "verification_policy": "Original artifact fingerprints identify historical evidence. Public artifact fingerprints identify redacted derivatives and refreshed public checksum references. Historical test results remain historical.",
+  "reference_order": [
+    "provenance.json",
+    "acceptance.json",
+    "cleanup addendum",
+    "redaction manifest"
+  ],
+  "artifacts": [
+    {
+      "path": "reports/graph/4_4_cleanup_provenance_addendum.json",
+      "original": {
+        "bytes": 41454,
+        "sha256": "8071b2e7e7d0ec18c8631414ab081a2d195bebaef23b82f2556cd8957bfb91e8"
+      },
+      "public": {
+        "bytes": 7543,
+        "sha256": "76683f141160e2885062ea682b15b629db628216171357e4f87d45399c558cd5"
+      },
+      "fields_changed": [
+        "/approved_changes",
+        "/authorization",
+        "/date",
+        "/git_status_before",
+        "/historical_audited_code/scripts/audit_function_leakage.py/content_base64",
+        "/historical_audited_code/scripts/audit_function_leakage.py/content_encoding",
+        "/historical_audited_code/scripts/audit_function_leakage.py/recovery",
+        "/historical_audited_code/src/data/function_leakage_audit.py/content_base64",
+        "/historical_audited_code/src/data/function_leakage_audit.py/content_encoding",
+        "/historical_audited_code/src/data/function_leakage_audit.py/recovery",
+        "/historical_audited_code/src/data/preprocessing.py/content_base64",
+        "/historical_audited_code/src/data/preprocessing.py/content_encoding",
+        "/historical_audited_code/src/data/preprocessing.py/git_reference",
+        "/historical_audited_code/tests/test_data/test_function_leakage_audit.py/content_base64",
+        "/historical_audited_code/tests/test_data/test_function_leakage_audit.py/content_encoding",
+        "/historical_audited_code/tests/test_data/test_function_leakage_audit.py/recovery",
+        "/protected_audit_artifacts/reports/graph/4_4_leakage_audit/input_validation.json",
+        "/protected_audit_artifacts/reports/graph/4_4_leakage_audit/provenance.json",
+        "/protected_audit_artifacts/reports/graph/4_4_leakage_audit_full/acceptance.json/bytes",
+        "/protected_audit_artifacts/reports/graph/4_4_leakage_audit_full/acceptance.json/sha256",
+        "/protected_audit_artifacts/reports/graph/4_4_leakage_audit_full/provenance.json/bytes",
+        "/protected_audit_artifacts/reports/graph/4_4_leakage_audit_full/provenance.json/sha256",
+        "/public_provenance",
+        "/public_redaction",
+        "/recovery_instructions",
+        "/report_before",
+        "/schema_version",
+        "/status",
+        "/verification/approved_diff",
+        "/verification/ast_equivalence",
+        "/verification/audit_conclusion",
+        "/verification/changed_file_whitespace",
+        "/verification/cleanup_tests",
+        "/verification/dataset_git_ignored_and_not_staged",
+        "/verification/git_diff_check",
+        "/verification/git_status_scope",
+        "/verification/historical_code_vs_working_tree",
+        "/verification/historical_provenance_and_acceptance",
+        "/verification/historical_source_recovery",
+        "/verification/protected_audit_artifacts_unchanged",
+        "/verification/python_3_10_syntax",
+        "/verification/recovery_instructions",
+        "/verification/report_unchanged",
+        "/verification/scope",
+        "/verification/tests"
+      ],
+      "method": "Redact local paths; replace historical Base64 source storage with fingerprint-verified exact recovery instructions; retain necessary provenance and public artifact references."
+    },
+    {
+      "path": "reports/graph/4_4_leakage_audit_full/acceptance.json",
+      "original": {
+        "bytes": 2924,
+        "sha256": "cc7d7355a42824bae57b02ae32b98797029602b8ede25561a57ac48750156e57"
+      },
+      "public": {
+        "bytes": 2897,
+        "sha256": "ce2d817bf5c47f1ecfcda88b79e31115ad0a9c2d5885f08df969be471b4269ed"
+      },
+      "fields_changed": [
+        "/files/provenance.json/bytes",
+        "/files/provenance.json/sha256",
+        "/note",
+        "/tests/command"
+      ],
+      "method": "Redact the interpreter path, refresh the public provenance fingerprint and clarify private retention of omitted historical BLOCKED evidence; preserve all acceptance results."
+    },
+    {
+      "path": "reports/graph/4_4_leakage_audit_full/provenance.json",
+      "original": {
+        "bytes": 4269,
+        "sha256": "ef1fc35f58c86e17b1143bb938c04fce97d5d2984c3dcefb9180f2a5564102e4"
+      },
+      "public": {
+        "bytes": 3623,
+        "sha256": "deb7ed3dbb5bcefb1bcb6e08513d271092dd2c22a479e07617ae2619d6c6c6be"
+      },
+      "fields_changed": [
+        "/inputs/manifest/path",
+        "/inputs/failed/path",
+        "/inputs/project_wise/train/path",
+        "/inputs/project_wise/validation/path",
+        "/inputs/project_wise/test/path",
+        "/inputs/seen_project/train/path",
+        "/inputs/seen_project/validation/path",
+        "/inputs/seen_project/test/path",
+        "/inputs/dataset/path",
+        "/inputs/raw_reference/path",
+        "/inputs/legacy_reference/path"
+      ],
+      "method": "Replace confirmed local paths with repository-relative paths or portable python; update dependent public fingerprints only."
+    },
+    {
+      "path": "notebooks/01_dataset_overview.ipynb",
+      "original": {
+        "bytes": 18810,
+        "sha256": "88dde40e0303f54d29d4403881a508d8a5bf033d253f5b0449ff90c969cb8ef0"
+      },
+      "public": {
+        "bytes": 18550,
+        "sha256": "6686b3a0ff8c705882b798d76d35de7eceb74b44aeb63857d36c41abc5c29ed1"
+      },
+      "fields_changed": [
+        "/cells/2/outputs/0/text/3",
+        "/cells/4/outputs/0/text/0",
+        "/cells/18/outputs/0/text/0",
+        "/cells/18/outputs/0/text/1",
+        "/cells/18/outputs/0/text/2"
+      ],
+      "method": "Replace local repository prefix in output strings only; code cells and all other outputs unchanged."
+    },
+    {
+      "path": "notebooks/01_diversevul_eda.ipynb",
+      "original": {
+        "bytes": 138756,
+        "sha256": "22c4a8c4dee152f812c5f505de839867b2f0ed0256b7b5b7af5849784f21e40a"
+      },
+      "public": {
+        "bytes": 138552,
+        "sha256": "8e28e60b21b3c73d2b972958c26f223f6aa40b9d58f8b0d8053449a91b1a0186"
+      },
+      "fields_changed": [
+        "/cells/2/outputs/0/text/0",
+        "/cells/2/outputs/0/text/1",
+        "/cells/4/outputs/0/text/0",
+        "/cells/30/outputs/0/text/0"
+      ],
+      "method": "Replace local repository prefix in output strings only; code cells and all other outputs unchanged."
+    }
+  ],
+  "excluded_historical_artifacts": [
+    "reports/graph/4_4_leakage_audit/input_validation.json",
+    "reports/graph/4_4_leakage_audit/provenance.json"
+  ]
+}

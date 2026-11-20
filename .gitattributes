@@ -8,3 +8,17 @@
 # Native CSV CRLF terminators are not trailing whitespace.
 /reports/graph/4_1c_results/L1/results.csv whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /reports/graph/4_1c_results/L1/per_class.csv whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Preserve verified Task 4.4 evidence bytes.
+/reports/graph/4_4_leakage_audit_full/acceptance.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/cross_split_leakage.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/cross_split_review.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/duplicate_groups.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/duplicate_members.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/duplicate_summary.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/input_validation.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/legacy_comparison.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/provenance.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/sample_hashes.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_leakage_audit_full/source_review_evidence.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reports/graph/4_4_download_verification.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
